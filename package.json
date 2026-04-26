@@ -1,0 +1,76 @@
+{
+  "name": "trn-platform",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "pnpm -r test",
+    "test:watch": "pnpm -r test:watch",
+    "test:coverage": "pnpm -r test:coverage",
+    "test:all": "./scripts/test-all.sh",
+    "test:visual": "playwright test",
+    "test:visual:update": "playwright test --update-snapshots",
+    "test:visual:ui": "playwright test --ui",
+    "build": "pnpm -r --filter=!@trn-platform/component-demo build",
+    "build:all": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "server:dev": "tsx watch server/src/index.ts",
+    "server:build": "tsup server/src/index.ts --format esm --dts --clean --outDir server/dist",
+    "db:migrate": "tsx server/db/migrate.ts",
+    "db:seed": "sqlcmd -d qc_training -i server/db/seed.sql",
+    "dev": "concurrently \"pnpm server:dev\" \"pnpm storybook\""
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.29.7",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.10",
+    "@mui/material": "^7.3.9",
+    "@playwright/test": "^1.59.1",
+    "@storybook/addon-a11y": "^10.3.4",
+    "@storybook/addon-docs": "^10.3.4",
+    "@storybook/addon-themes": "^10.3.4",
+    "@storybook/addon-vitest": "^10.3.4",
+    "@storybook/react-vite": "^10.3.4",
+    "@tanstack/react-query": "^5.96.2",
+    "@types/express": "^5.0.2",
+    "@types/react": "19.2.14",
+    "@vitest/coverage-v8": "^4.1.2",
+    "concurrently": "^9.1.2",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "mssql": "^12.5.0",
+    "msw": "^2.13.2",
+    "msw-storybook-addon": "^2.0.7",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "storybook": "^10.3.4",
+    "tsup": "^8.5.1",
+    "tsx": "^4.19.4",
+    "vite": "^8.0.3",
+    "vitest": "^4.1.2"
+  },
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "react": "19.2.4",
+      "react-dom": "19.2.4",
+      "@types/react": "19.2.14",
+      "@tanstack/react-query": "5.96.2"
+    }
+  },
+  "msw": {
+    "workerDirectory": [
+      ".storybook/public"
+    ]
+  }
+}

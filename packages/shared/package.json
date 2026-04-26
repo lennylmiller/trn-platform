@@ -1,0 +1,38 @@
+{
+  "name": "@trn-platform/shared",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./db": {
+      "types": "./src/db/index.ts",
+      "import": "./src/db/index.ts"
+    }
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "prepublishOnly": "pnpm build"
+  },
+  "dependencies": {
+    "mssql": "^12.5.0",
+    "zod": "4.1.12"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.1.2",
+    "typescript": "5.9.3",
+    "vitest": "4.1.2"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist", "src", "README.md"],
+  "description": "TRN Platform - Shared schemas, types, constants, and utilities",
+  "license": "MIT"
+}

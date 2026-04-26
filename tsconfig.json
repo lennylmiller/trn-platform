@@ -1,0 +1,25 @@
+{
+  "extends": "./tsconfig.base.json",
+  "references": [
+    { "path": "packages/shared" },
+    { "path": "packages/steps/server" },
+    { "path": "packages/steps/data-access" },
+    { "path": "packages/steps/feature" },
+    { "path": "packages/steps/ui-mui" },
+    { "path": "packages/flows/server" },
+    { "path": "packages/flows/data-access" },
+    { "path": "packages/flows/feature" },
+    { "path": "packages/flows/ui-mui" },
+    { "path": "packages/compositions/server" },
+    { "path": "packages/compositions/data-access" },
+    { "path": "packages/compositions/feature" },
+    { "path": "packages/compositions/ui-mui" },
+    { "path": "packages/execution/server" },
+    { "path": "packages/execution/data-access" },
+    { "path": "packages/execution/feature" },
+    { "path": "packages/execution/ui-mui" },
+    { "path": "apps/component-demo" },
+    { "path": "server" }
+  ],
+  "include": []
+}

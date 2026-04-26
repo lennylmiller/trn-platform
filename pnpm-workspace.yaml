@@ -1,0 +1,8 @@
+packages:
+  - 'packages/*'
+  - 'packages/*/server'
+  - 'packages/*/feature'
+  - 'packages/*/data-access'
+  - 'packages/*/ui-mui'
+  - 'apps/*'
+  - 'server'

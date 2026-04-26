@@ -1,0 +1,37 @@
+{
+  "name": "@trn-platform/flows-data-access",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean"
+  },
+  "dependencies": {
+    "@trn-platform/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@tanstack/react-query": "^5.96.2",
+    "@testing-library/react": "^16.3.0",
+    "@types/react": "19.2.14",
+    "@vitest/coverage-v8": "^4.1.2",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "typescript": "5.9.3",
+    "vitest": "4.1.2"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.96.2",
+    "react": "^19.0.0"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts"
+}

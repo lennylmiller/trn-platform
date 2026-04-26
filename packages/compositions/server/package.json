@@ -1,0 +1,36 @@
+{
+  "name": "@trn-platform/compositions-server",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean"
+  },
+  "dependencies": {
+    "@trn-platform/shared": "workspace:*",
+    "zod": "4.1.12"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.2",
+    "@types/supertest": "^6.0.2",
+    "@vitest/coverage-v8": "^4.1.2",
+    "supertest": "^7.1.0",
+    "typescript": "5.9.3",
+    "vitest": "4.1.2"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "peerDependencies": {
+    "express": "^5.1.0",
+    "mssql": "^12.5.0"
+  }
+}

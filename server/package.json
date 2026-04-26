@@ -1,0 +1,23 @@
+{
+  "name": "@trn-platform/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@trn-platform/steps-server": "workspace:*",
+    "@trn-platform/flows-server": "workspace:*",
+    "@trn-platform/compositions-server": "workspace:*",
+    "@trn-platform/execution-server": "workspace:*",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "mssql": "^12.5.0",
+    "zod": "4.1.12"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.18",
+    "@types/express": "^5.0.2",
+    "tsx": "^4.19.4",
+    "typescript": "5.9.3"
+  }
+}
