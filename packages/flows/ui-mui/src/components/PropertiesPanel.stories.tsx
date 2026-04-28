@@ -20,7 +20,7 @@ const baseStep: FlowStep = {
 };
 
 const meta: Meta<typeof PropertiesPanel> = {
-  title: 'Flows/PropertiesPanel',
+  title: 'Domains/Flows/PropertiesPanel',
   component: PropertiesPanel,
   tags: ['autodocs'],
   args: {

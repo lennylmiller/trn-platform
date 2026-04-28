@@ -41,7 +41,7 @@ function createQueryClient() {
 }
 
 const meta: Meta<typeof FlowListTab> = {
-  title: 'Flows/FlowListTab',
+  title: 'Domains/Flows/FlowListTab',
   component: FlowListTab,
   decorators: [
     (Story) => (

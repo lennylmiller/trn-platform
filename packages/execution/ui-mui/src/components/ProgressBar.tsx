@@ -1,4 +1,3 @@
-import React from 'react';
 import Box from '@mui/material/Box';
 import LinearProgress from '@mui/material/LinearProgress';
 import Stack from '@mui/material/Stack';
@@ -36,15 +35,23 @@ export function ProgressBar({ current, total, status }: ProgressBarProps) {
 
   return (
     <Stack spacing={0.5}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center">
-        <Typography variant="body2" color="text.secondary">
+      <Stack
+        direction="row"
+        sx={{
+          justifyContent: "space-between",
+          alignItems: "center"
+        }}>
+        <Typography variant="body2" sx={{
+          color: "text.secondary"
+        }}>
           Step {current} of {total}
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" sx={{
+          color: "text.secondary"
+        }}>
           {Math.round(percent)}%
         </Typography>
       </Stack>
-
       <Box sx={{ width: '100%' }}>
         <LinearProgress
           variant="determinate"
@@ -61,10 +68,15 @@ export function ProgressBar({ current, total, status }: ProgressBarProps) {
           }}
         />
       </Box>
-
       {/* Step indicator dots */}
       {total <= 20 && total > 0 && (
-        <Stack direction="row" spacing={0.5} justifyContent="center" sx={{ mt: 0.5 }}>
+        <Stack
+          direction="row"
+          spacing={0.5}
+          sx={{
+            justifyContent: "center",
+            mt: 0.5
+          }}>
           {Array.from({ length: total }, (_, i) => {
             let dotColor: string;
             if (i < current) {

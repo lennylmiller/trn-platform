@@ -1,86 +1,36 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import {
-  Box, Typography, Card, CardContent, Stack, Chip, Button, Dialog, DialogTitle, DialogContent,
-  DialogContentText, DialogActions, Alert,
-} from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import { mockSteps } from '../../mocks/mockData';
-import { STEP_TYPE_COLORS } from '@trn-platform/shared';
+import { within, userEvent } from 'storybook/test';
 
-const DeleteStep = () => {
-  const step = mockSteps[4]; // Reset training environment (not a seed)
-  const [dialogOpen, setDialogOpen] = React.useState(false);
-  const [deleted, setDeleted] = React.useState(false);
-
+function DeleteStep() {
   return (
-    <Box sx={{ p: 3, maxWidth: 600 }}>
-      <Typography variant="h5" gutterBottom>Delete Step</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Remove an unused step from the library. Seed steps cannot be deleted.
-      </Typography>
-
-      {deleted ? (
-        <Alert severity="info">Step &quot;{step.label}&quot; has been deleted.</Alert>
-      ) : (
-        <>
-          <Card variant="outlined" sx={{ mb: 2 }}>
-            <CardContent>
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                <Chip label={step.type} size="small" sx={{ bgcolor: STEP_TYPE_COLORS[step.type], color: '#fff' }} />
-                <Typography variant="subtitle1" fontWeight={600}>{step.label}</Typography>
-              </Stack>
-              <Typography variant="body2" color="text.secondary">{step.description}</Typography>
-              <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                <Chip label={`ID: ${step.step_id}`} size="small" variant="outlined" />
-                <Chip label={step.is_seed ? 'Seed (protected)' : 'User-created'} size="small" color={step.is_seed ? 'warning' : 'default'} />
-              </Stack>
-            </CardContent>
-          </Card>
-          <Button
-            variant="outlined"
-            color="error"
-            startIcon={<DeleteIcon />}
-            onClick={() => setDialogOpen(true)}
-            disabled={step.is_seed}
-          >
-            Delete Step
-          </Button>
-
-          <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
-            <DialogTitle>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <WarningAmberIcon color="error" />
-                <span>Confirm Deletion</span>
-              </Stack>
-            </DialogTitle>
-            <DialogContent>
-              <DialogContentText>
-                Are you sure you want to delete &quot;{step.label}&quot;? This action cannot be undone.
-                Any flows using this step will need to be updated.
-              </DialogContentText>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
-              <Button color="error" variant="contained" onClick={() => { setDialogOpen(false); setDeleted(true); }}>
-                Delete
-              </Button>
-            </DialogActions>
-          </Dialog>
-        </>
-      )}
-    </Box>
+    <div style={{ padding: '2rem', border: '2px dashed #ccc', borderRadius: 8, textAlign: 'center' }}>
+      <h3>UC-STEP-6: Delete Step</h3>
+      <p style={{ color: '#666' }}>Component: StepListTab (packages/steps/ui-mui)</p>
+      <p style={{ color: '#999', fontSize: '0.875rem' }}>Will be wired to real component in implementation phase</p>
+    </div>
   );
-};
+}
 
-const meta: Meta = {
-  title: 'Workflows/Manage Steps/04 Delete Step',
+const meta = {
+  title: 'Workflows/WF5 Manage Steps/04 Delete Step',
   component: DeleteStep,
-  tags: ['wf-5', 'domain-steps'],
-};
-export default meta;
+  tags: ['wf-manage-steps', 'domain-steps', 'tier-core'],
+  parameters: { layout: 'centered' },
+} satisfies Meta<typeof DeleteStep>;
 
+export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await step('1. User clicks "Delete" on step card', async () => { /* TODO */ });
+    await step('2. System checks for flow_step references', async () => { /* TODO */ });
+    await step('3. If referenced: error "Cannot delete: N flow(s) reference this step"', async () => { /* TODO */ });
+    await step('4. If not referenced: confirmation dialog shown', async () => { /* TODO */ });
+    await step('5. User confirms', async () => { /* TODO */ });
+    await step('6. DELETE /api/v2/steps/:id', async () => { /* TODO */ });
+    await step('7. Step removed from list', async () => { /* TODO */ });
+  },
+};

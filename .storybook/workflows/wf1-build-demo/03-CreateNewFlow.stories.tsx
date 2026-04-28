@@ -1,65 +1,49 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import { Box, Typography, TextField, Button, Card, CardContent, Stack, Alert } from '@mui/material';
+import { within, userEvent } from 'storybook/test';
 
-const CreateNewFlow = () => {
-  const [created, setCreated] = React.useState(false);
-  const [name, setName] = React.useState('');
-  const [description, setDescription] = React.useState('');
-
-  const handleCreate = () => {
-    setCreated(true);
-  };
-
+function CreateNewFlowPlaceholder() {
   return (
-    <Box sx={{ p: 3, maxWidth: 600 }}>
-      <Typography variant="h5" gutterBottom>Create New Flow</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Create an empty flow that you can populate with steps from the library.
-      </Typography>
-      {created ? (
-        <Alert severity="success" sx={{ mb: 2 }}>
-          Flow &quot;{name}&quot; created! Proceed to add steps.
-        </Alert>
-      ) : (
-        <Card variant="outlined">
-          <CardContent>
-            <Stack spacing={2}>
-              <TextField
-                label="Flow Name"
-                fullWidth
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g., New Hire Onboarding Demo"
-              />
-              <TextField
-                label="Description"
-                fullWidth
-                multiline
-                minRows={3}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="What does this flow demonstrate?"
-              />
-              <Button variant="contained" onClick={handleCreate} disabled={!name}>
-                Create Flow
-              </Button>
-            </Stack>
-          </CardContent>
-        </Card>
-      )}
-    </Box>
+    <div style={{ padding: '2rem', border: '2px dashed #ccc', borderRadius: 8, textAlign: 'center' }}>
+      <h3>UC-FLOW-2: Create Flow</h3>
+      <p style={{ color: '#666' }}>Component: FlowListTab (packages/flows/ui-mui)</p>
+      <p style={{ color: '#999', fontSize: '0.875rem' }}>
+        Will be wired to real component in implementation phase
+      </p>
+    </div>
   );
-};
+}
 
-const meta: Meta = {
-  title: 'Workflows/Build Demo/03 Create New Flow',
-  component: CreateNewFlow,
-  tags: ['wf-1', 'domain-flows'],
-};
+const meta = {
+  title: 'Workflows/WF1 Build Demo/03 Create New Flow',
+  component: CreateNewFlowPlaceholder,
+  tags: ['wf-build', 'domain-flows', 'tier-core'],
+  parameters: { layout: 'centered' },
+} satisfies Meta<typeof CreateNewFlowPlaceholder>;
+
 export default meta;
-
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await step('1. User clicks "+ New Flow" button', async () => {
+      // TODO: wire to real component
+    });
+    await step('2. System prompts for flow name and description', async () => {
+      // TODO: wire to real component
+    });
+    await step('3. User enters name (required)', async () => {
+      // TODO: wire to real component
+    });
+    await step('4. User enters description (optional)', async () => {
+      // TODO: wire to real component
+    });
+    await step('5. System calls POST /api/v2/flows', async () => {
+      // TODO: wire to real component
+    });
+    await step('6. Flow appears in list with 0 steps', async () => {
+      // TODO: wire to real component
+    });
+  },
+};

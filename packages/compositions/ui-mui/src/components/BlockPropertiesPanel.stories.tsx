@@ -21,7 +21,7 @@ const narrativeBlock: CompositionBlock = {
 };
 
 const meta: Meta<typeof BlockPropertiesPanel> = {
-  title: 'Compositions/BlockPropertiesPanel',
+  title: 'Domains/Compositions/BlockPropertiesPanel',
   component: BlockPropertiesPanel,
   tags: ['autodocs'],
   parameters: {

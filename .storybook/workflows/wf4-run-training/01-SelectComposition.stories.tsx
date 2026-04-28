@@ -1,58 +1,34 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import {
-  Box, Typography, Card, CardContent, CardActionArea, Stack, Chip, Radio, Button,
-} from '@mui/material';
-import { mockCompositionListItems } from '../../mocks/mockData';
-import { COMPOSITION_KIND_LABELS } from '@trn-platform/shared';
+import { within, userEvent } from 'storybook/test';
 
-const SelectComposition = () => {
-  const [selected, setSelected] = React.useState<number | null>(null);
-
+function SelectComposition() {
   return (
-    <Box sx={{ p: 3, maxWidth: 700 }}>
-      <Typography variant="h5" gutterBottom>Select Composition</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Pick a story, tutorial, or module to run as a training session.
-      </Typography>
-      <Stack spacing={2}>
-        {mockCompositionListItems.map((comp) => (
-          <Card
-            key={comp.composition_id}
-            variant="outlined"
-            sx={{ borderColor: selected === comp.composition_id ? 'primary.main' : undefined, borderWidth: selected === comp.composition_id ? 2 : 1 }}
-          >
-            <CardActionArea onClick={() => setSelected(comp.composition_id)}>
-              <CardContent>
-                <Stack direction="row" alignItems="center" spacing={2}>
-                  <Radio checked={selected === comp.composition_id} />
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="subtitle1" fontWeight={600}>{comp.title}</Typography>
-                    <Typography variant="body2" color="text.secondary">{comp.description}</Typography>
-                  </Box>
-                  <Stack spacing={0.5} alignItems="flex-end">
-                    <Chip label={COMPOSITION_KIND_LABELS[comp.kind]} size="small" color="info" />
-                    <Chip label={`${comp.block_count} blocks`} size="small" variant="outlined" />
-                    <Chip label={`${comp.flow_count} flows`} size="small" variant="outlined" />
-                  </Stack>
-                </Stack>
-              </CardContent>
-            </CardActionArea>
-          </Card>
-        ))}
-      </Stack>
-      <Button variant="contained" disabled={!selected} sx={{ mt: 3 }}>Start Session</Button>
-    </Box>
+    <div style={{ padding: '2rem', border: '2px dashed #ccc', borderRadius: 8, textAlign: 'center' }}>
+      <h3>UC-COMP-1: List Compositions</h3>
+      <p style={{ color: '#666' }}>Component: CompositionListTab (packages/compositions/ui-mui)</p>
+      <p style={{ color: '#999', fontSize: '0.875rem' }}>Will be wired to real component in implementation phase</p>
+    </div>
   );
-};
+}
 
-const meta: Meta = {
-  title: 'Workflows/Run Training/01 Select Composition',
+const meta = {
+  title: 'Workflows/WF4 Run Training/01 Select Composition',
   component: SelectComposition,
-  tags: ['wf-4', 'domain-compositions'],
-};
-export default meta;
+  tags: ['wf-run-training', 'domain-compositions', 'tier-core'],
+  parameters: { layout: 'centered' },
+} satisfies Meta<typeof SelectComposition>;
 
+export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await step('1. System loads compositions from GET /api/v2/compositions', async () => { /* TODO */ });
+    await step('2. Tabs display (Story/Tutorial/Module)', async () => { /* TODO */ });
+    await step('3. User selects a tab to filter by kind', async () => { /* TODO */ });
+    await step('4. CompositionCards show title, kind chip, block count, flow count', async () => { /* TODO */ });
+    await step('5. User clicks "Present" on desired composition', async () => { /* TODO */ });
+  },
+};

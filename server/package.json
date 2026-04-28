@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@trn-platform/shared": "workspace:*",
     "@trn-platform/steps-server": "workspace:*",
     "@trn-platform/flows-server": "workspace:*",
     "@trn-platform/compositions-server": "workspace:*",
@@ -17,6 +18,7 @@
   "devDependencies": {
     "@types/cors": "^2.8.18",
     "@types/express": "^5.0.2",
+    "@types/mssql": "^12.3.0",
     "tsx": "^4.19.4",
     "typescript": "5.9.3"
   }

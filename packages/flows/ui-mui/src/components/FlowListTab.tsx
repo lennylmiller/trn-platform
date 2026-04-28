@@ -1,4 +1,3 @@
-import React from 'react';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -22,7 +21,7 @@ function LoadingSkeleton() {
   return (
     <Grid container spacing={2}>
       {Array.from({ length: 4 }).map((_, i) => (
-        <Grid key={i} xs={12} sm={6} md={4}>
+        <Grid key={i} size={{ xs: 12, sm: 6, md: 4 }}>
           <Skeleton variant="rounded" height={180} />
         </Grid>
       ))}
@@ -36,8 +35,16 @@ export function FlowListTab({ onNewFlow, onOpenDev, onPresent, onDelete }: FlowL
   if (isLoading) {
     return (
       <Box>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-          <Typography variant="h5" fontWeight={600}>
+        <Stack
+          direction="row"
+          sx={{
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 3
+          }}>
+          <Typography variant="h5" sx={{
+            fontWeight: 600
+          }}>
             Flows
           </Typography>
           <Button variant="contained" startIcon={<AddIcon />} disabled>
@@ -52,8 +59,16 @@ export function FlowListTab({ onNewFlow, onOpenDev, onPresent, onDelete }: FlowL
   if (error) {
     return (
       <Box>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-          <Typography variant="h5" fontWeight={600}>
+        <Stack
+          direction="row"
+          sx={{
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 3
+          }}>
+          <Typography variant="h5" sx={{
+            fontWeight: 600
+          }}>
             Flows
           </Typography>
         </Stack>
@@ -68,21 +83,35 @@ export function FlowListTab({ onNewFlow, onOpenDev, onPresent, onDelete }: FlowL
 
   return (
     <Box>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-        <Typography variant="h5" fontWeight={600}>
+      <Stack
+        direction="row"
+        sx={{
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3
+        }}>
+        <Typography variant="h5" sx={{
+          fontWeight: 600
+        }}>
           Flows
         </Typography>
         <Button variant="contained" startIcon={<AddIcon />} onClick={onNewFlow}>
           New Flow
         </Button>
       </Stack>
-
       {flowList.length === 0 ? (
         <Box sx={{ textAlign: 'center', py: 8 }}>
-          <Typography variant="h6" color="text.secondary" gutterBottom>
+          <Typography variant="h6" gutterBottom sx={{
+            color: "text.secondary"
+          }}>
             No flows yet
           </Typography>
-          <Typography variant="body2" color="text.disabled" sx={{ mb: 3 }}>
+          <Typography
+            variant="body2"
+            sx={{
+              color: "text.disabled",
+              mb: 3
+            }}>
             Create your first flow to organize steps into a demo sequence.
           </Typography>
           <Button variant="outlined" startIcon={<AddIcon />} onClick={onNewFlow}>
@@ -92,7 +121,7 @@ export function FlowListTab({ onNewFlow, onOpenDev, onPresent, onDelete }: FlowL
       ) : (
         <Grid container spacing={2}>
           {flowList.map((flow) => (
-            <Grid key={flow.flow_id} xs={12} sm={6} md={4}>
+            <Grid key={flow.flow_id} size={{ xs: 12, sm: 6, md: 4 }}>
               <FlowCard
                 flow={flow}
                 onOpenDev={onOpenDev}

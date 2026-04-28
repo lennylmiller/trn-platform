@@ -1,56 +1,54 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import { Box, Typography, Stepper, Step, StepLabel, StepContent, Button, Paper } from '@mui/material';
+import { within, userEvent } from 'storybook/test';
 
 const workflowSteps = [
-  { label: 'Select Flow', description: 'Pick the flow you want to present from the flow library.' },
-  { label: 'Start Presentation', description: 'Enter run mode. The audience sees step progress and live output.' },
-  { label: 'Step Through With Pauses', description: 'Execution pauses at configured points. Continue when ready.' },
-  { label: 'View Results', description: 'Review execution results, display query output, and timing.' },
+  { id: 'UC-FLOW-1', title: 'Select Flow' },
+  { id: 'UC-FLOW-9', title: 'Start Presentation' },
+  { id: 'UC-EXEC-3/4', title: 'Step Through With Pauses' },
+  { id: 'UC-EXEC-7', title: 'View Results' },
 ];
 
-const PresentFlowFullFlow = () => {
-  const [activeStep, setActiveStep] = React.useState(0);
-
+function PresentFlowFullFlowPlaceholder() {
   return (
-    <Box sx={{ p: 3, maxWidth: 700 }}>
-      <Typography variant="h5" gutterBottom>Workflow 2: Present a Flow</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        End-to-end workflow for running a training flow as a live presentation.
-      </Typography>
-      <Stepper activeStep={activeStep} orientation="vertical">
-        {workflowSteps.map((step, index) => (
-          <Step key={step.label}>
-            <StepLabel>{step.label}</StepLabel>
-            <StepContent>
-              <Typography variant="body2" sx={{ mb: 2 }}>{step.description}</Typography>
-              <Box>
-                <Button variant="contained" size="small" onClick={() => setActiveStep(index + 1)} sx={{ mr: 1 }}>
-                  {index === workflowSteps.length - 1 ? 'Finish' : 'Continue'}
-                </Button>
-                {index > 0 && <Button size="small" onClick={() => setActiveStep(index - 1)}>Back</Button>}
-              </Box>
-            </StepContent>
-          </Step>
+    <div style={{ padding: '2rem', border: '2px dashed #ccc', borderRadius: 8, textAlign: 'center' }}>
+      <h3>WF2: Present Flow -- Full Flow</h3>
+      <ol style={{ paddingLeft: '1.5rem', lineHeight: 2, textAlign: 'left' }}>
+        {workflowSteps.map((s) => (
+          <li key={s.id}><strong>{s.id}:</strong> {s.title}</li>
         ))}
-      </Stepper>
-      {activeStep === workflowSteps.length && (
-        <Paper sx={{ p: 3, mt: 2, bgcolor: 'success.light', color: 'success.contrastText' }}>
-          <Typography variant="subtitle1" fontWeight={600}>Presentation complete!</Typography>
-          <Button onClick={() => setActiveStep(0)} sx={{ mt: 1 }} variant="outlined" color="inherit">Reset</Button>
-        </Paper>
-      )}
-    </Box>
+      </ol>
+      <p style={{ color: '#999', fontSize: '0.875rem' }}>
+        Chains all WF2 use cases end-to-end. Will be wired to real components in implementation phase.
+      </p>
+    </div>
   );
-};
+}
 
-const meta: Meta = {
-  title: 'Workflows/Present Flow/Full Flow',
-  component: PresentFlowFullFlow,
-  tags: ['wf-2'],
-};
+const meta = {
+  title: 'Workflows/WF2 Present Flow/Full Flow',
+  component: PresentFlowFullFlowPlaceholder,
+  tags: ['wf-present', 'tier-core'],
+  parameters: { layout: 'centered' },
+} satisfies Meta<typeof PresentFlowFullFlowPlaceholder>;
+
 export default meta;
-
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await step('1. Select flow from list', async () => {
+      // TODO: wire to real component
+    });
+    await step('2. Start presentation', async () => {
+      // TODO: wire to real component
+    });
+    await step('3. Step through with pauses', async () => {
+      // TODO: wire to real component
+    });
+    await step('4. View results', async () => {
+      // TODO: wire to real component
+    });
+  },
+};

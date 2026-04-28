@@ -1,62 +1,36 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import {
-  Box, Typography, Card, CardContent, CardActionArea, Stack, Chip, Button, Radio, Alert,
-} from '@mui/material';
-import PlaylistPlayIcon from '@mui/icons-material/PlaylistPlay';
-import { mockFlowListItems } from '../../mocks/mockData';
+import { within, userEvent } from 'storybook/test';
 
-const AddFlowBlock = () => {
-  const [selectedFlow, setSelectedFlow] = React.useState<number | null>(null);
-  const [added, setAdded] = React.useState(false);
-
+function AddFlowBlock() {
   return (
-    <Box sx={{ p: 3, maxWidth: 700 }}>
-      <Typography variant="h5" gutterBottom>Add Flow Block</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Pick a flow to embed in the composition. When the composition is presented, this flow will run inline.
-      </Typography>
-      {added && <Alert severity="success" sx={{ mb: 2 }}>Flow block added to composition.</Alert>}
-      <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-        <PlaylistPlayIcon color="secondary" />
-        <Chip label="Flow Block" size="small" color="secondary" variant="outlined" />
-      </Stack>
-      <Stack spacing={1.5}>
-        {mockFlowListItems.map((flow) => (
-          <Card
-            key={flow.flow_id}
-            variant="outlined"
-            sx={{ borderColor: selectedFlow === flow.flow_id ? 'secondary.main' : undefined }}
-          >
-            <CardActionArea onClick={() => setSelectedFlow(flow.flow_id)}>
-              <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-                <Stack direction="row" alignItems="center" spacing={2}>
-                  <Radio checked={selectedFlow === flow.flow_id} color="secondary" />
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="subtitle2">{flow.name}</Typography>
-                    <Typography variant="caption" color="text.secondary">{flow.description}</Typography>
-                  </Box>
-                  <Chip label={`${flow.step_count} steps`} size="small" variant="outlined" />
-                </Stack>
-              </CardContent>
-            </CardActionArea>
-          </Card>
-        ))}
-      </Stack>
-      <Button variant="contained" sx={{ mt: 2 }} disabled={!selectedFlow} onClick={() => setAdded(true)}>
-        Add Flow Block
-      </Button>
-    </Box>
+    <div style={{ padding: '2rem', border: '2px dashed #ccc', borderRadius: 8, textAlign: 'center' }}>
+      <h3>UC-COMP-9: Pick Flow for Block</h3>
+      <p style={{ color: '#666' }}>Components: AddBlockBar + FlowPickerModal (packages/compositions/ui-mui)</p>
+      <p style={{ color: '#999', fontSize: '0.875rem' }}>Will be wired to real component in implementation phase</p>
+    </div>
   );
-};
+}
 
-const meta: Meta = {
-  title: 'Workflows/Author Story/03 Add Flow Block',
+const meta = {
+  title: 'Workflows/WF3 Author Story/03 Add Flow Block',
   component: AddFlowBlock,
-  tags: ['wf-3', 'domain-compositions', 'domain-flows'],
-};
-export default meta;
+  tags: ['wf-author-story', 'domain-compositions', 'tier-core'],
+  parameters: { layout: 'centered' },
+} satisfies Meta<typeof AddFlowBlock>;
 
+export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await step('1. Click "Flow" in AddBlockBar', async () => { /* TODO */ });
+    await step('2. FlowPickerModal opens', async () => { /* TODO */ });
+    await step('3. System loads flows from GET /api/v2/flows', async () => { /* TODO */ });
+    await step('4. User searches/filters flows', async () => { /* TODO */ });
+    await step('5. User selects a flow', async () => { /* TODO */ });
+    await step('6. Modal closes, block added with flow_id reference', async () => { /* TODO */ });
+    await step('7. Block shows flow name + step count', async () => { /* TODO */ });
+  },
+};

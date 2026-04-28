@@ -1,54 +1,60 @@
-import sql from 'mssql';
-
 /**
  * Named SQL Server connection pools (lazy singletons)
  *
- * Supports multiple databases on the same server instance.
- * - qc_training: metadata (steps, flows, compositions)
- * - qc_core: execution target (training scenarios run here)
- *
- * Environment variables:
- *   DB_SERVER                  — shared server/instance
- *   DB_QC_TRAINING_DATABASE    — defaults to 'qc_training'
- *   DB_QC_CORE_DATABASE        — defaults to 'qc_core'
- *   DB_USER / DB_PASSWORD      — optional (Windows auth if omitted)
- *   DB_PORT                    — default 1433
- *   DB_TRUST_CERT              — default true
+ * mssql/tedious is loaded lazily on first getPool() call to avoid blocking
+ * server startup in environments where SQL Server is unavailable.
  */
 
-const sharedConfig: Omit<sql.config, 'database'> = {
-  server: process.env.DB_SERVER || 'localhost',
-  user: process.env.DB_USER || undefined,
-  password: process.env.DB_PASSWORD || undefined,
-  port: Number(process.env.DB_PORT) || 1433,
-  options: {
-    encrypt: false,
-    trustServerCertificate: process.env.DB_TRUST_CERT !== 'false',
-  },
-  pool: {
-    max: 10,
-    min: 0,
-    idleTimeoutMillis: 30000,
-  },
-};
+let sql: typeof import('mssql') | null = null;
 
-const pools = new Map<string, sql.ConnectionPool>();
+function loadSql() {
+  if (sql) return sql;
+  // Use createRequire to load mssql synchronously (CJS)
+  // This avoids ESM-CJS interop issues with mssql/tedious
+  const { createRequire } = require('module');
+  const req = createRequire(__filename);
+  sql = req('mssql') as typeof import('mssql');
+  return sql;
+}
+
+function getSharedConfig() {
+  return {
+    server: process.env.DB_SERVER || 'localhost',
+    user: process.env.DB_USER || undefined,
+    password: process.env.DB_PASSWORD || undefined,
+    port: Number(process.env.DB_PORT) || 1433,
+    connectionTimeout: 5000,
+    requestTimeout: 10000,
+    options: {
+      encrypt: false,
+      trustServerCertificate: process.env.DB_TRUST_CERT !== 'false',
+    },
+    pool: {
+      max: 10,
+      min: 0,
+      idleTimeoutMillis: 30000,
+    },
+  };
+}
+
+const pools = new Map<any, any>();
 
 function resolveDatabase(name: string): string {
   const envKey = `DB_${name.toUpperCase().replace(/-/g, '_')}_DATABASE`;
   return process.env[envKey] || name;
 }
 
-export async function getPool(name: string = 'qc_training'): Promise<sql.ConnectionPool> {
+export async function getPool(name: string = 'qc_training'): Promise<any> {
   const existing = pools.get(name);
   if (existing?.connected) return existing;
 
-  const config: sql.config = {
-    ...sharedConfig,
+  const mssql = loadSql();
+  const config = {
+    ...getSharedConfig(),
     database: resolveDatabase(name),
   };
 
-  const pool = await new sql.ConnectionPool(config).connect();
+  const pool = await new (mssql as any).ConnectionPool(config).connect();
   pools.set(name, pool);
   return pool;
 }

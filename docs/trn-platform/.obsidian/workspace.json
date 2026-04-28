@@ -13,7 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "bugs/4-bug.md",
+                "file": "2-on-deck/4-bug.md",
                 "mode": "source",
                 "source": false
               },
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "bugs/4-bug.md",
+                "file": "bugs/5-bug.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for 4-bug"
+              "title": "Backlinks for 5-bug"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "bugs/4-bug.md",
+                "file": "bugs/5-bug.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from 4-bug"
+              "title": "Outgoing links from 5-bug"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "bugs/4-bug.md",
+                "file": "bugs/5-bug.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of 4-bug"
+              "title": "Outline of 5-bug"
             }
           }
         ]
@@ -183,17 +183,36 @@
       "bases:Create new base": false
     }
   },
-  "active": "31b2537b374cbfa7",
+  "active": "dc1a8c71a5b32d97",
   "lastOpenFiles": [
-    "bugs/Pasted image 20260426134617.png",
-    "bugs/3-bug.md",
-    "bugs/4-bug.md",
-    "bugs/Pasted image 20260426132614.png",
-    "bugs/1-bug.md",
-    "bugs/Pasted image 20260426132046.png",
-    "bugs/Pasted image 20260426130909.png",
-    "bugs/0-bug.md",
+    "Pasted image 20260428121535.png",
+    "2-on-deck/3-bug.md",
+    "2-on-deck/4-bug.md",
+    "Pasted image 20260428115125.png",
+    "2-on-deck/2-bug.md",
+    "2-on-deck/Pasted image 20260428092413.png",
+    "2-on-deck/0-info.md",
+    "Pasted image 20260427211148.png",
+    "2-on-deck/1-bug.md",
+    "Pasted image 20260427205558.png",
+    "2-on-deck/0-bug.md",
+    "bugs/Pasted image 20260427204034.png",
+    "Pasted image 20260427203955.png",
+    "Pasted image 20260427203927.png",
+    "2-on-deck/bug-1.md",
+    "2-on-deck/localhost-1777346459066.log",
+    "_fur-derp.png",
     "2-on-deck/sprint-1-scaffold.md",
+    "2-on-deck/images",
+    "2-on-deck/images/Pasted image 20260427141103.png",
+    "bugs/6-bug.md",
+    "bugs/Pasted image 20260426211454.png",
+    "bugs/5-bug.md",
+    "4-reference/pipeline-guide.md",
+    "bugs/4-bug.md",
+    "bugs/3-bug.md",
+    "bugs/1-bug.md",
+    "bugs/0-bug.md",
     "bugs",
     "1-specs/use-cases/steps.md",
     "1-specs/use-cases/flows.md",

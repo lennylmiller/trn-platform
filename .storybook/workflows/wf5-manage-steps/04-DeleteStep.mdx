@@ -1,0 +1,40 @@
+import { Meta, Canvas } from '@storybook/addon-docs/blocks';
+import * as Stories from './04-DeleteStep.stories';
+
+<Meta of={Stories} />
+
+# UC-STEP-6: Delete Step
+
+**Actor:** User | **Tier:** Core | **Workflow:** WF5 Manage Steps
+
+## Precondition
+A non-seed step exists in the library.
+
+## Trigger
+Click "Delete" on step card.
+
+## Main Flow
+1. User clicks "Delete" on step card
+2. System checks for flow_step references
+3. If referenced: error "Cannot delete: N flow(s) reference this step"
+4. If not referenced: confirmation dialog shown
+5. User confirms
+6. System sends DELETE /api/v2/steps/:id
+7. Step removed from list
+
+## Alternate Flows
+- **AF-1:** Step referenced by flows -- System shows error; delete is blocked
+- **AF-2:** Seed step -- Delete button is disabled for seed steps
+- **AF-3:** Cancel -- Author cancels the confirmation dialog; no deletion occurs
+
+## Postcondition
+The step is removed from the library (if unreferenced and non-seed).
+
+## Interactive Demo
+<Canvas of={Stories.Default} />
+
+## Data
+- **Schema:** `StepDeleteSchema` (shared)
+- **Table:** `step_library` + `flow_step` (qc_training, reference check)
+- **Hooks:** `useDeleteStep` (data-access), `useStepLibrary` (feature)
+- **Component:** `StepListTab` (`packages/steps/ui-mui`)

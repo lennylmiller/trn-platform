@@ -1,67 +1,52 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import {
-  Box, Typography, Card, CardContent, Stack, Switch, FormControlLabel, TextField, Divider, Chip,
-} from '@mui/material';
-import { STEP_TYPE_COLORS } from '@trn-platform/shared';
+import { within, userEvent } from 'storybook/test';
 
-const ConfigureStepProperties = () => {
-  const [pauseAfter, setPauseAfter] = React.useState(true);
-  const [visible, setVisible] = React.useState(true);
-  const [notes, setNotes] = React.useState('Pause here to discuss the member schema with the audience.');
-
+function ConfigureStepPropertiesPlaceholder() {
   return (
-    <Box sx={{ p: 3, maxWidth: 600 }}>
-      <Typography variant="h5" gutterBottom>Configure Step Properties</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Configure per-step properties within a flow: pause points, presenter notes, and visibility.
-      </Typography>
-      <Card variant="outlined">
-        <CardContent>
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-            <Chip label="2" size="small" variant="outlined" />
-            <Chip label="sql" size="small" sx={{ bgcolor: STEP_TYPE_COLORS.sql, color: '#fff' }} />
-            <Typography variant="subtitle1" fontWeight={600}>Load member seed data</Typography>
-          </Stack>
-          <Divider sx={{ mb: 2 }} />
-          <Stack spacing={2}>
-            <FormControlLabel
-              control={<Switch checked={pauseAfter} onChange={(e) => setPauseAfter(e.target.checked)} />}
-              label="Pause after this step"
-            />
-            <Typography variant="caption" color="text.secondary" sx={{ mt: -1.5, ml: 6 }}>
-              Execution will pause after this step completes, waiting for the presenter to continue.
-            </Typography>
-            <FormControlLabel
-              control={<Switch checked={visible} onChange={(e) => setVisible(e.target.checked)} />}
-              label="Visible in execution"
-            />
-            <Typography variant="caption" color="text.secondary" sx={{ mt: -1.5, ml: 6 }}>
-              When unchecked, this step runs silently without showing output to the audience.
-            </Typography>
-            <TextField
-              label="Presenter Notes"
-              fullWidth
-              multiline
-              minRows={3}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              helperText="Notes visible only to the presenter during execution."
-            />
-          </Stack>
-        </CardContent>
-      </Card>
-    </Box>
+    <div style={{ padding: '2rem', border: '2px dashed #ccc', borderRadius: 8, textAlign: 'center' }}>
+      <h3>UC-FLOW-8: Edit Flow Step Properties</h3>
+      <p style={{ color: '#666' }}>Component: PropertiesPanel (packages/flows/ui-mui)</p>
+      <p style={{ color: '#999', fontSize: '0.875rem' }}>
+        Will be wired to real component in implementation phase
+      </p>
+    </div>
   );
-};
+}
 
-const meta: Meta = {
-  title: 'Workflows/Build Demo/05 Configure Step Properties',
-  component: ConfigureStepProperties,
-  tags: ['wf-1', 'domain-flows'],
-};
+const meta = {
+  title: 'Workflows/WF1 Build Demo/05 Configure Step Properties',
+  component: ConfigureStepPropertiesPlaceholder,
+  tags: ['wf-build', 'domain-flows', 'tier-core'],
+  parameters: { layout: 'centered' },
+} satisfies Meta<typeof ConfigureStepPropertiesPlaceholder>;
+
 export default meta;
-
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await step('1. User clicks a step in FlowTimeline', async () => {
+      // TODO: wire to real component
+    });
+    await step('2. System shows PropertiesPanel with step details', async () => {
+      // TODO: wire to real component
+    });
+    await step('3. User toggles pause_after switch', async () => {
+      // TODO: wire to real component
+    });
+    await step('4. User toggles visible_in_execution switch', async () => {
+      // TODO: wire to real component
+    });
+    await step('5. User edits presenter_notes text', async () => {
+      // TODO: wire to real component
+    });
+    await step('6. System calls PUT /api/v2/flows/:id/steps/:stepId', async () => {
+      // TODO: wire to real component
+    });
+    await step('7. Step updates in timeline', async () => {
+      // TODO: wire to real component
+    });
+  },
+};

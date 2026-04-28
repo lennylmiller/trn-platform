@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -42,7 +42,12 @@ export function StepListTab({ onStepClick }: StepListTabProps) {
 
   if (isLoading) {
     return (
-      <Box display="flex" justifyContent="center" py={4}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          py: 4
+        }}>
         <CircularProgress />
       </Box>
     );
@@ -84,9 +89,13 @@ export function StepListTab({ onStepClick }: StepListTabProps) {
           sx={{ flexGrow: 1 }}
         />
       </Stack>
-
       {filtered.length === 0 ? (
-        <Typography color="text.secondary" textAlign="center" py={4}>
+        <Typography
+          sx={{
+            color: "text.secondary",
+            textAlign: "center",
+            py: 4
+          }}>
           No steps found.
         </Typography>
       ) : (

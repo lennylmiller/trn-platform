@@ -11,7 +11,7 @@ function makeEvent(type: string, data: unknown, offsetMs = 0): SSEEvent {
 }
 
 const meta: Meta<typeof EventStream> = {
-  title: 'Execution/EventStream',
+  title: 'Domains/Execution/EventStream',
   component: EventStream,
   tags: ['autodocs'],
   decorators: [

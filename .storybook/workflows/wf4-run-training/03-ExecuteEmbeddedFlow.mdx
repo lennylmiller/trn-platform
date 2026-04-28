@@ -1,0 +1,40 @@
+import { Meta, Canvas } from '@storybook/addon-docs/blocks';
+import * as Stories from './03-ExecuteEmbeddedFlow.stories';
+
+<Meta of={Stories} />
+
+# UC-EXEC-2: Execute Flow from Composition
+
+**Actor:** User | **Tier:** Core | **Workflow:** WF4 Run Training
+
+## Precondition
+Presentation mode is active and the current block is a flow block.
+
+## Trigger
+Click "Run Flow" on the flow block.
+
+## Main Flow
+1. User reaches a flow block in composition
+2. Block shows flow name, description, step count
+3. User clicks "Run Flow"
+4. System sends POST /api/v2/execute/flow/:flowId
+5. SSE streaming begins
+6. Console drawer opens with output
+7. Steps execute sequentially with pause/resume
+8. Flow completes, user returns to composition navigation
+
+## Alternate Flows
+- **AF-1:** Flow execution error -- Error message displayed in console; trainee can retry
+- **AF-2:** Skip flow -- Trainee clicks "Next" to skip without executing
+
+## Postcondition
+The embedded flow has been executed; trainee continues to the next composition block.
+
+## Interactive Demo
+<Canvas of={Stories.Default} />
+
+## Data
+- **Schema:** `FlowExecutionSchema` (shared)
+- **Table:** `flow` + `flow_step` + `execution_log` (qc_training)
+- **Hooks:** `useFlowRunner` (data-access), `useExecutionState` (data-access)
+- **Component:** `CompositionRunPage` + `ConsoleDrawer` (`packages/compositions/ui-mui`, `packages/execution/ui-mui`)

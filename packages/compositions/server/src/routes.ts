@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { type Router as RouterType, Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import {
   CompositionCreateSchema,
@@ -18,7 +18,7 @@ import {
   deleteBlock,
 } from './queries';
 
-export const compositionsRouter = Router();
+export const compositionsRouter: RouterType = Router();
 
 // ---------------------------------------------------------------------------
 // GET / — list compositions, optional ?kind= filter

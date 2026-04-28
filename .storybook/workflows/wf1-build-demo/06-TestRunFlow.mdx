@@ -1,0 +1,42 @@
+import { Meta, Canvas } from '@storybook/addon-docs/blocks';
+import * as Stories from './06-TestRunFlow.stories';
+
+<Meta of={Stories} />
+
+# UC-EXEC-2: Execute Flow
+
+**Actor:** User | **Tier:** Core | **Workflow:** WF1 Build Demo
+
+## Precondition
+A flow exists with at least one step configured. The execution API server is running.
+
+## Trigger
+User clicks the "Test Run" button on the flow detail page.
+
+## Main Flow
+1. User clicks "Test Run" button
+2. System calls `POST /api/v2/execute/flow/:flowId` via the `useFlowRunner` hook
+3. Server responds with execution ID and opens an SSE (Server-Sent Events) connection
+4. `useSSE` hook begins listening for events on the SSE stream
+5. `execution:start` event received -- `FlowRunPage` transitions to running state
+6. For each step in sequence: `step:start` event (step highlighted in timeline), `step:output` events (streaming text appended to `ConsoleDrawer`), `step:complete` event (step marked done)
+7. For steps with `pause_after`: `step:paused` event fires, presenter notes displayed, execution halts until user clicks Continue
+8. `execution:complete` event received -- all steps finished, `useExecutionState` updates to complete
+9. `ConsoleDrawer` contains full output from all steps, scrollable and searchable
+
+## Alternate Flows
+- **AF-1:** Step fails -- `step:error` event received, flow execution stops, error details shown in `ConsoleDrawer` with red highlighting
+- **AF-2:** User aborts -- user clicks Abort button, `DELETE /api/v2/execute/:executionId` called, execution terminates
+- **AF-3:** SSE connection drops -- automatic reconnection with exponential backoff, missed events replayed
+
+## Postcondition
+All steps have executed (or failed/aborted) and output is visible in the `ConsoleDrawer`.
+
+## Interactive Demo
+<Canvas of={Stories.Default} />
+
+## Data
+- **Schema:** `ExecutionEventSchema`, `FlowRunSchema` (shared)
+- **Table:** `qc_training.executions`, `qc_training.execution_events`
+- **Hooks:** `useFlowRunner`, `useExecutionState`, `useSSE`
+- **Components:** `FlowRunPage` (`packages/flows/ui-mui`), `ConsoleDrawer` (`packages/execution/ui-mui`)

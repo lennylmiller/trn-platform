@@ -1,4 +1,17 @@
-import sql from 'mssql';
+let _sql: typeof import('mssql') | null = null;
+function getSql() {
+  if (!_sql) {
+    // Use globalThis.require if available (CJS), otherwise createRequire (ESM)
+    const req = typeof require !== 'undefined'
+      ? require
+      : (() => { const { createRequire } = require('module'); return createRequire(import.meta.url); })();
+    _sql = req('mssql') as typeof import('mssql');
+  }
+  return _sql;
+}
+const sql = new Proxy({} as typeof import('mssql'), {
+  get: (_, prop) => (getSql() as any)[prop],
+});
 import { getPool } from '@trn-platform/shared/db';
 import type { FlowCreate, FlowUpdate, FlowStepCreate, FlowStepUpdate } from '@trn-platform/shared';
 

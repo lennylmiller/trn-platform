@@ -20,7 +20,7 @@ const baseFlowStep: FlowStep = {
 };
 
 const meta: Meta<typeof FlowStepCard> = {
-  title: 'Flows/FlowStepCard',
+  title: 'Domains/Flows/FlowStepCard',
   component: FlowStepCard,
   tags: ['autodocs'],
   args: {

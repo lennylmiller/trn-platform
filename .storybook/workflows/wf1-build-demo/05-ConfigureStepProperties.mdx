@@ -1,0 +1,40 @@
+import { Meta, Canvas } from '@storybook/addon-docs/blocks';
+import * as Stories from './05-ConfigureStepProperties.stories';
+
+<Meta of={Stories} />
+
+# UC-FLOW-8: Edit Flow Step Properties
+
+**Actor:** User | **Tier:** Core | **Workflow:** WF1 Build Demo
+
+## Precondition
+A flow is open in dev mode with at least one step in the timeline.
+
+## Trigger
+User clicks a step in the `FlowTimeline` to select it.
+
+## Main Flow
+1. User clicks a step in the `FlowTimeline` -- system highlights the selected step
+2. `PropertiesPanel` opens on the right side showing the step's current configuration
+3. Panel displays: label (read-only), type, category, `pause_after` toggle, `visible_in_execution` toggle, `presenter_notes` textarea
+4. User toggles the `pause_after` MUI `Switch` -- controls whether execution pauses after this step completes
+5. User toggles the `visible_in_execution` MUI `Switch` -- controls whether step is shown during presentation mode
+6. User edits `presenter_notes` in a multiline `TextField` -- notes shown to presenter during pauses
+7. System auto-saves changes via `useUpdateFlowStep` mutation calling `PUT /api/v2/flows/:id/steps/:stepId`
+8. Step chip in the `FlowTimeline` updates to reflect new properties (e.g., pause icon indicator)
+
+## Alternate Flows
+- **AF-1:** No step selected -- panel shows "Select a step to configure" placeholder
+- **AF-2:** Save fails -- MUI `Snackbar` with error, fields revert to previous values
+
+## Postcondition
+The flow step's properties (`pause_after`, `visible_in_execution`, `presenter_notes`) are updated in `qc_training.flow_steps`.
+
+## Interactive Demo
+<Canvas of={Stories.Default} />
+
+## Data
+- **Schema:** `FlowStepUpdateSchema` (shared)
+- **Table:** `qc_training.flow_steps`
+- **Hooks:** `useUpdateFlowStep`
+- **Component:** `PropertiesPanel` (`packages/flows/ui-mui`)

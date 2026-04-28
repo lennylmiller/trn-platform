@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
@@ -120,11 +120,21 @@ export function CompositionRunPage({
                 {currentBlock.heading}
               </Typography>
             )}
-            <Typography variant="h6" color="text.secondary" mb={2}>
+            <Typography
+              variant="h6"
+              sx={{
+                color: "text.secondary",
+                mb: 2
+              }}>
               {currentBlock.flow_name ?? 'Flow'}
             </Typography>
             {currentBlock.flow_description && (
-              <Typography variant="body2" color="text.secondary" mb={3}>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "text.secondary",
+                  mb: 3
+                }}>
                 {currentBlock.flow_description}
               </Typography>
             )}
@@ -182,7 +192,12 @@ export function CompositionRunPage({
                 {currentBlock.heading}
               </Typography>
             )}
-            <Typography variant="h6" color="text.secondary" mb={1}>
+            <Typography
+              variant="h6"
+              sx={{
+                color: "text.secondary",
+                mb: 1
+              }}>
               {currentBlock.ref_composition_title ?? 'Linked Composition'}
             </Typography>
             {currentBlock.ref_composition_kind && (
@@ -225,18 +240,18 @@ export function CompositionRunPage({
             {title}
           </Typography>
           <Chip label={kind} color={KIND_COLORS[kind]} size="small" sx={{ mr: 2 }} />
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" sx={{
+            color: "text.secondary"
+          }}>
             Block {currentBlockIndex + 1} of {totalBlocks}
           </Typography>
         </Toolbar>
         <LinearProgress variant="determinate" value={progress} />
       </AppBar>
-
       {/* Main content */}
       <Box sx={{ flexGrow: 1, p: 4, maxWidth: 800, mx: 'auto', width: '100%' }}>
         {renderBlockContent()}
       </Box>
-
       {/* Presenter notes */}
       {currentBlock?.presenter_notes && (
         <Box sx={{ px: 4, pb: 1 }}>
@@ -256,10 +271,11 @@ export function CompositionRunPage({
           </Collapse>
         </Box>
       )}
-
       {/* Navigation */}
       <Paper elevation={2} sx={{ p: 2 }}>
-        <Stack direction="row" justifyContent="center" spacing={2}>
+        <Stack direction="row" spacing={2} sx={{
+          justifyContent: "center"
+        }}>
           <Button
             variant="outlined"
             startIcon={<NavigateBeforeIcon />}

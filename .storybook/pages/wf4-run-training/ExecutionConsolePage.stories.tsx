@@ -83,7 +83,7 @@ const ExecutionConsolePage = () => {
 };
 
 const meta: Meta = {
-  title: 'Pages/Run Training/Execution Console Page',
+  title: 'Pages/WF4 Run Training/Execution Console Page',
   component: ExecutionConsolePage,
   parameters: { layout: 'fullscreen' },
   tags: ['page', 'wf-4', 'domain-execution'],

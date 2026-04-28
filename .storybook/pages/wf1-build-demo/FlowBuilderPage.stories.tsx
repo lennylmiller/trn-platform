@@ -22,7 +22,7 @@ const FlowBuilderPage = () => (
 );
 
 const meta: Meta = {
-  title: 'Pages/Build Demo/Flow Builder Page',
+  title: 'Pages/WF1 Build Demo/Flow Builder Page',
   component: FlowBuilderPage,
   parameters: { layout: 'fullscreen' },
   tags: ['page', 'wf-1', 'domain-steps', 'domain-flows'],

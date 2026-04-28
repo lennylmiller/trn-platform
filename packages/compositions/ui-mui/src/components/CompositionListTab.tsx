@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
@@ -48,29 +48,30 @@ export function CompositionListTab({
           Create
         </Button>
       </Box>
-
       {isLoading && (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
           <CircularProgress />
         </Box>
       )}
-
       {isError && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error?.message ?? 'Failed to load compositions'}
         </Alert>
       )}
-
       {!isLoading && !isError && compositions?.length === 0 && (
-        <Typography color="text.secondary" sx={{ textAlign: 'center', py: 6 }}>
+        <Typography
+          sx={{
+            color: "text.secondary",
+            textAlign: 'center',
+            py: 6
+          }}>
           No {KIND_LABELS[activeKind].toLowerCase()} yet. Create one to get started.
         </Typography>
       )}
-
       {!isLoading && !isError && compositions && compositions.length > 0 && (
         <Grid container spacing={2}>
           {compositions.map((comp) => (
-            <Grid key={comp.composition_id} xs={12} sm={6} md={4}>
+            <Grid key={comp.composition_id} size={{ xs: 12, sm: 6, md: 4 }}>
               <CompositionCard
                 composition={comp}
                 onEdit={onEdit}

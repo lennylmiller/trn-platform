@@ -13,7 +13,7 @@ const baseFlow: FlowListItem = {
 };
 
 const meta: Meta<typeof FlowCard> = {
-  title: 'Flows/FlowCard',
+  title: 'Domains/Flows/FlowCard',
   component: FlowCard,
   tags: ['autodocs'],
   args: {

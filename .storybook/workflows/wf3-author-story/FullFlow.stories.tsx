@@ -1,60 +1,36 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import { Box, Typography, Stepper, Step, StepLabel, StepContent, Button, Paper } from '@mui/material';
+import { within, userEvent } from 'storybook/test';
 
-const workflowSteps = [
-  { label: 'Create Composition', description: 'Start a new story, tutorial, or module with a title and kind.' },
-  { label: 'Add Narrative Block', description: 'Add prose content providing context and explanation.' },
-  { label: 'Add Flow Block', description: 'Pick and embed a flow for hands-on execution during presentation.' },
-  { label: 'Add Note Block', description: 'Add technical notes with code or schema details.' },
-  { label: 'Reorder Blocks', description: 'Drag to reorder blocks into the desired presentation sequence.' },
-  { label: 'Edit Block Properties', description: 'Set headings, presenter notes, and block-specific settings.' },
-  { label: 'Preview Composition', description: 'See the full composition as it will appear in run mode.' },
-];
-
-const AuthorStoryFullFlow = () => {
-  const [activeStep, setActiveStep] = React.useState(0);
-
+function WF3FullFlow() {
   return (
-    <Box sx={{ p: 3, maxWidth: 700 }}>
-      <Typography variant="h5" gutterBottom>Workflow 3: Author a Story</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        End-to-end workflow for authoring a composition: create it, add blocks of different types, reorder, configure, and preview.
-      </Typography>
-      <Stepper activeStep={activeStep} orientation="vertical">
-        {workflowSteps.map((step, index) => (
-          <Step key={step.label}>
-            <StepLabel>{step.label}</StepLabel>
-            <StepContent>
-              <Typography variant="body2" sx={{ mb: 2 }}>{step.description}</Typography>
-              <Box>
-                <Button variant="contained" size="small" onClick={() => setActiveStep(index + 1)} sx={{ mr: 1 }}>
-                  {index === workflowSteps.length - 1 ? 'Finish' : 'Continue'}
-                </Button>
-                {index > 0 && <Button size="small" onClick={() => setActiveStep(index - 1)}>Back</Button>}
-              </Box>
-            </StepContent>
-          </Step>
-        ))}
-      </Stepper>
-      {activeStep === workflowSteps.length && (
-        <Paper sx={{ p: 3, mt: 2, bgcolor: 'success.light', color: 'success.contrastText' }}>
-          <Typography variant="subtitle1" fontWeight={600}>Story authored!</Typography>
-          <Typography variant="body2">The composition is ready to be presented or shared.</Typography>
-          <Button onClick={() => setActiveStep(0)} sx={{ mt: 1 }} variant="outlined" color="inherit">Reset</Button>
-        </Paper>
-      )}
-    </Box>
+    <div style={{ padding: '2rem', border: '2px dashed #ccc', borderRadius: 8, textAlign: 'center' }}>
+      <h3>WF3: Author Story -- Full Flow</h3>
+      <p style={{ color: '#666' }}>Chains all 7 steps of the Author Story workflow</p>
+      <p style={{ color: '#999', fontSize: '0.875rem' }}>Will be wired to real component in implementation phase</p>
+    </div>
   );
-};
+}
 
-const meta: Meta = {
-  title: 'Workflows/Author Story/Full Flow',
-  component: AuthorStoryFullFlow,
-  tags: ['wf-3'],
-};
+const meta = {
+  title: 'Workflows/WF3 Author Story/Full Flow',
+  component: WF3FullFlow,
+  tags: ['wf-author-story', 'domain-compositions', 'tier-core'],
+  parameters: { layout: 'centered' },
+} satisfies Meta<typeof WF3FullFlow>;
+
 export default meta;
-
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await step('1. UC-COMP-2: Create Composition', async () => { /* TODO */ });
+    await step('2. UC-COMP-5: Add Block (narrative)', async () => { /* TODO */ });
+    await step('3. UC-COMP-9: Pick Flow for Block', async () => { /* TODO */ });
+    await step('4. UC-COMP-5: Add Block (note)', async () => { /* TODO */ });
+    await step('5. UC-COMP-7: Reorder Blocks', async () => { /* TODO */ });
+    await step('6. UC-COMP-8: Edit Block Properties', async () => { /* TODO */ });
+    await step('7. UC-COMP-11: Present Composition', async () => { /* TODO */ });
+  },
+};

@@ -1,0 +1,41 @@
+import { Meta, Canvas } from '@storybook/addon-docs/blocks';
+import * as Stories from './03-StepThroughWithPauses.stories';
+
+<Meta of={Stories} />
+
+# UC-EXEC-3/4: Step Through With Pauses
+
+**Actor:** User | **Tier:** Core | **Workflow:** WF2 Present Flow
+
+## Precondition
+Flow execution is in progress via `FlowRunPage`. The `useFlowRunner` hook is managing execution state.
+
+## Trigger
+A step has the `pause_after` flag set, or the step type is `manual`, causing execution to pause.
+
+## Main Flow
+1. User clicks the Continue button -- `useFlowRunner` sends the resume command to the execution API
+2. System executes the current step -- SSE events stream status updates
+3. If the step has `pause_after = true`: execution pauses after the step completes, `step:paused` event fires
+4. `ExecutionControls` component updates to show the paused state with presenter notes expanded
+5. User reads presenter notes and clicks Continue to resume
+6. System sends `POST /api/v2/execute/:executionId/resume` and advances to the next step
+7. `ProgressBar` updates to show "Step N of M" with a visual progress indicator
+8. Process repeats for each step until all steps complete
+9. On final step completion: `execution:complete` event fires, UI transitions to complete state
+
+## Alternate Flows
+- **AF-1:** User clicks Abort -- `DELETE /api/v2/execute/:executionId` called, execution terminates immediately, UI shows aborted state
+- **AF-2:** Last step completes -- completion summary displayed with total duration and step-by-step timing breakdown
+
+## Postcondition
+All steps have been executed with pauses honored at configured points. Execution state is "complete" or "aborted".
+
+## Interactive Demo
+<Canvas of={Stories.Default} />
+
+## Data
+- **Schema:** `ExecutionEventSchema` (shared)
+- **Table:** `qc_training.executions`, `qc_training.execution_events`
+- **Hooks:** `useFlowRunner` (resume, abort)
+- **Components:** `ExecutionControls`, `ProgressBar` (`packages/execution/ui-mui`)

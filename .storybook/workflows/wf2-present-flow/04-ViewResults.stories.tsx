@@ -1,71 +1,46 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import {
-  Box, Typography, Card, CardContent, Stack, Chip, Table, TableHead, TableRow, TableCell,
-  TableBody, TableContainer, Paper, Alert,
-} from '@mui/material';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { mockSqlResult } from '../../mocks/mockData';
+import { within, userEvent } from 'storybook/test';
 
-const ViewResults = () => (
-  <Box sx={{ p: 3, maxWidth: 800 }}>
-    <Typography variant="h5" gutterBottom>View Results</Typography>
-    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-      Execution complete. Review the results of each step, including display query output.
-    </Typography>
+function ViewResultsPlaceholder() {
+  return (
+    <div style={{ padding: '2rem', border: '2px dashed #ccc', borderRadius: 8, textAlign: 'center' }}>
+      <h3>UC-EXEC-7: View Results</h3>
+      <p style={{ color: '#666' }}>Components: ConsoleDrawer, SqlResultsModal, EventStream (packages/execution/ui-mui)</p>
+      <p style={{ color: '#999', fontSize: '0.875rem' }}>
+        Will be wired to real component in implementation phase
+      </p>
+    </div>
+  );
+}
 
-    <Alert severity="success" icon={<CheckCircleIcon />} sx={{ mb: 3 }}>
-      All 3 steps completed successfully in 1.2s total.
-    </Alert>
+const meta = {
+  title: 'Workflows/WF2 Present Flow/04 View Results',
+  component: ViewResultsPlaceholder,
+  tags: ['wf-present', 'domain-execution', 'tier-core'],
+  parameters: { layout: 'centered' },
+} satisfies Meta<typeof ViewResultsPlaceholder>;
 
-    <Stack spacing={2}>
-      {['Create training database', 'Load member seed data', 'Verify claim counts'].map((label, i) => (
-        <Card key={i} variant="outlined">
-          <CardContent>
-            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-              <CheckCircleIcon color="success" fontSize="small" />
-              <Chip label={i + 1} size="small" variant="outlined" />
-              <Typography variant="subtitle2">{label}</Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>
-                {[120, 340, 750][i]}ms
-              </Typography>
-            </Stack>
-            {i === 2 && (
-              <TableContainer component={Paper} variant="outlined" sx={{ mt: 1 }}>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      {mockSqlResult.columns.map((col) => (
-                        <TableCell key={col} sx={{ fontWeight: 600, fontSize: 12 }}>{col}</TableCell>
-                      ))}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {mockSqlResult.rows.map((row, ri) => (
-                      <TableRow key={ri}>
-                        {mockSqlResult.columns.map((col) => (
-                          <TableCell key={col} sx={{ fontSize: 12 }}>{String(row[col])}</TableCell>
-                        ))}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
-          </CardContent>
-        </Card>
-      ))}
-    </Stack>
-  </Box>
-);
-
-const meta: Meta = {
-  title: 'Workflows/Present Flow/04 View Results',
-  component: ViewResults,
-  tags: ['wf-2', 'domain-execution'],
-};
 export default meta;
-
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await step('1. During execution, SSE events stream to client', async () => {
+      // TODO: wire to real component
+    });
+    await step('2. step:output events append to ConsoleDrawer', async () => {
+      // TODO: wire to real component
+    });
+    await step('3. SQL step results appear in SqlResultsModal', async () => {
+      // TODO: wire to real component
+    });
+    await step('4. EventStream shows timeline of all events', async () => {
+      // TODO: wire to real component
+    });
+    await step('5. After completion, full output available for review', async () => {
+      // TODO: wire to real component
+    });
+  },
+};

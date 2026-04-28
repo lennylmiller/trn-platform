@@ -1,56 +1,43 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import {
-  Box, Typography, Card, CardContent, CardActionArea, Stack, Chip, Radio, Button,
-} from '@mui/material';
-import { mockFlowListItems } from '../../mocks/mockData';
+import { within, userEvent } from 'storybook/test';
 
-const SelectFlow = () => {
-  const [selected, setSelected] = React.useState<number | null>(null);
-
+function SelectFlowPlaceholder() {
   return (
-    <Box sx={{ p: 3, maxWidth: 700 }}>
-      <Typography variant="h5" gutterBottom>Select Flow</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Choose a flow to present. Each flow contains an ordered set of steps to execute during training.
-      </Typography>
-      <Stack spacing={2}>
-        {mockFlowListItems.map((flow) => (
-          <Card
-            key={flow.flow_id}
-            variant="outlined"
-            sx={{ borderColor: selected === flow.flow_id ? 'primary.main' : undefined, borderWidth: selected === flow.flow_id ? 2 : 1 }}
-          >
-            <CardActionArea onClick={() => setSelected(flow.flow_id)}>
-              <CardContent>
-                <Stack direction="row" alignItems="center" spacing={2}>
-                  <Radio checked={selected === flow.flow_id} />
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="subtitle1" fontWeight={600}>{flow.name}</Typography>
-                    <Typography variant="body2" color="text.secondary">{flow.description}</Typography>
-                  </Box>
-                  <Chip label={`${flow.step_count} steps`} size="small" variant="outlined" />
-                  {flow.is_seed && <Chip label="Seed" size="small" color="info" />}
-                </Stack>
-              </CardContent>
-            </CardActionArea>
-          </Card>
-        ))}
-      </Stack>
-      <Button variant="contained" disabled={!selected} sx={{ mt: 3 }}>
-        Start Presentation
-      </Button>
-    </Box>
+    <div style={{ padding: '2rem', border: '2px dashed #ccc', borderRadius: 8, textAlign: 'center' }}>
+      <h3>UC-FLOW-1: Select Flow</h3>
+      <p style={{ color: '#666' }}>Component: FlowListTab (packages/flows/ui-mui)</p>
+      <p style={{ color: '#999', fontSize: '0.875rem' }}>
+        Will be wired to real component in implementation phase
+      </p>
+    </div>
   );
-};
+}
 
-const meta: Meta = {
-  title: 'Workflows/Present Flow/01 Select Flow',
-  component: SelectFlow,
-  tags: ['wf-2', 'domain-flows'],
-};
+const meta = {
+  title: 'Workflows/WF2 Present Flow/01 Select Flow',
+  component: SelectFlowPlaceholder,
+  tags: ['wf-present', 'domain-flows', 'tier-core'],
+  parameters: { layout: 'centered' },
+} satisfies Meta<typeof SelectFlowPlaceholder>;
+
 export default meta;
-
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await step('1. System loads flows from GET /api/v2/flows', async () => {
+      // TODO: wire to real component
+    });
+    await step('2. System displays FlowCards with name, step count, description', async () => {
+      // TODO: wire to real component
+    });
+    await step('3. User reviews available flows', async () => {
+      // TODO: wire to real component
+    });
+    await step('4. User clicks "Present" on desired flow', async () => {
+      // TODO: wire to real component
+    });
+  },
+};

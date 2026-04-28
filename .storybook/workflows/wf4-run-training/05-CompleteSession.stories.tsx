@@ -1,71 +1,34 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import {
-  Box, Typography, Card, CardContent, Stack, Chip, Paper, Button, Divider,
-} from '@mui/material';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import TimerIcon from '@mui/icons-material/Timer';
-import { mockCompositionDetail } from '../../mocks/mockData';
-import { BLOCK_TYPE_LABELS } from '@trn-platform/shared';
+import { within, userEvent } from 'storybook/test';
 
-const CompleteSession = () => (
-  <Box sx={{ p: 3, maxWidth: 700 }}>
-    <Typography variant="h5" gutterBottom>Complete Session</Typography>
-    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-      The training session is complete. Review what was covered and export or restart.
-    </Typography>
+function CompleteSession() {
+  return (
+    <div style={{ padding: '2rem', border: '2px dashed #ccc', borderRadius: 8, textAlign: 'center' }}>
+      <h3>UC-COMP-11: Complete Presentation</h3>
+      <p style={{ color: '#666' }}>Component: CompositionRunPage (packages/compositions/ui-mui)</p>
+      <p style={{ color: '#999', fontSize: '0.875rem' }}>Will be wired to real component in implementation phase</p>
+    </div>
+  );
+}
 
-    <Paper sx={{ p: 3, mb: 3, bgcolor: 'success.light', color: 'success.contrastText', textAlign: 'center' }}>
-      <CheckCircleIcon sx={{ fontSize: 48, mb: 1 }} />
-      <Typography variant="h6" fontWeight={600}>Session Complete!</Typography>
-      <Typography variant="body2">{mockCompositionDetail.title}</Typography>
-      <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 2 }}>
-        <Stack alignItems="center">
-          <Typography variant="h5" fontWeight={700}>3</Typography>
-          <Typography variant="caption">Blocks</Typography>
-        </Stack>
-        <Stack alignItems="center">
-          <Typography variant="h5" fontWeight={700}>1</Typography>
-          <Typography variant="caption">Flow Executed</Typography>
-        </Stack>
-        <Stack alignItems="center">
-          <Typography variant="h5" fontWeight={700}>3</Typography>
-          <Typography variant="caption">Steps Run</Typography>
-        </Stack>
-      </Stack>
-    </Paper>
-
-    <Typography variant="subtitle2" color="text.secondary" gutterBottom>Blocks Completed</Typography>
-    <Stack spacing={1} sx={{ mb: 3 }}>
-      {mockCompositionDetail.blocks.map((block) => (
-        <Card key={block.block_id} variant="outlined">
-          <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <CheckCircleIcon color="success" fontSize="small" />
-              <Chip label={block.seq} size="small" variant="outlined" />
-              <Chip label={BLOCK_TYPE_LABELS[block.block_type]} size="small" variant="outlined" />
-              <Typography variant="body2">{block.heading ?? 'Untitled block'}</Typography>
-            </Stack>
-          </CardContent>
-        </Card>
-      ))}
-    </Stack>
-
-    <Divider sx={{ mb: 2 }} />
-    <Stack direction="row" spacing={2}>
-      <Button variant="contained">Start New Session</Button>
-      <Button variant="outlined">Return to Library</Button>
-    </Stack>
-  </Box>
-);
-
-const meta: Meta = {
-  title: 'Workflows/Run Training/05 Complete Session',
+const meta = {
+  title: 'Workflows/WF4 Run Training/05 Complete Session',
   component: CompleteSession,
-  tags: ['wf-4', 'domain-compositions', 'domain-execution'],
-};
-export default meta;
+  tags: ['wf-run-training', 'domain-compositions', 'tier-core'],
+  parameters: { layout: 'centered' },
+} satisfies Meta<typeof CompleteSession>;
 
+export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await step('1. User reaches last block', async () => { /* TODO */ });
+    await step('2. System shows "Last block" indicator', async () => { /* TODO */ });
+    await step('3. Next button disabled or shows "Complete"', async () => { /* TODO */ });
+    await step('4. Session summary available', async () => { /* TODO */ });
+    await step('5. User can navigate back to review blocks', async () => { /* TODO */ });
+  },
+};

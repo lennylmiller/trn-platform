@@ -25,7 +25,7 @@ const CompositionEditorPage = () => (
 );
 
 const meta: Meta = {
-  title: 'Pages/Author Story/Composition Editor Page',
+  title: 'Pages/WF3 Author Story/Composition Editor Page',
   component: CompositionEditorPage,
   parameters: { layout: 'fullscreen' },
   tags: ['page', 'wf-3', 'domain-compositions'],

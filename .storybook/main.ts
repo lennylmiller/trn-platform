@@ -8,7 +8,9 @@ const config: StorybookConfig = {
   stories: [
     '../packages/*/ui-mui/src/**/*.stories.@(ts|tsx)',
     './workflows/**/*.stories.@(ts|tsx)',
+    './workflows/**/*.mdx',
     './pages/**/*.stories.@(ts|tsx)',
+    './pages/**/*.mdx',
   ],
   staticDirs: ['./public'],
   addons: [

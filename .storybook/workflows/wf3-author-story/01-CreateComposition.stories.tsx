@@ -1,53 +1,36 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import {
-  Box, Typography, TextField, Button, Card, CardContent, Stack, MenuItem, Select, FormControl, InputLabel, Alert,
-} from '@mui/material';
+import { within, userEvent } from 'storybook/test';
 
-const CreateComposition = () => {
-  const [created, setCreated] = React.useState(false);
-  const [title, setTitle] = React.useState('');
-  const [kind, setKind] = React.useState('tutorial');
-  const [description, setDescription] = React.useState('');
-
+function CreateComposition() {
   return (
-    <Box sx={{ p: 3, maxWidth: 600 }}>
-      <Typography variant="h5" gutterBottom>Create Composition</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Start a new story, tutorial, or module. Compositions combine narrative blocks, embedded flows, and technical notes into a structured training experience.
-      </Typography>
-      {created ? (
-        <Alert severity="success">Composition &quot;{title}&quot; created! Add blocks to build your content.</Alert>
-      ) : (
-        <Card variant="outlined">
-          <CardContent>
-            <Stack spacing={2}>
-              <TextField label="Title" fullWidth required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Claims Processing Deep Dive" />
-              <FormControl fullWidth>
-                <InputLabel>Kind</InputLabel>
-                <Select value={kind} label="Kind" onChange={(e) => setKind(e.target.value)}>
-                  <MenuItem value="story">Story</MenuItem>
-                  <MenuItem value="tutorial">Tutorial</MenuItem>
-                  <MenuItem value="module">Module</MenuItem>
-                </Select>
-              </FormControl>
-              <TextField label="Description" fullWidth multiline minRows={2} value={description} onChange={(e) => setDescription(e.target.value)} />
-              <Button variant="contained" onClick={() => setCreated(true)} disabled={!title}>Create Composition</Button>
-            </Stack>
-          </CardContent>
-        </Card>
-      )}
-    </Box>
+    <div style={{ padding: '2rem', border: '2px dashed #ccc', borderRadius: 8, textAlign: 'center' }}>
+      <h3>UC-COMP-2: Create Composition</h3>
+      <p style={{ color: '#666' }}>Component: CompositionListTab (packages/compositions/ui-mui)</p>
+      <p style={{ color: '#999', fontSize: '0.875rem' }}>Will be wired to real component in implementation phase</p>
+    </div>
   );
-};
+}
 
-const meta: Meta = {
-  title: 'Workflows/Author Story/01 Create Composition',
+const meta = {
+  title: 'Workflows/WF3 Author Story/01 Create Composition',
   component: CreateComposition,
-  tags: ['wf-3', 'domain-compositions'],
-};
-export default meta;
+  tags: ['wf-author-story', 'domain-compositions', 'tier-core'],
+  parameters: { layout: 'centered' },
+} satisfies Meta<typeof CreateComposition>;
 
+export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await step('1. Click "+ New" button', async () => { /* TODO */ });
+    await step('2. Select kind (story/tutorial/module) from dropdown', async () => { /* TODO */ });
+    await step('3. Enter title (required)', async () => { /* TODO */ });
+    await step('4. Enter description (optional)', async () => { /* TODO */ });
+    await step('5. System validates with CompositionCreateSchema', async () => { /* TODO */ });
+    await step('6. POST /api/v2/compositions', async () => { /* TODO */ });
+    await step('7. Composition appears in list', async () => { /* TODO */ });
+  },
+};

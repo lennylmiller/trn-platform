@@ -1,94 +1,64 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import {
-  Box, Typography, TextField, Button, MenuItem, Select, FormControl, InputLabel,
-  Card, CardContent, Stack, Alert,
-} from '@mui/material';
+import { within, userEvent } from 'storybook/test';
 
-const CreateNewStep = () => {
-  const [saved, setSaved] = React.useState(false);
-  const [form, setForm] = React.useState({
-    label: '',
-    type: 'sql' as const,
-    category: 'setup' as const,
-    command_text: '',
-    description: '',
-  });
-
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
-  };
-
+function CreateNewStepPlaceholder() {
   return (
-    <Box sx={{ p: 3, maxWidth: 600 }}>
-      <Typography variant="h5" gutterBottom>Create New Step</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Fill out the step editor form and save to add a new reusable step to the library.
-      </Typography>
-      {saved && <Alert severity="success" sx={{ mb: 2 }}>Step created successfully!</Alert>}
-      <Card variant="outlined">
-        <CardContent>
-          <Stack spacing={2}>
-            <TextField
-              label="Label"
-              fullWidth
-              required
-              value={form.label}
-              onChange={(e) => setForm({ ...form, label: e.target.value })}
-            />
-            <FormControl fullWidth>
-              <InputLabel>Type</InputLabel>
-              <Select value={form.type} label="Type" onChange={(e) => setForm({ ...form, type: e.target.value as 'sql' | 'shell' | 'manual' })}>
-                <MenuItem value="sql">SQL</MenuItem>
-                <MenuItem value="shell">Shell</MenuItem>
-                <MenuItem value="manual">Manual</MenuItem>
-              </Select>
-            </FormControl>
-            <FormControl fullWidth>
-              <InputLabel>Category</InputLabel>
-              <Select value={form.category} label="Category" onChange={(e) => setForm({ ...form, category: e.target.value as string })}>
-                <MenuItem value="setup">Setup</MenuItem>
-                <MenuItem value="scenario">Scenario</MenuItem>
-                <MenuItem value="sync">Sync</MenuItem>
-                <MenuItem value="verify">Verify</MenuItem>
-                <MenuItem value="utility">Utility</MenuItem>
-              </Select>
-            </FormControl>
-            <TextField
-              label="Description"
-              fullWidth
-              multiline
-              minRows={2}
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-            />
-            <TextField
-              label="Command Text"
-              fullWidth
-              multiline
-              minRows={3}
-              value={form.command_text}
-              onChange={(e) => setForm({ ...form, command_text: e.target.value })}
-              slotProps={{ input: { sx: { fontFamily: 'monospace', fontSize: 13 } } }}
-            />
-            <Button variant="contained" onClick={handleSave} disabled={!form.label}>
-              Save Step
-            </Button>
-          </Stack>
-        </CardContent>
-      </Card>
-    </Box>
+    <div style={{ padding: '2rem', border: '2px dashed #ccc', borderRadius: 8, textAlign: 'center' }}>
+      <h3>UC-STEP-4: Create Step</h3>
+      <p style={{ color: '#666' }}>Component: StepEditorModal (packages/steps/ui-mui)</p>
+      <p style={{ color: '#999', fontSize: '0.875rem' }}>
+        Will be wired to real component in implementation phase
+      </p>
+    </div>
   );
-};
+}
 
-const meta: Meta = {
-  title: 'Workflows/Build Demo/02 Create New Step',
-  component: CreateNewStep,
-  tags: ['wf-1', 'domain-steps'],
-};
+const meta = {
+  title: 'Workflows/WF1 Build Demo/02 Create New Step',
+  component: CreateNewStepPlaceholder,
+  tags: ['wf-build', 'domain-steps', 'tier-core'],
+  parameters: { layout: 'centered' },
+} satisfies Meta<typeof CreateNewStepPlaceholder>;
+
 export default meta;
-
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await step('1. User clicks "+ New Step" button', async () => {
+      // TODO: wire to real component
+    });
+    await step('2. System opens StepEditorModal dialog', async () => {
+      // TODO: wire to real component
+    });
+    await step('3. User enters label (required)', async () => {
+      // TODO: wire to real component
+    });
+    await step('4. User selects type from dropdown (shell/sql/manual)', async () => {
+      // TODO: wire to real component
+    });
+    await step('5. User selects category from dropdown', async () => {
+      // TODO: wire to real component
+    });
+    await step('6. User enters command_text (multiline)', async () => {
+      // TODO: wire to real component
+    });
+    await step('7. User enters description', async () => {
+      // TODO: wire to real component
+    });
+    await step('8. User clicks Save', async () => {
+      // TODO: wire to real component
+    });
+    await step('9. System validates with StepCreateSchema', async () => {
+      // TODO: wire to real component
+    });
+    await step('10. System calls POST /api/v2/steps', async () => {
+      // TODO: wire to real component
+    });
+    await step('11. System closes modal and refreshes list', async () => {
+      // TODO: wire to real component
+    });
+  },
+};

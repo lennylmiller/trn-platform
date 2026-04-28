@@ -1,4 +1,3 @@
-import React from 'react';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -46,8 +45,20 @@ export function FlowStepCard({
           },
         }}
       >
-        <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-          <Stack direction="row" spacing={1.5} alignItems="center" sx={{ flexGrow: 1, minWidth: 0 }}>
+        <Stack
+          direction="row"
+          sx={{
+            justifyContent: "space-between",
+            alignItems: "flex-start"
+          }}>
+          <Stack
+            direction="row"
+            spacing={1.5}
+            sx={{
+              alignItems: "center",
+              flexGrow: 1,
+              minWidth: 0
+            }}>
             <Typography
               variant="caption"
               sx={{
@@ -66,10 +77,14 @@ export function FlowStepCard({
               {index + 1}
             </Typography>
             <Box sx={{ minWidth: 0, flexGrow: 1 }}>
-              <Typography variant="subtitle2" noWrap fontWeight={600}>
+              <Typography variant="subtitle2" noWrap sx={{
+                fontWeight: 600
+              }}>
                 {step.label}
               </Typography>
-              <Stack direction="row" spacing={0.5} mt={0.5}>
+              <Stack direction="row" spacing={0.5} sx={{
+                mt: 0.5
+              }}>
                 <Chip
                   label={step.type}
                   size="small"
@@ -124,22 +139,20 @@ export function FlowStepCard({
         {step.presenter_notes && (
           <Typography
             variant="body2"
-            color="text.secondary"
             sx={{
+              color: "text.secondary",
               mt: 1,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               display: '-webkit-box',
               WebkitLineClamp: 2,
               WebkitBoxOrient: 'vertical',
-              fontStyle: 'italic',
-            }}
-          >
+              fontStyle: 'italic'
+            }}>
             {step.presenter_notes}
           </Typography>
         )}
       </Paper>
-
       {step.pause_after && (
         <Divider sx={{ my: 1 }}>
           <Chip

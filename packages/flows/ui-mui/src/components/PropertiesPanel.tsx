@@ -83,7 +83,13 @@ export function PropertiesPanel({ step, onUpdate }: PropertiesPanelProps) {
         <Typography variant="h6" gutterBottom>
           Step Properties
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 4, textAlign: 'center' }}>
+        <Typography
+          variant="body2"
+          sx={{
+            color: "text.secondary",
+            mt: 4,
+            textAlign: 'center'
+          }}>
           Select a step to view and edit its properties.
         </Typography>
       </Paper>
@@ -95,12 +101,12 @@ export function PropertiesPanel({ step, onUpdate }: PropertiesPanelProps) {
       <Typography variant="h6" gutterBottom>
         Step Properties
       </Typography>
-      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+      <Typography variant="subtitle2" gutterBottom sx={{
+        color: "text.secondary"
+      }}>
         {step.label}
       </Typography>
-
       <Divider sx={{ my: 2 }} />
-
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <FormControlLabel
           control={

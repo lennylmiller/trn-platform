@@ -16,7 +16,7 @@ const baseStep: Step = {
 };
 
 const meta: Meta<typeof StepCard> = {
-  title: 'Steps/StepCard',
+  title: 'Domains/Steps/StepCard',
   component: StepCard,
   tags: ['autodocs'],
 };

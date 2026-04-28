@@ -28,7 +28,7 @@ const fiveSteps: FlowStep[] = [
 ];
 
 const meta: Meta<typeof FlowTimeline> = {
-  title: 'Flows/FlowTimeline',
+  title: 'Domains/Flows/FlowTimeline',
   component: FlowTimeline,
   tags: ['autodocs'],
   args: {

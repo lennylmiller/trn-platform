@@ -1,0 +1,41 @@
+import { Meta, Canvas } from '@storybook/addon-docs/blocks';
+import * as Stories from './07-PreviewComposition.stories';
+
+<Meta of={Stories} />
+
+# UC-COMP-11: Present Composition
+
+**Actor:** Author | **Tier:** Core | **Workflow:** WF3 Author Story
+
+## Precondition
+A composition exists with one or more blocks.
+
+## Trigger
+Click "Present" button on the composition.
+
+## Main Flow
+1. Author clicks "Present" on the composition
+2. System enters run/presentation mode via CompositionRunPage
+3. First block displays based on type
+4. Narrative blocks: prose content rendered with markdown
+5. Flow blocks: "Run Flow" button shown
+6. Note blocks: technical content in code-styled box
+7. User clicks Next to advance through blocks
+8. Nested composition blocks allow drill-in
+9. Last block shows complete state
+
+## Alternate Flows
+- **AF-1:** Empty composition -- Present button is disabled when no blocks exist
+- **AF-2:** Flow execution failure -- Error is displayed inline; author can retry or skip
+
+## Postcondition
+Author has previewed the full composition in presentation mode.
+
+## Interactive Demo
+<Canvas of={Stories.Default} />
+
+## Data
+- **Schema:** `CompositionPresenterSchema` (shared)
+- **Table:** `composition` + `composition_block` + `flow` (qc_training)
+- **Hooks:** `useCompositionPresenter` (feature)
+- **Component:** `CompositionRunPage` (`packages/compositions/ui-mui`)

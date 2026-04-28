@@ -1,12 +1,8 @@
-import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
+import { mergeConfig, defineConfig } from 'vitest/config';
+import baseConfig from '../../../vitest.config.base';
 
-export default defineConfig({
-  plugins: [react()],
+export default mergeConfig(baseConfig, defineConfig({
   test: {
-    globals: true,
-    environment: 'jsdom',
-    testTimeout: process.env.CI ? 10000 : 5000,
-    hookTimeout: process.env.CI ? 10000 : 5000,
+    environment: 'node',
   },
-});
+}));

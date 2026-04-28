@@ -1,9 +1,9 @@
-import { Router } from 'express';
+import { type Router as RouterType, Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { StepCreateSchema, StepUpdateSchema } from '@trn-platform/shared';
 import { listSteps, getStep, createStep, updateStep, deleteStep } from './queries';
 
-export const stepsRouter = Router();
+export const stepsRouter: RouterType = Router();
 
 // ---------------------------------------------------------------------------
 // GET / — list steps, optional ?category= filter

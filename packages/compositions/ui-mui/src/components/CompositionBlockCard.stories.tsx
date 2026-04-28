@@ -21,7 +21,7 @@ const baseBlock: CompositionBlock = {
 };
 
 const meta: Meta<typeof CompositionBlockCard> = {
-  title: 'Compositions/CompositionBlockCard',
+  title: 'Domains/Compositions/CompositionBlockCard',
   component: CompositionBlockCard,
   tags: ['autodocs'],
 };
@@ -64,7 +64,7 @@ export const NoteBlock: Story = {
   },
 };
 
-export const CompositionBlock: Story = {
+export const CompositionBlockType: Story = {
   args: {
     block: {
       ...baseBlock,

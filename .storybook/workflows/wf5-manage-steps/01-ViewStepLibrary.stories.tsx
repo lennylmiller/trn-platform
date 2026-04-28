@@ -1,66 +1,34 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import {
-  Box, Typography, Table, TableHead, TableRow, TableCell, TableBody, TableContainer, Paper, Chip, IconButton, Stack,
-} from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import { mockStepListItems } from '../../mocks/mockData';
-import { STEP_TYPE_COLORS, STEP_CATEGORY_LABELS } from '@trn-platform/shared';
+import { within, userEvent } from 'storybook/test';
 
-const ViewStepLibrary = () => (
-  <Box sx={{ p: 3 }}>
-    <Typography variant="h5" gutterBottom>View Step Library</Typography>
-    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-      Browse all steps in the library with management actions: edit, test, or delete.
-    </Typography>
-    <TableContainer component={Paper} variant="outlined">
-      <Table size="small">
-        <TableHead>
-          <TableRow sx={{ bgcolor: '#f5f5f5' }}>
-            <TableCell sx={{ fontWeight: 700 }}>ID</TableCell>
-            <TableCell sx={{ fontWeight: 700 }}>Label</TableCell>
-            <TableCell sx={{ fontWeight: 700 }}>Type</TableCell>
-            <TableCell sx={{ fontWeight: 700 }}>Category</TableCell>
-            <TableCell sx={{ fontWeight: 700 }}>Seed</TableCell>
-            <TableCell sx={{ fontWeight: 700 }} align="right">Actions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {mockStepListItems.map((step) => (
-            <TableRow key={step.step_id} hover>
-              <TableCell>{step.step_id}</TableCell>
-              <TableCell>{step.label}</TableCell>
-              <TableCell>
-                <Chip label={step.type} size="small" sx={{ bgcolor: STEP_TYPE_COLORS[step.type], color: '#fff', fontSize: 11 }} />
-              </TableCell>
-              <TableCell>
-                <Chip label={STEP_CATEGORY_LABELS[step.category]} size="small" variant="outlined" />
-              </TableCell>
-              <TableCell>{step.is_seed ? 'Yes' : 'No'}</TableCell>
-              <TableCell align="right">
-                <Stack direction="row" spacing={0.5} justifyContent="flex-end">
-                  <IconButton size="small" color="primary"><EditIcon fontSize="small" /></IconButton>
-                  <IconButton size="small" color="info"><PlayArrowIcon fontSize="small" /></IconButton>
-                  <IconButton size="small" color="error" disabled={step.is_seed}><DeleteIcon fontSize="small" /></IconButton>
-                </Stack>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  </Box>
-);
+function ViewStepLibrary() {
+  return (
+    <div style={{ padding: '2rem', border: '2px dashed #ccc', borderRadius: 8, textAlign: 'center' }}>
+      <h3>UC-STEP-1: Browse Step Library</h3>
+      <p style={{ color: '#666' }}>Component: StepListTab (packages/steps/ui-mui)</p>
+      <p style={{ color: '#999', fontSize: '0.875rem' }}>Will be wired to real component in implementation phase</p>
+    </div>
+  );
+}
 
-const meta: Meta = {
-  title: 'Workflows/Manage Steps/01 View Step Library',
+const meta = {
+  title: 'Workflows/WF5 Manage Steps/01 View Step Library',
   component: ViewStepLibrary,
-  tags: ['wf-5', 'domain-steps'],
-};
-export default meta;
+  tags: ['wf-manage-steps', 'domain-steps', 'tier-core'],
+  parameters: { layout: 'centered' },
+} satisfies Meta<typeof ViewStepLibrary>;
 
+export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await step('1. System loads steps from GET /api/v2/steps', async () => { /* TODO */ });
+    await step('2. Steps grouped by category', async () => { /* TODO */ });
+    await step('3. Category filter chips shown', async () => { /* TODO */ });
+    await step('4. Search field for text filter', async () => { /* TODO */ });
+    await step('5. Each step shows label, type chip (shell=blue, sql=orange, manual=purple), category, description', async () => { /* TODO */ });
+  },
+};

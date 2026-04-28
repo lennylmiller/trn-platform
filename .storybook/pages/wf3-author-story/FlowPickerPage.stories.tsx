@@ -14,7 +14,7 @@ const FlowPickerPage = () => (
 );
 
 const meta: Meta = {
-  title: 'Pages/Author Story/Flow Picker Page',
+  title: 'Pages/WF3 Author Story/Flow Picker Page',
   component: FlowPickerPage,
   parameters: { layout: 'fullscreen' },
   tags: ['page', 'wf-3', 'domain-compositions', 'domain-flows'],
