@@ -1,10 +1,11 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import {
   useExecuteFlow,
   useResumeExecution,
   useAbortExecution,
   useSSE,
 } from '@trn-platform/execution-data-access';
+import { SSE_EVENTS } from '@trn-platform/shared';
 import { useExecutionState } from './useExecutionState';
 
 /**
@@ -14,6 +15,11 @@ import { useExecutionState } from './useExecutionState';
  * - useSSE hook (receive real-time events)
  * - useResumeExecution / useAbortExecution mutations (control flow)
  *
+ * SSE is broadcast to every connected client; this hook filters events by the
+ * active run's `executionId` (from POST /execute/flow) so other sessions do not
+ * mutate local state. While waiting for that id, the first `execution:start`
+ * event latches the id in case it arrives before the HTTP response.
+ *
  * Returns a simple API: start(flowId), resume(), abort(), plus state & connection info.
  */
 export function useFlowRunner() {
@@ -22,9 +28,29 @@ export function useFlowRunner() {
   const abortMutation = useAbortExecution();
   const { state, dispatch, reset } = useExecutionState();
 
+  const activeExecutionIdRef = useRef<string | null>(null);
+  const awaitingRunRef = useRef(false);
+
   const handleSSEEvent = useCallback(
     (type: string, data: unknown) => {
-      dispatch(type, (data ?? {}) as Record<string, unknown>);
+      const payload = (data ?? {}) as Record<string, unknown>;
+      const eventId = payload.executionId;
+
+      if (typeof eventId === 'string') {
+        if (activeExecutionIdRef.current) {
+          if (eventId !== activeExecutionIdRef.current) return;
+        } else if (awaitingRunRef.current) {
+          if (type === SSE_EVENTS.EXECUTION_START) {
+            activeExecutionIdRef.current = eventId;
+          } else {
+            return;
+          }
+        } else {
+          return;
+        }
+      }
+
+      dispatch(type, payload);
     },
     [dispatch],
   );
@@ -34,10 +60,22 @@ export function useFlowRunner() {
   const start = useCallback(
     (flowId: number) => {
       reset();
+      awaitingRunRef.current = true;
+      activeExecutionIdRef.current = null;
       connect();
-      executeFlow.mutate(flowId);
+      void executeFlow
+        .mutateAsync(flowId)
+        .then((result) => {
+          activeExecutionIdRef.current = result.executionId;
+          awaitingRunRef.current = false;
+        })
+        .catch(() => {
+          awaitingRunRef.current = false;
+          activeExecutionIdRef.current = null;
+          disconnect();
+        });
     },
-    [reset, connect, executeFlow],
+    [reset, connect, executeFlow, disconnect],
   );
 
   const resume = useCallback(() => {
@@ -46,6 +84,8 @@ export function useFlowRunner() {
 
   const abort = useCallback(() => {
     abortMutation.mutate();
+    awaitingRunRef.current = false;
+    activeExecutionIdRef.current = null;
     disconnect();
   }, [abortMutation, disconnect]);
 

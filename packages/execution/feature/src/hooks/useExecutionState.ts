@@ -124,6 +124,10 @@ function executionReducer(state: ExecutionState, action: ExecutionAction): Execu
  *
  * The `dispatch` function accepts SSE event type strings and their data payloads,
  * mapping them to internal reducer actions.
+ *
+ * The execution API broadcasts SSE to every connected client. Callers that wire
+ * `useSSE` directly must ignore payloads whose `executionId` is not the active
+ * run; [`useFlowRunner`](./useFlowRunner.ts) applies that filter for flow runs.
  */
 export function useExecutionState() {
   const [state, rawDispatch] = useReducer(executionReducer, initialState);
