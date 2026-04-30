@@ -5,14 +5,19 @@
  * server startup in environments where SQL Server is unavailable.
  */
 
+import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
+
 let sql: typeof import('mssql') | null = null;
 
 function loadSql() {
   if (sql) return sql;
-  // Use createRequire to load mssql synchronously (CJS)
+  // Use createRequire to load mssql synchronously
   // This avoids ESM-CJS interop issues with mssql/tedious
-  const { createRequire } = require('module');
-  const req = createRequire(__filename);
+  const esmFilename = typeof __filename !== 'undefined'
+    ? __filename
+    : fileURLToPath(import.meta.url);
+  const req = createRequire(esmFilename);
   sql = req('mssql') as typeof import('mssql');
   return sql;
 }

@@ -11,7 +11,8 @@ export const stepsRouter: RouterType = Router();
 stepsRouter.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const category = req.query.category as string | undefined;
-    const steps = await listSteps(category);
+    const story = req.query.story as string | undefined;
+    const steps = await listSteps(category, story);
     res.json(steps);
   } catch (err) {
     next(err);

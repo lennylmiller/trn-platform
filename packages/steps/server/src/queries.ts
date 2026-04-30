@@ -24,6 +24,7 @@ function mapRow(row: Record<string, unknown>): Step {
     description: (row.description as string) ?? null,
     display_queries: parseDisplayQueries(row.display_queries as string | null),
     is_seed: Boolean(row.is_seed),
+    story: (row.story as string) ?? null,
     created_at: (row.created_at as string) ?? null,
     updated_at: (row.updated_at as string) ?? null,
   };
@@ -33,14 +34,23 @@ function mapRow(row: Record<string, unknown>): Step {
 // Queries
 // ---------------------------------------------------------------------------
 
-export async function listSteps(category?: string): Promise<Step[]> {
+export async function listSteps(category?: string, story?: string): Promise<Step[]> {
   const pool = await getPool('qc_training');
   let query = 'SELECT * FROM step_library';
+  const conditions: string[] = [];
   const request = pool.request();
 
   if (category) {
-    query += ' WHERE category = @category';
+    conditions.push('category = @category');
     request.input('category', category);
+  }
+  if (story) {
+    conditions.push('story = @story');
+    request.input('story', story);
+  }
+
+  if (conditions.length > 0) {
+    query += ` WHERE ${conditions.join(' AND ')}`;
   }
 
   query += ' ORDER BY label';
@@ -73,10 +83,11 @@ export async function createStep(input: StepCreate): Promise<Step> {
     .input('command_text', input.command_text ?? null)
     .input('description', input.description ?? null)
     .input('display_queries', displayQueriesJson)
+    .input('story', input.story ?? null)
     .query(
-      `INSERT INTO step_library (label, type, category, command_text, description, display_queries)
+      `INSERT INTO step_library (label, type, category, command_text, description, display_queries, story)
        OUTPUT INSERTED.*
-       VALUES (@label, @type, @category, @command_text, @description, @display_queries)`,
+       VALUES (@label, @type, @category, @command_text, @description, @display_queries, @story)`,
     );
 
   return mapRow(result.recordset[0]);
@@ -115,6 +126,10 @@ export async function updateStep(id: number, updates: StepUpdate): Promise<Step 
       'display_queries',
       updates.display_queries ? JSON.stringify(updates.display_queries) : null,
     );
+  }
+  if (updates.story !== undefined) {
+    setClauses.push('story = @story');
+    request.input('story', updates.story ?? null);
   }
 
   if (setClauses.length === 0) {

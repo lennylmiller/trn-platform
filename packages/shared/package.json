@@ -12,6 +12,11 @@
       "types": "./src/db/index.ts",
       "import": "./src/db/index.ts",
       "require": "./src/db/index.ts"
+    },
+    "./tools": {
+      "types": "./src/tools/index.ts",
+      "import": "./src/tools/index.ts",
+      "require": "./src/tools/index.ts"
     }
   },
   "scripts": {

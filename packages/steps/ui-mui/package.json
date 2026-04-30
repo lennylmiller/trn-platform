@@ -15,7 +15,10 @@
   "dependencies": {
     "@trn-platform/shared": "workspace:*",
     "@trn-platform/steps-data-access": "workspace:*",
-    "@trn-platform/steps-feature": "workspace:*"
+    "@trn-platform/steps-feature": "workspace:*",
+    "@trn-platform/execution-feature": "workspace:*",
+    "@trn-platform/execution-ui-mui": "workspace:*",
+    "@trn-platform/chat-ui-mui": "workspace:*"
   },
   "devDependencies": {
     "@emotion/react": "^11.14.0",

@@ -5,7 +5,7 @@ import {
   mockFlowListItems,
   mockFlowDetail,
   mockCompositionListItems,
-  mockCompositionDetail,
+  mockCompositionDetails,
   mockTrainingStatus,
   mockSqlResult,
 } from './mockData';
@@ -118,9 +118,8 @@ export const handlers = [
 
   /** GET /api/v2/compositions/:id — composition detail with blocks */
   http.get(`${API_BASE}/compositions/:id`, ({ params }) => {
-    if (Number(params.id) === mockCompositionDetail.composition_id) {
-      return HttpResponse.json(mockCompositionDetail);
-    }
+    const detail = mockCompositionDetails[Number(params.id)];
+    if (detail) return HttpResponse.json(detail);
     return new HttpResponse(null, { status: 404 });
   }),
 

@@ -13,6 +13,7 @@ import FlowDevView from './pages/FlowDevView';
 import FlowRunView from './pages/FlowRunView';
 import CompositionEditView from './pages/CompositionEditView';
 import CompositionRunView from './pages/CompositionRunView';
+import StepWorkbenchPage from './pages/StepWorkbenchPage';
 
 const theme = createTheme({
   palette: {
@@ -45,9 +46,10 @@ const TabPanel = ({ children, value, index }: TabPanelProps) => (
   </Box>
 );
 
-const TAB_PATHS = ['/', '/flows', '/compositions', '/run'] as const;
+const TAB_PATHS = ['/', '/flows', '/compositions', '/run', '/workbench'] as const;
 
 function pathToTabIndex(pathname: string): number {
+  if (pathname.startsWith('/workbench')) return 4;
   if (pathname.startsWith('/flows')) return 1;
   if (pathname.startsWith('/compositions')) return 2;
   if (pathname.startsWith('/run')) return 3;
@@ -81,6 +83,7 @@ function Shell() {
             <Tab label="Flows" />
             <Tab label="Compositions" />
             <Tab label="Run" />
+            <Tab label="Workbench" />
           </Tabs>
         </Toolbar>
       </AppBar>
@@ -97,6 +100,9 @@ function Shell() {
       <TabPanel value={tab} index={3}>
         <RunPage />
       </TabPanel>
+      <TabPanel value={tab} index={4}>
+        <StepWorkbenchPage />
+      </TabPanel>
     </Box>
   );
 }
@@ -112,6 +118,7 @@ export default function App() {
             <Route path="/flows/run/:flowId" element={<FlowRunView />} />
             <Route path="/compositions/edit/:compositionId" element={<CompositionEditView />} />
             <Route path="/compositions/run/:compositionId" element={<CompositionRunView />} />
+            <Route path="/workbench/:stepId" element={<StepWorkbenchPage />} />
             <Route path="*" element={<Shell />} />
           </Routes>
         </BrowserRouter>

@@ -11,7 +11,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import type { StepCategory } from '@trn-platform/shared';
-import { STEP_CATEGORY_LABELS } from '@trn-platform/shared';
+import { STEP_CATEGORY_LABELS, STEP_STORY_LABELS } from '@trn-platform/shared';
 import { useSteps } from '@trn-platform/steps-data-access';
 import { useStepFilters } from '@trn-platform/steps-feature';
 import { StepCard } from './StepCard';
@@ -28,11 +28,13 @@ export interface StepListTabProps {
  */
 export function StepListTab({ onStepClick }: StepListTabProps) {
   const [category, setCategory] = useState<StepCategory | ''>('');
+  const [storyFilter, setStoryFilter] = useState<string>('');
   const [search, setSearch] = useState('');
 
   const { data: steps, isLoading, error } = useSteps();
   const { filtered } = useStepFilters(steps, {
     category: category || undefined,
+    story: storyFilter === '_common' ? null : (storyFilter || undefined),
     search,
   });
 
@@ -76,6 +78,24 @@ export function StepListTab({ onStepClick }: StepListTabProps) {
             {CATEGORIES.map((cat) => (
               <MenuItem key={cat} value={cat}>
                 {STEP_CATEGORY_LABELS[cat] ?? cat}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <FormControl size="small" sx={{ minWidth: 160 }}>
+          <InputLabel id="step-story-filter-label">Story</InputLabel>
+          <Select
+            labelId="step-story-filter-label"
+            value={storyFilter}
+            label="Story"
+            onChange={(e: SelectChangeEvent<string>) => setStoryFilter(e.target.value)}
+          >
+            <MenuItem value="">All Stories</MenuItem>
+            <MenuItem value="_common"><em>Common Only</em></MenuItem>
+            {Object.entries(STEP_STORY_LABELS).map(([key, label_]) => (
+              <MenuItem key={key} value={key}>
+                {label_}
               </MenuItem>
             ))}
           </Select>

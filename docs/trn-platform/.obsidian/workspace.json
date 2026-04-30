@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "2-on-deck/4-bug.md",
+                "file": "bugs/8-bug.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "4-bug"
+              "title": "8-bug"
             }
           }
         ]
@@ -185,9 +185,19 @@
   },
   "active": "dc1a8c71a5b32d97",
   "lastOpenFiles": [
+    "Pasted image 20260429195201.png",
+    "Pasted image 20260429194653.png",
+    "bugs/7-bug.md",
+    "bugs/8-bug.md",
+    "Pasted image 20260429193225.png",
+    "1-specs/animated-shorts/00-series-overview.md",
+    "1-specs/bridge-builder-content-plan.md",
+    "1-specs/ai-step-authoring-workflow.md",
+    "1-specs/animated-shorts/ep0-the-twist.md",
+    "1-specs/animated-shorts/ep1-the-wall.md",
+    "2-on-deck/4-bug.md",
     "Pasted image 20260428121535.png",
     "2-on-deck/3-bug.md",
-    "2-on-deck/4-bug.md",
     "Pasted image 20260428115125.png",
     "2-on-deck/2-bug.md",
     "2-on-deck/Pasted image 20260428092413.png",
@@ -201,12 +211,9 @@
     "Pasted image 20260427203927.png",
     "2-on-deck/bug-1.md",
     "2-on-deck/localhost-1777346459066.log",
-    "_fur-derp.png",
     "2-on-deck/sprint-1-scaffold.md",
     "2-on-deck/images",
-    "2-on-deck/images/Pasted image 20260427141103.png",
     "bugs/6-bug.md",
-    "bugs/Pasted image 20260426211454.png",
     "bugs/5-bug.md",
     "4-reference/pipeline-guide.md",
     "bugs/4-bug.md",
@@ -216,8 +223,6 @@
     "bugs",
     "1-specs/use-cases/steps.md",
     "1-specs/use-cases/flows.md",
-    "1-specs/use-cases/execution.md",
-    "1-specs/use-cases/compositions.md",
-    "0-vision/north-star.md"
+    "1-specs/use-cases/execution.md"
   ]
 }
