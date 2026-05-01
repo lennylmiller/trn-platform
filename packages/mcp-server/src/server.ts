@@ -378,5 +378,105 @@ export function createServer(): McpServer {
     },
   );
 
+  // -------------------------------------------------------------------------
+  // Course tools (via Express API)
+  // -------------------------------------------------------------------------
+
+  server.tool(
+    'list_courses',
+    'List all training courses with section and slide counts',
+    {},
+    async () => {
+      const courses = await apiFetch<unknown[]>('/api/v2/courses');
+      return { content: [{ type: 'text' as const, text: JSON.stringify(courses, null, 2) }] };
+    },
+  );
+
+  server.tool(
+    'get_course',
+    'Get a course by ID with all sections and slides',
+    { courseId: z.number().describe('The course_id to retrieve') },
+    async ({ courseId }) => {
+      const course = await apiFetch<unknown>(`/api/v2/courses/${courseId}`);
+      return { content: [{ type: 'text' as const, text: JSON.stringify(course, null, 2) }] };
+    },
+  );
+
+  server.tool(
+    'create_course',
+    'Create a new training course',
+    {
+      title: z.string().describe('Course title'),
+      description: z.string().optional().describe('Course description'),
+      category: z.string().optional().describe('Category: database, reports, enrollment, etc.'),
+    },
+    async ({ title, description, category }) => {
+      const course = await apiFetch<unknown>('/api/v2/courses', {
+        method: 'POST',
+        body: JSON.stringify({ title, description, category }),
+      });
+      return { content: [{ type: 'text' as const, text: JSON.stringify(course, null, 2) }] };
+    },
+  );
+
+  server.tool(
+    'add_course_section',
+    'Add a section (chapter/act) to a course',
+    {
+      courseId: z.number().describe('The course_id'),
+      seq: z.number().describe('Order within the course (1, 2, 3...)'),
+      title: z.string().describe('Section title'),
+      description: z.string().optional().describe('Section description'),
+    },
+    async ({ courseId, seq, title, description }) => {
+      const section = await apiFetch<unknown>(`/api/v2/courses/${courseId}/sections`, {
+        method: 'POST',
+        body: JSON.stringify({ seq, title, description }),
+      });
+      return { content: [{ type: 'text' as const, text: JSON.stringify(section, null, 2) }] };
+    },
+  );
+
+  server.tool(
+    'add_course_slide',
+    'Add a slide to a course section. slide_type determines which fields are used.',
+    {
+      courseId: z.number().describe('The course_id'),
+      sectionId: z.number().describe('The section_id'),
+      slide: z.string().describe('JSON object with slide fields: {seq, slide_type, title?, content?, sql_text?, sql_label?, verify_mode?, expected_json?, quiz_question?, quiz_options?, quiz_answer?, quiz_explanation?, hints?, presenter_notes?, image_url?}'),
+    },
+    async ({ courseId, sectionId, slide }) => {
+      const parsed = JSON.parse(slide) as Record<string, unknown>;
+      const result = await apiFetch<unknown>(`/api/v2/courses/${courseId}/sections/${sectionId}/slides`, {
+        method: 'POST',
+        body: JSON.stringify(parsed),
+      });
+      return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
+    },
+  );
+
+  server.tool(
+    'update_course',
+    'Update a course (title, description, category, status)',
+    {
+      courseId: z.number().describe('The course_id to update'),
+      title: z.string().optional().describe('New title'),
+      description: z.string().optional().describe('New description'),
+      category: z.string().optional().describe('New category'),
+      status: z.string().optional().describe('New status: draft, published, archived'),
+    },
+    async ({ courseId, ...updates }) => {
+      const body: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(updates)) {
+        if (v !== undefined) body[k] = v;
+      }
+      const course = await apiFetch<unknown>(`/api/v2/courses/${courseId}`, {
+        method: 'PUT',
+        body: JSON.stringify(body),
+      });
+      return { content: [{ type: 'text' as const, text: JSON.stringify(course, null, 2) }] };
+    },
+  );
+
   return server;
 }

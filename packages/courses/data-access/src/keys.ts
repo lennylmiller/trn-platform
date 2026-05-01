@@ -1,0 +1,6 @@
+export const coursesKeys = {
+  all: ['courses'] as const,
+  lists: () => [...coursesKeys.all, 'list'] as const,
+  details: () => [...coursesKeys.all, 'detail'] as const,
+  detail: (courseId: number) => [...coursesKeys.details(), courseId] as const,
+};

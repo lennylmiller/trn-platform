@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
@@ -13,7 +13,9 @@ import RunPage from './pages/RunPage';
 import CompositionEditorPage from './pages/CompositionEditorPage';
 import CompositionRunPage from './pages/CompositionRunPage';
 import StepWorkbenchPage from './pages/StepWorkbenchPage';
-import StoriesPage from './pages/StoriesPage';
+import TrainingPlayerPage from './pages/TrainingPlayerPage';
+import CoursePlayerPage from './pages/CoursePlayerPage';
+import CoursesPage from './pages/CoursesPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,20 +35,28 @@ const TabPanel = ({ children, value, index }: TabPanelProps) => (
   </Box>
 );
 
-const TAB_PATHS = ['/', '/flows', '/compositions', '/stories', '/workbench'] as const;
+const TAB_PATHS = ['/courses', '/steps', '/flows', '/workbench'] as const;
 
 function pathToTabIndex(pathname: string): number {
-  if (pathname.startsWith('/stories')) return 3;
-  if (pathname.startsWith('/workbench')) return 4;
-  if (pathname.startsWith('/flows')) return 1;
-  if (pathname.startsWith('/compositions')) return 2;
+  if (pathname.startsWith('/steps')) return 1;
+  if (pathname.startsWith('/flows')) return 2;
+  if (pathname.startsWith('/workbench')) return 3;
+  if (pathname === '/' || pathname.startsWith('/courses')) return 0;
   return 0;
 }
 
 function Shell({ onToggleTheme, mode }: { onToggleTheme: () => void; mode: 'light' | 'dark' }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const [showDevTabs, setShowDevTabs] = useState(false);
   const tab = pathToTabIndex(location.pathname);
+
+  // When dev tabs are hidden and user is on a dev tab, redirect to courses
+  useEffect(() => {
+    if (!showDevTabs && tab > 0) {
+      navigate('/courses');
+    }
+  }, [showDevTabs]);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -56,19 +66,23 @@ function Shell({ onToggleTheme, mode }: { onToggleTheme: () => void; mode: 'ligh
             QC Training
           </Typography>
           <Tabs
-            value={tab}
+            value={showDevTabs ? tab : 0}
             onChange={(_, v) => navigate(TAB_PATHS[v]!)}
             textColor="inherit"
             indicatorColor="secondary"
             sx={{ '& .MuiTab-root': { minHeight: 64, fontWeight: 600 } }}
           >
-            <Tab label="Steps" />
-            <Tab label="Flows" />
-            <Tab label="Compositions" />
-            <Tab label="Stories" />
-            <Tab label="Workbench" />
+            <Tab label="Courses" />
+            {showDevTabs && <Tab label="Steps" />}
+            {showDevTabs && <Tab label="Flows" />}
+            {showDevTabs && <Tab label="Workbench" />}
           </Tabs>
           <Box sx={{ flexGrow: 1 }} />
+          {/* Hidden dev toggle — invisible 24x24 hit area */}
+          <Box
+            onClick={() => setShowDevTabs(v => !v)}
+            sx={{ width: 24, height: 24, cursor: 'default', mr: 1, opacity: 0 }}
+          />
           <IconButton color="inherit" onClick={onToggleTheme}>
             {mode === 'light' ? <DarkModeIcon /> : <LightModeIcon />}
           </IconButton>
@@ -76,18 +90,15 @@ function Shell({ onToggleTheme, mode }: { onToggleTheme: () => void; mode: 'ligh
       </AppBar>
 
       <TabPanel value={tab} index={0}>
-        <LandingPage tab="steps" />
+        <CoursesPage />
       </TabPanel>
       <TabPanel value={tab} index={1}>
-        <LandingPage tab="flows" />
+        <LandingPage tab="steps" />
       </TabPanel>
       <TabPanel value={tab} index={2}>
-        <LandingPage tab="compositions" />
+        <LandingPage tab="flows" />
       </TabPanel>
       <TabPanel value={tab} index={3}>
-        <StoriesPage />
-      </TabPanel>
-      <TabPanel value={tab} index={4}>
         <StepWorkbenchPage />
       </TabPanel>
     </Box>
@@ -126,6 +137,8 @@ export default function App() {
             <Route path="/flows/run/:flowId" element={<RunPage />} />
             <Route path="/compositions/edit/:compositionId" element={<CompositionEditorPage />} />
             <Route path="/compositions/run/:compositionId" element={<CompositionRunPage />} />
+            <Route path="/compositions/play/:compositionId" element={<TrainingPlayerPage />} />
+            <Route path="/courses/play/:courseId" element={<CoursePlayerPage />} />
             <Route path="/workbench/:stepId" element={<StepWorkbenchPage />} />
             <Route path="*" element={<Shell onToggleTheme={toggleTheme} mode={mode} />} />
           </Routes>

@@ -22,3 +22,12 @@ export type { CompositionPickerModalProps } from './components/CompositionPicker
 
 export { CompositionRunPage } from './components/CompositionRunPage';
 export type { CompositionRunPageProps } from './components/CompositionRunPage';
+
+export { TrainingPlayer } from './components/TrainingPlayer';
+export type { TrainingPlayerProps } from './components/TrainingPlayer';
+
+export { MarkdownBlock } from './components/MarkdownBlock';
+export type { MarkdownBlockProps } from './components/MarkdownBlock';
+
+export { RunnableSqlBlock } from './components/RunnableSqlBlock';
+export type { RunnableSqlBlockProps } from './components/RunnableSqlBlock';

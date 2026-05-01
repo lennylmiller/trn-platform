@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "2-on-deck/5-bug.md",
+                "file": "pure-wobbling-sonnet.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "5-bug"
+              "title": "pure-wobbling-sonnet"
             }
           }
         ]
@@ -185,10 +185,12 @@
   },
   "active": "dc1a8c71a5b32d97",
   "lastOpenFiles": [
+    "0-vision/north-star.md",
+    "pure-wobbling-sonnet.md",
+    "2-on-deck/5-bug.md",
     "2-on-deck/localhost-1777590717524.log",
     "Pasted image 20260430161116.png",
     "4-reference/miller-family-qa-guide.md",
-    "2-on-deck/5-bug.md",
     "bugs/9-bug.md",
     "bugs/8-bug.md",
     "Pasted image 20260429195201.png",
@@ -222,7 +224,6 @@
     "bugs/4-bug.md",
     "bugs/3-bug.md",
     "bugs/1-bug.md",
-    "bugs/0-bug.md",
     "bugs"
   ]
 }

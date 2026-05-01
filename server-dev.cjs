@@ -29,6 +29,7 @@ const { compositionsRouter } = require('@trn-platform/compositions-server');
 const { executionRouter } = require('@trn-platform/execution-server');
 const { chatRouter } = require('@trn-platform/chat-server');
 const { storiesRouter } = require('@trn-platform/stories-server');
+const { coursesRouter } = require('@trn-platform/courses-server');
 
 console.log('[server] AUTH_DISABLED:', process.env.AUTH_DISABLED);
 const app = express();
@@ -57,6 +58,7 @@ app.use('/api/v2/compositions', compositionsRouter);
 app.use('/api/v2/execute', executionRouter);
 app.use('/api/v2/chat', chatRouter);
 app.use('/api/v2/stories', storiesRouter);
+app.use('/api/v2/courses', coursesRouter);
 app.use(errorHandler);
 
 const server = app.listen(PORT, () => {
