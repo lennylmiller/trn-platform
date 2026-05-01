@@ -86,7 +86,7 @@ function createQueryClient() {
 }
 
 const meta: Meta<typeof FlowRunPage> = {
-  title: 'Flows/FlowRunPage',
+  title: 'Domains/Flows/FlowRunPage',
   component: FlowRunPage,
   decorators: [
     (Story) => (

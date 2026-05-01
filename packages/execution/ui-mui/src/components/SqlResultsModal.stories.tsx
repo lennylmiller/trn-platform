@@ -3,7 +3,7 @@ import { SqlResultsModal } from './SqlResultsModal';
 import type { SqlResult } from '@trn-platform/shared';
 
 const meta: Meta<typeof SqlResultsModal> = {
-  title: 'Execution/SqlResultsModal',
+  title: 'Domains/Execution/SqlResultsModal',
   component: SqlResultsModal,
   tags: ['autodocs'],
   args: {

@@ -16,7 +16,7 @@ const StepManagementPage = () => (
 );
 
 const meta: Meta = {
-  title: 'Pages/Manage Steps/Step Management Page',
+  title: 'Pages/WF5 Manage Steps/Step Management Page',
   component: StepManagementPage,
   parameters: { layout: 'fullscreen' },
   tags: ['page', 'wf-5', 'domain-steps'],

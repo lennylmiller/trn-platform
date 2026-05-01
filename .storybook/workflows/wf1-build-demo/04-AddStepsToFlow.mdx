@@ -1,0 +1,39 @@
+import { Meta, Canvas } from '@storybook/addon-docs/blocks';
+import * as Stories from './04-AddStepsToFlow.stories';
+
+<Meta of={Stories} />
+
+# UC-FLOW-5: Add Steps to Flow
+
+**Actor:** User | **Tier:** Core | **Workflow:** WF1 Build Demo
+
+## Precondition
+A flow exists and the user has opened it in dev mode. The step library contains available steps.
+
+## Trigger
+User opens a flow in dev mode and clicks to add a step from the sidebar.
+
+## Main Flow
+1. User opens flow in dev mode -- system renders `FlowTimeline` (center panel) and `StepLibrary` (sidebar)
+2. `StepLibrary` sidebar loads available steps from `qc_training.step_library` via `useSteps` hook
+3. User clicks a step in the `StepLibrary` to select it
+4. System adds the step to the `FlowTimeline` at the next sequential position via `useFlowBuilder` hook
+5. The step appears in the timeline with its label, colored type chip, and sequence number
+6. User can repeat steps 3-5 to add more steps to the flow
+7. Each addition calls `POST /api/v2/flows/:id/steps` with the step ID and sequence position
+
+## Alternate Flows
+- **AF-1:** Step already in flow -- duplicate is added with a new sequence number (same step can appear multiple times)
+- **AF-2:** API error on add -- MUI `Snackbar` with error message, step is not added to timeline
+
+## Postcondition
+The flow timeline contains the newly added step(s) at the specified position(s) in `qc_training.flow_steps`.
+
+## Interactive Demo
+<Canvas of={Stories.Default} />
+
+## Data
+- **Schema:** `FlowStepSchema`, `StepSchema` (shared)
+- **Table:** `qc_training.flow_steps`, `qc_training.step_library`
+- **Hooks:** `useFlowBuilder`, `useSteps`
+- **Components:** `FlowTimeline` (`packages/flows/ui-mui`), `StepLibrary` (`packages/steps/ui-mui`)

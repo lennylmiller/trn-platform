@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { ExecutionControls } from './ExecutionControls';
 
 const meta: Meta<typeof ExecutionControls> = {
-  title: 'Execution/ExecutionControls',
+  title: 'Domains/Execution/ExecutionControls',
   component: ExecutionControls,
   tags: ['autodocs'],
   args: {

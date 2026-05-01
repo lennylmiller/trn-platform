@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -24,6 +24,8 @@ export interface StepEditorModalProps {
   onClose: () => void;
   /** If provided, the modal is in edit mode. Otherwise, create mode. */
   step?: Step;
+  /** Called when the user wants to delete the step (edit mode only). */
+  onDelete?: () => void;
 }
 
 function serializeDisplayQueries(queries: DisplayQuery[] | null | undefined): string {
@@ -40,7 +42,7 @@ function parseDisplayQueriesInput(input: string): DisplayQuery[] | null {
 /**
  * MUI Dialog for creating or editing a step.
  */
-export function StepEditorModal({ open, onClose, step }: StepEditorModalProps) {
+export function StepEditorModal({ open, onClose, step, onDelete }: StepEditorModalProps) {
   const isEdit = !!step;
 
   const [label, setLabel] = useState('');
@@ -209,6 +211,11 @@ export function StepEditorModal({ open, onClose, step }: StepEditorModalProps) {
         </Stack>
       </DialogContent>
       <DialogActions>
+        {isEdit && onDelete && (
+          <Button onClick={onDelete} color="error" disabled={isSaving} sx={{ mr: 'auto' }}>
+            Delete
+          </Button>
+        )}
         <Button onClick={onClose} disabled={isSaving}>
           Cancel
         </Button>

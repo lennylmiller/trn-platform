@@ -1,63 +1,62 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import { Box, Typography, Stepper, Step, StepLabel, StepContent, Button, Paper } from '@mui/material';
+import { within, userEvent } from 'storybook/test';
 
 const workflowSteps = [
-  { label: 'Browse Step Library', description: 'Search and filter reusable steps by type and category.' },
-  { label: 'Create New Step', description: 'Author a new SQL, shell, or manual step with command text and display queries.' },
-  { label: 'Create New Flow', description: 'Create an empty flow to organize steps into a presentation sequence.' },
-  { label: 'Add Steps to Flow', description: 'Select steps from the library and arrange them in the flow timeline.' },
-  { label: 'Configure Step Properties', description: 'Set pause points, presenter notes, and visibility for each flow step.' },
-  { label: 'Test Run Flow', description: 'Execute the flow end-to-end, observing console output and pause behavior.' },
+  { id: 'UC-STEP-1', title: 'Browse Step Library' },
+  { id: 'UC-STEP-4', title: 'Create Step' },
+  { id: 'UC-FLOW-2', title: 'Create Flow' },
+  { id: 'UC-FLOW-5', title: 'Add Steps to Flow' },
+  { id: 'UC-FLOW-8', title: 'Edit Flow Step Properties' },
+  { id: 'UC-EXEC-2', title: 'Execute Flow' },
 ];
 
-const BuildDemoFullFlow = () => {
-  const [activeStep, setActiveStep] = React.useState(0);
-
+function BuildDemoFullFlowPlaceholder() {
   return (
-    <Box sx={{ p: 3, maxWidth: 700 }}>
-      <Typography variant="h5" gutterBottom>Workflow 1: Build a Demo</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Complete end-to-end workflow for building a training demo from scratch: author steps, compose a flow, configure properties, and test run it.
-      </Typography>
-      <Stepper activeStep={activeStep} orientation="vertical">
-        {workflowSteps.map((step, index) => (
-          <Step key={step.label}>
-            <StepLabel>{step.label}</StepLabel>
-            <StepContent>
-              <Typography variant="body2" sx={{ mb: 2 }}>{step.description}</Typography>
-              <Box>
-                <Button variant="contained" size="small" onClick={() => setActiveStep(index + 1)} sx={{ mr: 1 }}>
-                  {index === workflowSteps.length - 1 ? 'Finish' : 'Continue'}
-                </Button>
-                {index > 0 && (
-                  <Button size="small" onClick={() => setActiveStep(index - 1)}>Back</Button>
-                )}
-              </Box>
-            </StepContent>
-          </Step>
+    <div style={{ padding: '2rem', border: '2px dashed #ccc', borderRadius: 8, textAlign: 'center' }}>
+      <h3>WF1: Build Demo -- Full Flow</h3>
+      <ol style={{ paddingLeft: '1.5rem', lineHeight: 2, textAlign: 'left' }}>
+        {workflowSteps.map((s) => (
+          <li key={s.id}><strong>{s.id}:</strong> {s.title}</li>
         ))}
-      </Stepper>
-      {activeStep === workflowSteps.length && (
-        <Paper sx={{ p: 3, mt: 2, bgcolor: 'success.light', color: 'success.contrastText' }}>
-          <Typography variant="subtitle1" fontWeight={600}>Demo build complete!</Typography>
-          <Typography variant="body2">All steps finished. The flow is ready for presentation.</Typography>
-          <Button onClick={() => setActiveStep(0)} sx={{ mt: 1 }} variant="outlined" color="inherit">
-            Reset
-          </Button>
-        </Paper>
-      )}
-    </Box>
+      </ol>
+      <p style={{ color: '#999', fontSize: '0.875rem' }}>
+        Chains all WF1 use cases end-to-end. Will be wired to real components in implementation phase.
+      </p>
+    </div>
   );
-};
+}
 
-const meta: Meta = {
-  title: 'Workflows/Build Demo/Full Flow',
-  component: BuildDemoFullFlow,
-  tags: ['wf-1'],
-};
+const meta = {
+  title: 'Workflows/WF1 Build Demo/Full Flow',
+  component: BuildDemoFullFlowPlaceholder,
+  tags: ['wf-build', 'tier-core'],
+  parameters: { layout: 'centered' },
+} satisfies Meta<typeof BuildDemoFullFlowPlaceholder>;
+
 export default meta;
-
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await step('1. Browse step library', async () => {
+      // TODO: wire to real component
+    });
+    await step('2. Create new step', async () => {
+      // TODO: wire to real component
+    });
+    await step('3. Create new flow', async () => {
+      // TODO: wire to real component
+    });
+    await step('4. Add steps to flow', async () => {
+      // TODO: wire to real component
+    });
+    await step('5. Configure step properties', async () => {
+      // TODO: wire to real component
+    });
+    await step('6. Test run the flow', async () => {
+      // TODO: wire to real component
+    });
+  },
+};

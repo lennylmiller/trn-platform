@@ -1,0 +1,38 @@
+import { Meta, Canvas } from '@storybook/addon-docs/blocks';
+import * as Stories from './03-TestStep.stories';
+
+<Meta of={Stories} />
+
+# UC-EXEC-1: Execute Single Step
+
+**Actor:** User | **Tier:** Core | **Workflow:** WF5 Manage Steps
+
+## Precondition
+A step exists in the library.
+
+## Trigger
+Click "Test" on step card.
+
+## Main Flow
+1. User clicks "Test" on step
+2. System sends POST /api/v2/execute/step/:stepId
+3. Shell type: child process spawns, stdout/stderr stream via SSE
+4. SQL type: query runs against qc_core, results shown
+5. Manual type: system pauses, shows instructions
+6. Console drawer shows output
+
+## Alternate Flows
+- **AF-1:** Execution error -- Error details shown in console; author can fix and retry
+- **AF-2:** Manual step timeout -- System shows a timeout warning after configurable duration
+
+## Postcondition
+Step has been tested; author can review output to verify correctness.
+
+## Interactive Demo
+<Canvas of={Stories.Default} />
+
+## Data
+- **Schema:** `StepExecutionSchema` (shared)
+- **Table:** `step_library` + `execution_log` (qc_training)
+- **Hooks:** `useExecuteStep` (data-access), `useStepExecution` (feature)
+- **Component:** `ConsoleDrawer` + `ExecutionControls` (`packages/execution/ui-mui`)

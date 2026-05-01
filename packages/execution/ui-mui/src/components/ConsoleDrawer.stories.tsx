@@ -11,7 +11,7 @@ function makeLine(line: string, stream: 'stdout' | 'stderr' = 'stdout', offsetMs
 }
 
 const meta: Meta<typeof ConsoleDrawer> = {
-  title: 'Execution/ConsoleDrawer',
+  title: 'Domains/Execution/ConsoleDrawer',
   component: ConsoleDrawer,
   tags: ['autodocs'],
   args: {

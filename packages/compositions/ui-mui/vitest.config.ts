@@ -1,16 +1,8 @@
-import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
+import { mergeConfig, defineConfig } from 'vitest/config';
+import baseConfig from '../../../vitest.config.base';
 
-export default defineConfig({
-  plugins: [react()],
+export default mergeConfig(baseConfig, defineConfig({
   test: {
-    globals: true,
     environment: 'jsdom',
-    include: ['__tests__/**/*.test.ts', '__tests__/**/*.test.tsx', 'src/**/*.test.ts', 'src/**/*.test.tsx'],
-    coverage: {
-      provider: 'v8',
-      thresholds: { lines: 79, functions: 80, branches: 65, statements: 79 },
-      exclude: ['**/index.ts', '**/*.test.*', '**/*.stories.*', '**/dist/**'],
-    },
   },
-});
+}));

@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { type Router as RouterType, Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { randomUUID } from 'crypto';
 import type { SSEEventType } from '@trn-platform/shared';
@@ -12,7 +12,7 @@ import {
   getTrainingStatus,
 } from './queries';
 
-export const executionRouter = Router();
+export const executionRouter: RouterType = Router();
 
 // ---------------------------------------------------------------------------
 // Flow execution state — allows pause/resume signaling

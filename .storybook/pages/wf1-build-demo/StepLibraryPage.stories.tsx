@@ -10,7 +10,7 @@ const StepLibraryPage = () => (
 );
 
 const meta: Meta = {
-  title: 'Pages/Build Demo/Step Library Page',
+  title: 'Pages/WF1 Build Demo/Step Library Page',
   component: StepLibraryPage,
   parameters: { layout: 'fullscreen' },
   tags: ['page', 'wf-1', 'domain-steps'],

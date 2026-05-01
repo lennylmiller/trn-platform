@@ -1,56 +1,35 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import {
-  Box, Typography, TextField, Button, Card, CardContent, Stack, Chip, Alert,
-} from '@mui/material';
-import ArticleIcon from '@mui/icons-material/Article';
+import { within, userEvent } from 'storybook/test';
 
-const AddNarrativeBlock = () => {
-  const [added, setAdded] = React.useState(false);
-  const [heading, setHeading] = React.useState('Introduction');
-  const [content, setContent] = React.useState('');
-
+function AddNarrativeBlock() {
   return (
-    <Box sx={{ p: 3, maxWidth: 600 }}>
-      <Typography variant="h5" gutterBottom>Add Narrative Block</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Add prose content to your composition. Narrative blocks provide context and explanation between hands-on flow blocks.
-      </Typography>
-      {added && <Alert severity="success" sx={{ mb: 2 }}>Narrative block added to composition.</Alert>}
-      <Card variant="outlined">
-        <CardContent>
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-            <ArticleIcon color="primary" />
-            <Chip label="Narrative" size="small" color="primary" variant="outlined" />
-          </Stack>
-          <Stack spacing={2}>
-            <TextField label="Heading" fullWidth value={heading} onChange={(e) => setHeading(e.target.value)} />
-            <TextField
-              label="Content (Markdown)"
-              fullWidth
-              multiline
-              minRows={6}
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="# Welcome to QC Training&#10;&#10;This tutorial walks new hires through the core claims processing workflow..."
-              slotProps={{ input: { sx: { fontFamily: 'monospace', fontSize: 13 } } }}
-            />
-            <TextField label="Presenter Notes (optional)" fullWidth multiline minRows={2} />
-            <Button variant="contained" onClick={() => setAdded(true)} disabled={!heading}>Add Block</Button>
-          </Stack>
-        </CardContent>
-      </Card>
-    </Box>
+    <div style={{ padding: '2rem', border: '2px dashed #ccc', borderRadius: 8, textAlign: 'center' }}>
+      <h3>UC-COMP-5: Add Block (narrative type)</h3>
+      <p style={{ color: '#666' }}>Components: AddBlockBar + CompositionBlockCard (packages/compositions/ui-mui)</p>
+      <p style={{ color: '#999', fontSize: '0.875rem' }}>Will be wired to real component in implementation phase</p>
+    </div>
   );
-};
+}
 
-const meta: Meta = {
-  title: 'Workflows/Author Story/02 Add Narrative Block',
+const meta = {
+  title: 'Workflows/WF3 Author Story/02 Add Narrative Block',
   component: AddNarrativeBlock,
-  tags: ['wf-3', 'domain-compositions'],
-};
-export default meta;
+  tags: ['wf-author-story', 'domain-compositions', 'tier-core'],
+  parameters: { layout: 'centered' },
+} satisfies Meta<typeof AddNarrativeBlock>;
 
+export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await step('1. User clicks "Narrative" button in AddBlockBar', async () => { /* TODO */ });
+    await step('2. System appends narrative block at next seq', async () => { /* TODO */ });
+    await step('3. User enters story content (markdown) in content field', async () => { /* TODO */ });
+    await step('4. User optionally enters technical_content', async () => { /* TODO */ });
+    await step('5. User sets heading', async () => { /* TODO */ });
+    await step('6. POST /api/v2/compositions/:id/blocks', async () => { /* TODO */ });
+  },
+};

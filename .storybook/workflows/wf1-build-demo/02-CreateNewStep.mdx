@@ -1,0 +1,44 @@
+import { Meta, Canvas } from '@storybook/addon-docs/blocks';
+import * as Stories from './02-CreateNewStep.stories';
+
+<Meta of={Stories} />
+
+# UC-STEP-4: Create Step
+
+**Actor:** User | **Tier:** Core | **Workflow:** WF1 Build Demo
+
+## Precondition
+User is on the Steps tab with create permissions. The `StepEditorModal` component is available.
+
+## Trigger
+User clicks the "+ New Step" button in the `StepListTab` toolbar.
+
+## Main Flow
+1. User clicks "+ New Step" button in the toolbar
+2. System opens `StepEditorModal` as a MUI `Dialog`
+3. User enters a label (required field, validated by `StepCreateSchema`)
+4. User selects a type from the dropdown: **shell**, **sql**, or **manual**
+5. User selects a category from the dropdown (values from `StepCategorySchema` enum)
+6. User enters `command_text` in a multiline `TextField` (required for shell/sql types)
+7. User optionally enters a description
+8. User clicks Save
+9. System validates all fields with `StepCreateSchema` (Zod) -- invalid fields show inline errors
+10. System calls `POST /api/v2/steps` via the `useCreateStep` mutation hook
+11. On success: modal closes, `useSteps` query invalidated, step list refreshes with the new step
+
+## Alternate Flows
+- **AF-1:** Validation error -- inline field errors displayed below each invalid input, Save button remains disabled
+- **AF-2:** Duplicate label -- warning banner shown at top of modal suggesting the existing step
+- **AF-3:** API error -- MUI `Alert` with error message and Retry action
+
+## Postcondition
+A new reusable step exists in the `qc_training.step_library` table and is visible in the step list.
+
+## Interactive Demo
+<Canvas of={Stories.Default} />
+
+## Data
+- **Schema:** `StepCreateSchema` (shared)
+- **Table:** `qc_training.step_library`
+- **Hooks:** `useCreateStep`
+- **Component:** `StepEditorModal` (`packages/steps/ui-mui`)

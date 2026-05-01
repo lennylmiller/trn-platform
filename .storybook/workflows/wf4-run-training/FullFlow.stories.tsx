@@ -1,57 +1,34 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import { Box, Typography, Stepper, Step, StepLabel, StepContent, Button, Paper } from '@mui/material';
+import { within, userEvent } from 'storybook/test';
 
-const workflowSteps = [
-  { label: 'Select Composition', description: 'Pick a story, tutorial, or module to run.' },
-  { label: 'Walk Through Narrative', description: 'Read narrative blocks providing context and explanation.' },
-  { label: 'Execute Embedded Flow', description: 'Run inline flows hands-on during the session.' },
-  { label: 'View SQL Results', description: 'See query results from display queries and ad-hoc SQL.' },
-  { label: 'Complete Session', description: 'Finish and review what was covered.' },
-];
-
-const RunTrainingFullFlow = () => {
-  const [activeStep, setActiveStep] = React.useState(0);
-
+function WF4FullFlow() {
   return (
-    <Box sx={{ p: 3, maxWidth: 700 }}>
-      <Typography variant="h5" gutterBottom>Workflow 4: Run Training</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        End-to-end workflow for running a training session: select a composition, walk through narrative and flows, review results.
-      </Typography>
-      <Stepper activeStep={activeStep} orientation="vertical">
-        {workflowSteps.map((step, index) => (
-          <Step key={step.label}>
-            <StepLabel>{step.label}</StepLabel>
-            <StepContent>
-              <Typography variant="body2" sx={{ mb: 2 }}>{step.description}</Typography>
-              <Box>
-                <Button variant="contained" size="small" onClick={() => setActiveStep(index + 1)} sx={{ mr: 1 }}>
-                  {index === workflowSteps.length - 1 ? 'Finish' : 'Continue'}
-                </Button>
-                {index > 0 && <Button size="small" onClick={() => setActiveStep(index - 1)}>Back</Button>}
-              </Box>
-            </StepContent>
-          </Step>
-        ))}
-      </Stepper>
-      {activeStep === workflowSteps.length && (
-        <Paper sx={{ p: 3, mt: 2, bgcolor: 'success.light', color: 'success.contrastText' }}>
-          <Typography variant="subtitle1" fontWeight={600}>Training complete!</Typography>
-          <Button onClick={() => setActiveStep(0)} sx={{ mt: 1 }} variant="outlined" color="inherit">Reset</Button>
-        </Paper>
-      )}
-    </Box>
+    <div style={{ padding: '2rem', border: '2px dashed #ccc', borderRadius: 8, textAlign: 'center' }}>
+      <h3>WF4: Run Training -- Full Flow</h3>
+      <p style={{ color: '#666' }}>Chains all 5 steps of the Run Training workflow</p>
+      <p style={{ color: '#999', fontSize: '0.875rem' }}>Will be wired to real component in implementation phase</p>
+    </div>
   );
-};
+}
 
-const meta: Meta = {
-  title: 'Workflows/Run Training/Full Flow',
-  component: RunTrainingFullFlow,
-  tags: ['wf-4'],
-};
+const meta = {
+  title: 'Workflows/WF4 Run Training/Full Flow',
+  component: WF4FullFlow,
+  tags: ['wf-run-training', 'domain-compositions', 'tier-core'],
+  parameters: { layout: 'centered' },
+} satisfies Meta<typeof WF4FullFlow>;
+
 export default meta;
-
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await step('1. UC-COMP-1: List Compositions', async () => { /* TODO */ });
+    await step('2. UC-COMP-11: Present (narrative blocks)', async () => { /* TODO */ });
+    await step('3. UC-EXEC-2: Execute Flow (from composition)', async () => { /* TODO */ });
+    await step('4. UC-EXEC-6: Run SQL Query', async () => { /* TODO */ });
+    await step('5. UC-COMP-11: Complete Presentation', async () => { /* TODO */ });
+  },
+};

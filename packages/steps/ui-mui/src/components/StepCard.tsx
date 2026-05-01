@@ -1,4 +1,3 @@
-import React from 'react';
 import Card from '@mui/material/Card';
 import CardActionArea from '@mui/material/CardActionArea';
 import CardContent from '@mui/material/CardContent';
@@ -22,7 +21,13 @@ export function StepCard({ step, onClick }: StepCardProps) {
 
   const content = (
     <CardContent>
-      <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{
+          alignItems: "center",
+          mb: 1
+        }}>
         <Chip
           label={step.type}
           size="small"
@@ -41,28 +46,35 @@ export function StepCard({ step, onClick }: StepCardProps) {
         />
       </Stack>
 
-      <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+      <Typography variant="subtitle1" gutterBottom sx={{
+        fontWeight: 600
+      }}>
         {step.label}
       </Typography>
 
       {step.description && (
         <Typography
           variant="body2"
-          color="text.secondary"
           sx={{
+            color: "text.secondary",
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             display: '-webkit-box',
             WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-          }}
-        >
+            WebkitBoxOrient: 'vertical'
+          }}>
           {step.description}
         </Typography>
       )}
 
       {step.display_queries && step.display_queries.length > 0 && (
-        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+        <Typography
+          variant="caption"
+          sx={{
+            color: "text.secondary",
+            mt: 0.5,
+            display: 'block'
+          }}>
           {step.display_queries.length} display quer{step.display_queries.length === 1 ? 'y' : 'ies'}
         </Typography>
       )}

@@ -1,0 +1,39 @@
+import { Meta, Canvas } from '@storybook/addon-docs/blocks';
+import * as Stories from './RunSqlQuery.stories';
+
+<Meta of={Stories} />
+
+# UC-EXEC-6: Run SQL Query (ad-hoc)
+
+**Actor:** User | **Tier:** Core | **Workflow:** Standalone
+
+## Precondition
+Training database (qc_core) is accessible.
+
+## Trigger
+Open SQL runner and enter a query.
+
+## Main Flow
+1. User enters SQL statement in text field
+2. User clicks "Execute"
+3. System sends POST /api/v2/execute/sql
+4. Results display in table format
+5. Column headers from result.columns, rows from result.rows
+6. Row count shown
+
+## Alternate Flows
+- **AF-1:** SQL syntax error -- Error message shown with details from the database engine
+- **AF-2:** Empty result set -- Table shows column headers with "0 rows returned"
+- **AF-3:** Destructive SQL -- System may restrict to SELECT-only queries depending on configuration
+
+## Postcondition
+SQL results are displayed for the user to review.
+
+## Interactive Demo
+<Canvas of={Stories.Default} />
+
+## Data
+- **Schema:** `SqlExecutionSchema` (shared)
+- **Table:** `qc_core` (target database)
+- **Hooks:** `useExecuteSql` (data-access), `useSqlRunner` (feature)
+- **Component:** `SqlResultsModal` (`packages/execution/ui-mui`)

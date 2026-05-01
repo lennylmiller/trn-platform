@@ -1,4 +1,3 @@
-import React from 'react';
 import Box from '@mui/material/Box';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -38,7 +37,6 @@ export function SqlResultsModal({ open, onClose, query, result }: SqlResultsModa
   return (
     <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
       <DialogTitle>SQL Results</DialogTitle>
-
       <DialogContent dividers>
         {/* Query display */}
         {query && (
@@ -57,9 +55,12 @@ export function SqlResultsModal({ open, onClose, query, result }: SqlResultsModa
           >
             <Typography
               variant="caption"
-              color="text.secondary"
-              sx={{ display: 'block', mb: 0.5, fontFamily: 'inherit' }}
-            >
+              sx={{
+                color: "text.secondary",
+                display: 'block',
+                mb: 0.5,
+                fontFamily: 'inherit'
+              }}>
               Query
             </Typography>
             {query}
@@ -120,19 +121,28 @@ export function SqlResultsModal({ open, onClose, query, result }: SqlResultsModa
 
         {/* Empty result */}
         {result && result.rows.length === 0 && (
-          <Typography color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
+          <Typography
+            sx={{
+              color: "text.secondary",
+              py: 3,
+              textAlign: 'center'
+            }}>
             Query returned 0 rows.
           </Typography>
         )}
 
         {/* Row count footer */}
         {result && (
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
+          <Typography
+            variant="body2"
+            sx={{
+              color: "text.secondary",
+              mt: 1.5
+            }}>
             {result.rowCount} row(s) affected &middot; {result.columns.length} column(s)
           </Typography>
         )}
       </DialogContent>
-
       <DialogActions>
         <Button onClick={onClose}>Close</Button>
       </DialogActions>

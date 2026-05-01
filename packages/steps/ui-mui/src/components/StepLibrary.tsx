@@ -32,7 +32,9 @@ export function StepLibrary({ steps = [], onSelectStep }: StepLibraryProps) {
         <Typography variant="subtitle2" gutterBottom>
           Step Library
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" sx={{
+          color: "text.secondary"
+        }}>
           No steps available.
         </Typography>
       </Box>
@@ -56,14 +58,16 @@ export function StepLibrary({ steps = [], onSelectStep }: StepLibraryProps) {
             </ListItemIcon>
             <ListItemText
               primary={step.label}
-              primaryTypographyProps={{
-                variant: 'body2',
-                noWrap: true,
+              slotProps={{
+                primary: {
+                  variant: 'body2',
+                  noWrap: true,
+                },
+                secondary: {
+                  variant: 'caption',
+                },
               }}
               secondary={step.category}
-              secondaryTypographyProps={{
-                variant: 'caption',
-              }}
             />
           </ListItemButton>
         ))}

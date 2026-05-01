@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { CompositionPickerModal } from './CompositionPickerModal';
 
 const meta: Meta<typeof CompositionPickerModal> = {
-  title: 'Compositions/CompositionPickerModal',
+  title: 'Domains/Compositions/CompositionPickerModal',
   component: CompositionPickerModal,
   tags: ['autodocs'],
   parameters: {

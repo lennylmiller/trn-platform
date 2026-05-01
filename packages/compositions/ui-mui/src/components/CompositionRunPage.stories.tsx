@@ -59,7 +59,7 @@ const compositionBlock: CompositionBlock = {
 };
 
 const meta: Meta<typeof CompositionRunPage> = {
-  title: 'Compositions/CompositionRunPage',
+  title: 'Domains/Compositions/CompositionRunPage',
   component: CompositionRunPage,
   tags: ['autodocs'],
   args: {

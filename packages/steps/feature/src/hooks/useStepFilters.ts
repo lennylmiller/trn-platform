@@ -3,6 +3,7 @@ import type { Step, StepCategory } from '@trn-platform/shared';
 
 export interface StepFilterParams {
   category?: StepCategory;
+  story?: string | null;
   search?: string;
 }
 
@@ -19,7 +20,7 @@ export function useStepFilters(
   steps: Step[] | undefined,
   params: StepFilterParams,
 ): UseStepFiltersResult {
-  const { category, search } = params;
+  const { category, story, search } = params;
 
   const filtered = useMemo(() => {
     if (!steps) return [];
@@ -28,6 +29,10 @@ export function useStepFilters(
 
     if (category) {
       result = result.filter((s) => s.category === category);
+    }
+
+    if (story !== undefined) {
+      result = result.filter((s) => (story === null ? !s.story : s.story === story));
     }
 
     if (search && search.trim().length > 0) {
@@ -40,7 +45,7 @@ export function useStepFilters(
     }
 
     return result;
-  }, [steps, category, search]);
+  }, [steps, category, story, search]);
 
   return {
     filtered,

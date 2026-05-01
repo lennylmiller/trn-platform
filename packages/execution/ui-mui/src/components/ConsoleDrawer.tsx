@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
@@ -67,22 +67,27 @@ export function ConsoleDrawer({
       anchor={anchor}
       open={open}
       onClose={onClose}
-      PaperProps={{
-        sx: {
-          width: drawerWidth,
-          height: drawerHeight,
-          bgcolor: CONSOLE_BG,
-          color: STDOUT_COLOR,
+      slotProps={{
+        paper: {
+          sx: {
+            width: drawerWidth,
+            height: drawerHeight,
+            bgcolor: CONSOLE_BG,
+            color: STDOUT_COLOR,
+          },
         },
       }}
     >
       {/* Header */}
       <Stack
         direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        sx={{ px: 2, py: 1, borderBottom: '1px solid #333' }}
-      >
+        sx={{
+          alignItems: "center",
+          justifyContent: "space-between",
+          px: 2,
+          py: 1,
+          borderBottom: '1px solid #333'
+        }}>
         <Typography
           variant="subtitle2"
           sx={{ fontFamily: 'monospace', fontWeight: 700, color: '#90caf9' }}
@@ -110,7 +115,6 @@ export function ConsoleDrawer({
           </IconButton>
         </Stack>
       </Stack>
-
       {/* Output Area */}
       <Box
         ref={scrollRef}

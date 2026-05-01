@@ -37,7 +37,10 @@ export function executeShell(
       type: 'shell',
     });
 
-    const child = spawn('bash', ['-c', command], {
+    const wrapper = process.env.SHELL_WRAPPER;
+    const fullCommand = wrapper ? `${wrapper} ${command}` : command;
+
+    const child = spawn('bash', ['-c', fullCommand], {
       stdio: ['pipe', 'pipe', 'pipe'],
       env: { ...process.env },
     });

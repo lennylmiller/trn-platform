@@ -26,7 +26,12 @@ export function BlockPropertiesPanel({
   if (!block) {
     return (
       <Paper sx={{ p: 3, minHeight: 400 }} variant="outlined">
-        <Typography color="text.secondary" sx={{ textAlign: 'center', pt: 8 }}>
+        <Typography
+          sx={{
+            color: "text.secondary",
+            textAlign: 'center',
+            pt: 8
+          }}>
           Select a block to edit its properties
         </Typography>
       </Paper>
@@ -43,10 +48,14 @@ export function BlockPropertiesPanel({
     <Paper sx={{ p: 3 }} variant="outlined">
       <Stack spacing={2.5}>
         <Box>
-          <Typography variant="overline" color="text.secondary">
+          <Typography variant="overline" sx={{
+            color: "text.secondary"
+          }}>
             Block Type
           </Typography>
-          <Box mt={0.5}>
+          <Box sx={{
+            mt: 0.5
+          }}>
             <Chip label={block.block_type} size="small" />
           </Box>
         </Box>
@@ -88,11 +97,19 @@ export function BlockPropertiesPanel({
           <>
             <Divider />
             <Box>
-              <Typography variant="overline" color="text.secondary">
+              <Typography variant="overline" sx={{
+                color: "text.secondary"
+              }}>
                 Flow Reference
               </Typography>
               {block.flow_name ? (
-                <Stack direction="row" alignItems="center" spacing={1} mt={0.5}>
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  sx={{
+                    alignItems: "center",
+                    mt: 0.5
+                  }}>
                   <Typography variant="body2">{block.flow_name}</Typography>
                   {block.flow_step_count != null && (
                     <Chip
@@ -103,7 +120,12 @@ export function BlockPropertiesPanel({
                   )}
                 </Stack>
               ) : (
-                <Typography variant="body2" color="text.disabled" mt={0.5}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: "text.disabled",
+                    mt: 0.5
+                  }}>
                   No flow selected
                 </Typography>
               )}
@@ -124,18 +146,31 @@ export function BlockPropertiesPanel({
           <>
             <Divider />
             <Box>
-              <Typography variant="overline" color="text.secondary">
+              <Typography variant="overline" sx={{
+                color: "text.secondary"
+              }}>
                 Composition Reference
               </Typography>
               {block.ref_composition_title ? (
-                <Stack direction="row" alignItems="center" spacing={1} mt={0.5}>
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  sx={{
+                    alignItems: "center",
+                    mt: 0.5
+                  }}>
                   <Typography variant="body2">{block.ref_composition_title}</Typography>
                   {block.ref_composition_kind && (
                     <Chip label={block.ref_composition_kind} size="small" variant="outlined" />
                   )}
                 </Stack>
               ) : (
-                <Typography variant="body2" color="text.disabled" mt={0.5}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: "text.disabled",
+                    mt: 0.5
+                  }}>
                   No composition selected
                 </Typography>
               )}

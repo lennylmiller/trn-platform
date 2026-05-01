@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { type Router as RouterType, Router } from 'express';
 import {
   FlowCreateSchema,
   FlowUpdateSchema,
@@ -17,7 +17,7 @@ import {
   deleteFlowStep,
 } from './queries';
 
-export const flowsRouter = Router();
+export const flowsRouter: RouterType = Router();
 
 // ============================================================================
 // FLOW ROUTES

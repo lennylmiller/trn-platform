@@ -1,4 +1,3 @@
-import React from 'react';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardActions from '@mui/material/CardActions';
@@ -49,7 +48,13 @@ export function CompositionCard({
       }}
     >
       <CardContent sx={{ flexGrow: 1 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={1}>
+        <Stack
+          direction="row"
+          sx={{
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            mb: 1
+          }}>
           <Typography variant="h6" component="div" noWrap sx={{ flexGrow: 1, mr: 1 }}>
             {composition.title}
           </Typography>
@@ -63,19 +68,24 @@ export function CompositionCard({
         {composition.description ? (
           <Typography
             variant="body2"
-            color="text.secondary"
             sx={{
+              color: "text.secondary",
               display: '-webkit-box',
               WebkitLineClamp: 3,
               WebkitBoxOrient: 'vertical',
               overflow: 'hidden',
-              mb: 1.5,
-            }}
-          >
+              mb: 1.5
+            }}>
             {composition.description}
           </Typography>
         ) : (
-          <Typography variant="body2" color="text.disabled" fontStyle="italic" mb={1.5}>
+          <Typography
+            variant="body2"
+            sx={{
+              color: "text.disabled",
+              fontStyle: "italic",
+              mb: 1.5
+            }}>
             No description
           </Typography>
         )}
@@ -94,7 +104,6 @@ export function CompositionCard({
           />
         </Stack>
       </CardContent>
-
       <CardActions sx={{ px: 2, pb: 1.5 }}>
         <Box sx={{ display: 'flex', gap: 0.5, flexGrow: 1 }}>
           <Button

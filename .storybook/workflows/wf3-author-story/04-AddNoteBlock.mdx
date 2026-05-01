@@ -1,0 +1,36 @@
+import { Meta, Canvas } from '@storybook/addon-docs/blocks';
+import * as Stories from './04-AddNoteBlock.stories';
+
+<Meta of={Stories} />
+
+# UC-COMP-5: Add Block (note type)
+
+**Actor:** Author | **Tier:** Core | **Workflow:** WF3 Author Story
+
+## Precondition
+A composition is open in the editor.
+
+## Trigger
+Click "Note" in AddBlockBar.
+
+## Main Flow
+1. Author clicks the "Note" button in the AddBlockBar
+2. System appends a new note block at the next sequence position
+3. Author enters technical_content (SQL snippets, diagrams, code)
+4. No story content is needed for note blocks
+5. Block is saved
+
+## Alternate Flows
+- **AF-1:** Empty content -- Block is created with placeholder; author can edit later
+
+## Postcondition
+A note block is appended to the composition with technical content.
+
+## Interactive Demo
+<Canvas of={Stories.Default} />
+
+## Data
+- **Schema:** `BlockCreateSchema` (shared)
+- **Table:** `composition_block` (qc_training)
+- **Hooks:** `useAddBlock` (data-access), `useCompositionEditor` (feature)
+- **Component:** `AddBlockBar` + `CompositionBlockCard` (`packages/compositions/ui-mui`)

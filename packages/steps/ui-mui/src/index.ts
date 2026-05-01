@@ -9,3 +9,11 @@ export type { StepEditorModalProps } from './components/StepEditorModal';
 
 export { StepLibrary } from './components/StepLibrary';
 export type { StepLibraryProps } from './components/StepLibrary';
+
+export { StepWorkbench } from './components/StepWorkbench';
+export type { StepWorkbenchProps } from './components/StepWorkbench';
+
+export { StepFormPanel } from './components/StepFormPanel';
+export type { StepFormPanelProps } from './components/StepFormPanel';
+
+export { SqlScratchPad } from './components/SqlScratchPad';

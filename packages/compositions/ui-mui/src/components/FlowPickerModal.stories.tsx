@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { FlowPickerModal } from './FlowPickerModal';
 
 const meta: Meta<typeof FlowPickerModal> = {
-  title: 'Compositions/FlowPickerModal',
+  title: 'Domains/Compositions/FlowPickerModal',
   component: FlowPickerModal,
   tags: ['autodocs'],
   parameters: {

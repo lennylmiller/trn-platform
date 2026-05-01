@@ -4,9 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-TRN Platform is a Training & Demo platform for QC (Quality Care) systems, built as a pnpm monorepo with 4 domains. Each domain follows a strict 4-layer architecture using React 19, TypeScript (strict), MUI 7, TanStack Query 5, and SQL Server via Express as the backend.
+TRN Platform is a Training & Demo platform for QC (Quality Care) systems, built as a pnpm monorepo with 4 domains. Each domain follows a strict 4-layer architecture using React 19, TypeScript (strict), MUI 9, TanStack Query 5, and SQL Server via Express as the backend.
 
-**Stack:** React 19 · MUI 7 · Emotion · TanStack Query 5 · SQL Server (mssql) · Express 5 · Zod · Vitest · Storybook 10 · tsup · pnpm workspaces · changesets
+**Stack:** React 19 · MUI 9 · Emotion · TanStack Query 5 · SQL Server (mssql) · Express 5 · Zod · Vitest · Storybook 10 · tsup · pnpm workspaces · changesets
+
+## Environment Setup
+
+Copy `.env.example` to `.env` and fill in `DB_USER`/`DB_PASSWORD`. Key variables:
+- `AUTH_DISABLED=true` — bypasses JWT auth for local dev
+- `VITE_API_URL=http://localhost:3001` — frontend API target
+- `DB_TRUST_CERT=true` — trusts SQL Server self-signed certs locally
+- Named databases configured via `DB_QC_TRAINING_DATABASE` and `DB_QC_CORE_DATABASE`
 
 ## Development Commands
 
@@ -30,7 +38,7 @@ pnpm typecheck                                           # Type checking across 
 pnpm lint                                                # Linting
 
 # Server
-pnpm server:dev                                          # Express dev server (tsx watch, port 3001)
+pnpm server:dev                                          # Express dev server (node --watch, CJS wrapper, port 3001)
 pnpm server:build                                        # Build server with tsup
 pnpm dev                                                 # Concurrently: server + storybook
 
@@ -41,6 +49,8 @@ pnpm db:seed                                             # Seed via sqlcmd
 # Storybook (port 6006)
 pnpm storybook                                           # Dev server
 pnpm build-storybook                                     # Static build
+pnpm test:storybook                                      # Story component tests (vitest in-browser)
+pnpm test:storybook:watch                                # Story component tests (watch mode)
 
 # Changesets
 pnpm changeset                                           # Create changeset
@@ -62,6 +72,20 @@ server  →  data-access  →  feature  →  ui-mui  →  shared
 - **`ui-mui/`** — React components with MUI + Emotion. Co-located Storybook stories. Can depend on `feature` and `data-access`.
 
 **Package naming:** `@trn-platform/{domain}-data-access`, `@trn-platform/{domain}-feature`, `@trn-platform/{domain}-ui-mui`
+
+### Workspace Structure
+
+```
+packages/{domain}/data-access/   # TanStack Query hooks
+packages/{domain}/feature/       # Business logic
+packages/{domain}/server/        # Domain-specific Express routes
+packages/{domain}/ui-mui/        # MUI components + stories
+packages/shared/                 # Cross-domain schemas, types, constants, db
+server/                          # Root Express entry point, middleware, db migrations
+apps/component-demo/             # Demo app (excluded from default build)
+```
+
+Note: `server/` at root (Express entry point + middleware) is distinct from `packages/*/server/` (domain route handlers). The root server imports and mounts domain routers.
 
 ### Critical Dependency Rules
 - Never skip layers (ui-mui must not import data-access directly when feature exists for that use case)
@@ -117,6 +141,11 @@ Connection via `mssql` multi-pool. Environment variables: `DB_SERVER`, `DB_PORT`
 - **Component tests:** React Testing Library + Vitest
 - **MSW:** Used for Storybook mocking only (`.storybook/mocks/`). Unit tests mock at the hook level.
 
+### Vitest Configuration
+- **Base config:** `vitest.config.base.ts` — globals enabled, 80% coverage thresholds, v8 provider. All packages extend via `mergeConfig()`.
+- **Root config:** `vitest.config.ts` — adds Storybook component testing project running in Chromium browser via `@storybook/addon-vitest`. This is separate from Playwright visual regression tests.
+- **Storybook tests:** `pnpm test:storybook` runs story-level component tests in-browser. `pnpm test:visual` runs Playwright screenshot comparison tests.
+
 ### MUI Testing Gotchas
 - **Heading/button text collision:** use `getByRole('heading', { name })` not `getByText()`
 - **MUI Select:** use `getByRole('combobox')` not `getByLabelText()`
@@ -148,9 +177,12 @@ Connection via `mssql` multi-pool. Environment variables: `DB_SERVER`, `DB_PORT`
 - **tsup** for library builds: CJS + ESM + DTS, `--clean` flag
 - `pnpm build` excludes `component-demo`; `pnpm build:all` includes it
 - Shared package `dist/` must be current before running dependent package tests
+- **pnpm overrides** in root `package.json` pin React, TanStack Query, and Vitest versions to prevent conflicts across the monorepo
 
 ---
 
 **pnpm** >= 8.0.0 · **Node** >= 22.0.0
 
 **Deep references:** `docs/trn-platform/0-vision/north-star.md` · `docs/trn-platform/4-reference/sql-server-config.md` · `docs/trn-platform/4-reference/pipeline-guide.md`
+
+**Docs structure:** `docs/trn-platform/` uses a kanban-style layout: `0-vision/`, `1-specs/`, `2-on-deck/`, `3-done/`, `4-reference/`, `bugs/`

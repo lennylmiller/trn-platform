@@ -15,7 +15,7 @@ const baseComposition: CompositionListItem = {
 };
 
 const meta: Meta<typeof CompositionCard> = {
-  title: 'Compositions/CompositionCard',
+  title: 'Domains/Compositions/CompositionCard',
   component: CompositionCard,
   tags: ['autodocs'],
 };

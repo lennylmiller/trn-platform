@@ -1,0 +1,39 @@
+import { Meta, Canvas } from '@storybook/addon-docs/blocks';
+import * as Stories from './02-EditStep.stories';
+
+<Meta of={Stories} />
+
+# UC-STEP-5: Edit Step
+
+**Actor:** User | **Tier:** Core | **Workflow:** WF5 Manage Steps
+
+## Precondition
+A step exists in the library.
+
+## Trigger
+Click "Edit" on step card.
+
+## Main Flow
+1. User clicks "Edit" on a step card
+2. StepEditorModal opens with current values
+3. User modifies fields (label, type, category, command_text, description)
+4. User clicks Save
+5. System validates with StepUpdateSchema
+6. System sends PUT /api/v2/steps/:id
+7. Modal closes, list refreshes with updated step
+
+## Alternate Flows
+- **AF-1:** Cancel edit -- Author closes modal without saving; no changes persisted
+- **AF-2:** Validation error -- Required fields show inline validation messages
+
+## Postcondition
+Step properties are updated in the database and reflected in the library.
+
+## Interactive Demo
+<Canvas of={Stories.Default} />
+
+## Data
+- **Schema:** `StepUpdateSchema` (shared)
+- **Table:** `step_library` (qc_training)
+- **Hooks:** `useUpdateStep` (data-access), `useStepEditor` (feature)
+- **Component:** `StepEditorModal` (`packages/steps/ui-mui`)

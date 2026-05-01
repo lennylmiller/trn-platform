@@ -1,82 +1,46 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import { Box, Typography, TextField, Chip, Card, CardContent, Stack, InputAdornment } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
-import { mockStepListItems } from '../../mocks/mockData';
-import { STEP_TYPE_COLORS, STEP_CATEGORY_LABELS } from '@trn-platform/shared';
+import { within, userEvent } from 'storybook/test';
 
-const BrowseStepLibrary = () => {
-  const [search, setSearch] = React.useState('');
-  const [categoryFilter, setCategoryFilter] = React.useState<string | null>(null);
-
-  const filtered = mockStepListItems.filter((s) => {
-    const matchesSearch = !search || s.label.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = !categoryFilter || s.category === categoryFilter;
-    return matchesSearch && matchesCategory;
-  });
-
-  const categories = [...new Set(mockStepListItems.map((s) => s.category))];
-
+function BrowseStepLibraryPlaceholder() {
   return (
-    <Box sx={{ p: 3, maxWidth: 800 }}>
-      <Typography variant="h5" gutterBottom>Step Library</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Browse and filter reusable steps. Click a category chip to filter, or type to search by name.
-      </Typography>
-      <TextField
-        fullWidth
-        size="small"
-        placeholder="Search steps..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> } }}
-        sx={{ mb: 2 }}
-      />
-      <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
-        <Chip label="All" variant={categoryFilter === null ? 'filled' : 'outlined'} onClick={() => setCategoryFilter(null)} />
-        {categories.map((cat) => (
-          <Chip
-            key={cat}
-            label={STEP_CATEGORY_LABELS[cat] ?? cat}
-            variant={categoryFilter === cat ? 'filled' : 'outlined'}
-            onClick={() => setCategoryFilter(cat)}
-          />
-        ))}
-      </Stack>
-      <Stack spacing={2}>
-        {filtered.map((step) => (
-          <Card key={step.step_id} variant="outlined">
-            <CardContent>
-              <Stack direction="row" justifyContent="space-between" alignItems="center">
-                <Typography variant="subtitle1" fontWeight={600}>{step.label}</Typography>
-                <Chip
-                  label={step.type}
-                  size="small"
-                  sx={{ bgcolor: STEP_TYPE_COLORS[step.type], color: '#fff', fontWeight: 600 }}
-                />
-              </Stack>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                {step.description ?? 'No description'}
-              </Typography>
-              <Chip label={STEP_CATEGORY_LABELS[step.category] ?? step.category} size="small" sx={{ mt: 1 }} />
-            </CardContent>
-          </Card>
-        ))}
-        {filtered.length === 0 && (
-          <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>No steps match your filters.</Typography>
-        )}
-      </Stack>
-    </Box>
+    <div style={{ padding: '2rem', border: '2px dashed #ccc', borderRadius: 8, textAlign: 'center' }}>
+      <h3>UC-STEP-1: Browse Step Library</h3>
+      <p style={{ color: '#666' }}>Component: StepListTab (packages/steps/ui-mui)</p>
+      <p style={{ color: '#999', fontSize: '0.875rem' }}>
+        Will be wired to real component in implementation phase
+      </p>
+    </div>
   );
-};
+}
 
-const meta: Meta = {
-  title: 'Workflows/Build Demo/01 Browse Step Library',
-  component: BrowseStepLibrary,
-  tags: ['wf-1', 'domain-steps'],
-};
+const meta = {
+  title: 'Workflows/WF1 Build Demo/01 Browse Step Library',
+  component: BrowseStepLibraryPlaceholder,
+  tags: ['wf-build', 'domain-steps', 'tier-core'],
+  parameters: { layout: 'centered' },
+} satisfies Meta<typeof BrowseStepLibraryPlaceholder>;
+
 export default meta;
-
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await step('1. System loads step library from qc_training.step_library', async () => {
+      // TODO: wire to real component
+    });
+    await step('2. System displays steps grouped by category (setup, scenario, sync, verify, utility)', async () => {
+      // TODO: wire to real component
+    });
+    await step('3. User clicks a category chip to filter', async () => {
+      // TODO: wire to real component
+    });
+    await step('4. User types in search field to filter by label/description', async () => {
+      // TODO: wire to real component
+    });
+    await step('5. System shows matching steps with label, type chip (colored), category chip, description', async () => {
+      // TODO: wire to real component
+    });
+  },
+};

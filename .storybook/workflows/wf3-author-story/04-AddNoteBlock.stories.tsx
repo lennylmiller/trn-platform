@@ -1,54 +1,34 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import { Box, Typography, TextField, Button, Card, CardContent, Stack, Chip, Alert } from '@mui/material';
-import StickyNote2Icon from '@mui/icons-material/StickyNote2';
+import { within, userEvent } from 'storybook/test';
 
-const AddNoteBlock = () => {
-  const [added, setAdded] = React.useState(false);
-  const [heading, setHeading] = React.useState('Technical Note: Indexing');
-  const [technicalContent, setTechnicalContent] = React.useState('');
-
+function AddNoteBlock() {
   return (
-    <Box sx={{ p: 3, maxWidth: 600 }}>
-      <Typography variant="h5" gutterBottom>Add Note Block</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Add technical notes that provide deep-dive context. Notes appear in a distinct callout style during presentation.
-      </Typography>
-      {added && <Alert severity="success" sx={{ mb: 2 }}>Note block added to composition.</Alert>}
-      <Card variant="outlined">
-        <CardContent>
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-            <StickyNote2Icon sx={{ color: '#9c27b0' }} />
-            <Chip label="Note" size="small" sx={{ bgcolor: '#f3e5f5', color: '#7b1fa2' }} />
-          </Stack>
-          <Stack spacing={2}>
-            <TextField label="Heading" fullWidth value={heading} onChange={(e) => setHeading(e.target.value)} />
-            <TextField
-              label="Technical Content"
-              fullWidth
-              multiline
-              minRows={5}
-              value={technicalContent}
-              onChange={(e) => setTechnicalContent(e.target.value)}
-              placeholder="The `member` table uses a composite index on (last_name, first_name)..."
-              slotProps={{ input: { sx: { fontFamily: 'monospace', fontSize: 13 } } }}
-            />
-            <TextField label="Presenter Notes (optional)" fullWidth multiline minRows={2} />
-            <Button variant="contained" onClick={() => setAdded(true)} disabled={!heading}>Add Note Block</Button>
-          </Stack>
-        </CardContent>
-      </Card>
-    </Box>
+    <div style={{ padding: '2rem', border: '2px dashed #ccc', borderRadius: 8, textAlign: 'center' }}>
+      <h3>UC-COMP-5: Add Block (note type)</h3>
+      <p style={{ color: '#666' }}>Components: AddBlockBar + CompositionBlockCard (packages/compositions/ui-mui)</p>
+      <p style={{ color: '#999', fontSize: '0.875rem' }}>Will be wired to real component in implementation phase</p>
+    </div>
   );
-};
+}
 
-const meta: Meta = {
-  title: 'Workflows/Author Story/04 Add Note Block',
+const meta = {
+  title: 'Workflows/WF3 Author Story/04 Add Note Block',
   component: AddNoteBlock,
-  tags: ['wf-3', 'domain-compositions'],
-};
-export default meta;
+  tags: ['wf-author-story', 'domain-compositions', 'tier-core'],
+  parameters: { layout: 'centered' },
+} satisfies Meta<typeof AddNoteBlock>;
 
+export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await step('1. Click "Note" in AddBlockBar', async () => { /* TODO */ });
+    await step('2. Note block appended', async () => { /* TODO */ });
+    await step('3. User enters technical_content (SQL, diagrams, code)', async () => { /* TODO */ });
+    await step('4. No story content needed for notes', async () => { /* TODO */ });
+    await step('5. Block saved', async () => { /* TODO */ });
+  },
+};

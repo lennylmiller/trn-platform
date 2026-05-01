@@ -62,7 +62,7 @@ function createQueryClient() {
 }
 
 const meta: Meta<typeof StepListTab> = {
-  title: 'Steps/StepListTab',
+  title: 'Domains/Steps/StepListTab',
   component: StepListTab,
   decorators: [
     (Story) => (

@@ -1,85 +1,35 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import {
-  Box, Typography, Card, CardContent, Stack, Chip, Button, Paper,
-} from '@mui/material';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { mockSteps } from '../../mocks/mockData';
-import { STEP_TYPE_COLORS } from '@trn-platform/shared';
+import { within, userEvent } from 'storybook/test';
 
-const TestStep = () => {
-  const step = mockSteps[3]; // Verify claim counts
-  const [executed, setExecuted] = React.useState(false);
-
+function TestStep() {
   return (
-    <Box sx={{ p: 3, maxWidth: 700 }}>
-      <Typography variant="h5" gutterBottom>Test Step</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Execute a single step in isolation to verify it works correctly before adding it to a flow.
-      </Typography>
-
-      <Card variant="outlined" sx={{ mb: 2 }}>
-        <CardContent>
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-            <Chip label={step.type} size="small" sx={{ bgcolor: STEP_TYPE_COLORS[step.type], color: '#fff' }} />
-            <Typography variant="subtitle1" fontWeight={600}>{step.label}</Typography>
-          </Stack>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>{step.description}</Typography>
-          <Paper variant="outlined" sx={{ p: 1.5, bgcolor: '#1e1e1e', color: '#d4d4d4', fontFamily: 'monospace', fontSize: 12 }}>
-            {step.command_text}
-          </Paper>
-        </CardContent>
-      </Card>
-
-      {!executed ? (
-        <Button variant="contained" startIcon={<PlayArrowIcon />} onClick={() => setExecuted(true)}>
-          Execute Step
-        </Button>
-      ) : (
-        <Stack spacing={2}>
-          <Card variant="outlined" sx={{ borderColor: 'success.main' }}>
-            <CardContent>
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                <CheckCircleIcon color="success" />
-                <Typography variant="subtitle2">Execution Successful (750ms)</Typography>
-              </Stack>
-              <Paper variant="outlined" sx={{ p: 1.5, bgcolor: '#1e1e1e', color: '#d4d4d4', fontFamily: 'monospace', fontSize: 12 }}>
-                {'> SELECT COUNT(*) AS claim_count FROM qc_core.dbo.claim WHERE status = 1;\n\nclaim_count\n-----------\n320\n\n(1 row affected)'}
-              </Paper>
-            </CardContent>
-          </Card>
-
-          {step.display_queries && step.display_queries.length > 0 && (
-            <Card variant="outlined">
-              <CardContent>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom>Display Queries</Typography>
-                {step.display_queries.map((dq, i) => (
-                  <Box key={i} sx={{ mb: 1 }}>
-                    <Chip label={dq.label} size="small" color="info" sx={{ mb: 0.5 }} />
-                    <Paper variant="outlined" sx={{ p: 1, bgcolor: '#f5f5f5', fontFamily: 'monospace', fontSize: 11 }}>
-                      {dq.sql}
-                    </Paper>
-                  </Box>
-                ))}
-              </CardContent>
-            </Card>
-          )}
-
-          <Button variant="outlined" onClick={() => setExecuted(false)}>Run Again</Button>
-        </Stack>
-      )}
-    </Box>
+    <div style={{ padding: '2rem', border: '2px dashed #ccc', borderRadius: 8, textAlign: 'center' }}>
+      <h3>UC-EXEC-1: Execute Single Step</h3>
+      <p style={{ color: '#666' }}>Components: ConsoleDrawer + ExecutionControls (packages/execution/ui-mui)</p>
+      <p style={{ color: '#999', fontSize: '0.875rem' }}>Will be wired to real component in implementation phase</p>
+    </div>
   );
-};
+}
 
-const meta: Meta = {
-  title: 'Workflows/Manage Steps/03 Test Step',
+const meta = {
+  title: 'Workflows/WF5 Manage Steps/03 Test Step',
   component: TestStep,
-  tags: ['wf-5', 'domain-steps', 'domain-execution'],
-};
-export default meta;
+  tags: ['wf-manage-steps', 'domain-steps', 'tier-core'],
+  parameters: { layout: 'centered' },
+} satisfies Meta<typeof TestStep>;
 
+export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await step('1. User clicks "Test" on step', async () => { /* TODO */ });
+    await step('2. POST /api/v2/execute/step/:stepId', async () => { /* TODO */ });
+    await step('3. Shell type: child process spawns, stdout/stderr stream via SSE', async () => { /* TODO */ });
+    await step('4. SQL type: query runs against qc_core, results shown', async () => { /* TODO */ });
+    await step('5. Manual type: system pauses, shows instructions', async () => { /* TODO */ });
+    await step('6. Console drawer shows output', async () => { /* TODO */ });
+  },
+};

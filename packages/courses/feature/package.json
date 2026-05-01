@@ -1,0 +1,26 @@
+{
+  "name": "@trn-platform/courses-feature",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean"
+  },
+  "dependencies": {
+    "@trn-platform/shared": "workspace:*",
+    "@trn-platform/courses-data-access": "workspace:*",
+    "@trn-platform/execution-data-access": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  },
+  "types": "./dist/index.d.ts",
+  "peerDependencies": {
+    "react": "^19.0.0"
+  }
+}

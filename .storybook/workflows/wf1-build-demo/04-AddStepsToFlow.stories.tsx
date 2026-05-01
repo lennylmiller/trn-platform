@@ -1,104 +1,49 @@
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import {
-  Box, Typography, Card, CardContent, Stack, Chip, IconButton, Divider, Paper, Button,
-} from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
-import { mockStepListItems } from '../../mocks/mockData';
-import { STEP_TYPE_COLORS } from '@trn-platform/shared';
+import { within, userEvent } from 'storybook/test';
 
-interface TimelineStep {
-  step_id: number;
-  label: string;
-  type: string;
-  seq: number;
+function AddStepsToFlowPlaceholder() {
+  return (
+    <div style={{ padding: '2rem', border: '2px dashed #ccc', borderRadius: 8, textAlign: 'center' }}>
+      <h3>UC-FLOW-5: Add Steps to Flow</h3>
+      <p style={{ color: '#666' }}>Components: FlowTimeline, StepLibrary (packages/flows/ui-mui, packages/steps/ui-mui)</p>
+      <p style={{ color: '#999', fontSize: '0.875rem' }}>
+        Will be wired to real component in implementation phase
+      </p>
+    </div>
+  );
 }
 
-const AddStepsToFlow = () => {
-  const [timeline, setTimeline] = React.useState<TimelineStep[]>([]);
+const meta = {
+  title: 'Workflows/WF1 Build Demo/04 Add Steps to Flow',
+  component: AddStepsToFlowPlaceholder,
+  tags: ['wf-build', 'domain-flows', 'domain-steps', 'tier-core'],
+  parameters: { layout: 'centered' },
+} satisfies Meta<typeof AddStepsToFlowPlaceholder>;
 
-  const addStep = (step: (typeof mockStepListItems)[0]) => {
-    setTimeline((prev) => [
-      ...prev,
-      { step_id: step.step_id, label: step.label, type: step.type, seq: prev.length + 1 },
-    ]);
-  };
-
-  return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h5" gutterBottom>Add Steps to Flow</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Select steps from the library (left) to add them to the flow timeline (right).
-      </Typography>
-      <Stack direction="row" spacing={3}>
-        {/* Step Library */}
-        <Box sx={{ flex: 1 }}>
-          <Typography variant="subtitle2" color="text.secondary" gutterBottom>Available Steps</Typography>
-          <Stack spacing={1}>
-            {mockStepListItems.map((step) => (
-              <Card key={step.step_id} variant="outlined" sx={{ cursor: 'pointer', '&:hover': { borderColor: 'primary.main' } }}>
-                <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center">
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <Chip label={step.type} size="small" sx={{ bgcolor: STEP_TYPE_COLORS[step.type], color: '#fff', fontSize: 11 }} />
-                      <Typography variant="body2">{step.label}</Typography>
-                    </Stack>
-                    <IconButton size="small" onClick={() => addStep(step)} color="primary">
-                      <AddIcon fontSize="small" />
-                    </IconButton>
-                  </Stack>
-                </CardContent>
-              </Card>
-            ))}
-          </Stack>
-        </Box>
-
-        <Divider orientation="vertical" flexItem />
-
-        {/* Flow Timeline */}
-        <Box sx={{ flex: 1 }}>
-          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-            Flow Timeline ({timeline.length} steps)
-          </Typography>
-          {timeline.length === 0 ? (
-            <Paper variant="outlined" sx={{ p: 4, textAlign: 'center', borderStyle: 'dashed' }}>
-              <Typography color="text.secondary">Click + to add steps from the library</Typography>
-            </Paper>
-          ) : (
-            <Stack spacing={1}>
-              {timeline.map((ts, i) => (
-                <Card key={`${ts.step_id}-${i}`} variant="outlined">
-                  <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-                    <Stack direction="row" alignItems="center" spacing={1}>
-                      <DragIndicatorIcon fontSize="small" color="disabled" />
-                      <Chip label={ts.seq} size="small" variant="outlined" />
-                      <Chip label={ts.type} size="small" sx={{ bgcolor: STEP_TYPE_COLORS[ts.type], color: '#fff', fontSize: 11 }} />
-                      <Typography variant="body2">{ts.label}</Typography>
-                    </Stack>
-                  </CardContent>
-                </Card>
-              ))}
-            </Stack>
-          )}
-          {timeline.length > 0 && (
-            <Button variant="outlined" size="small" sx={{ mt: 2 }} onClick={() => setTimeline([])}>
-              Clear All
-            </Button>
-          )}
-        </Box>
-      </Stack>
-    </Box>
-  );
-};
-
-const meta: Meta = {
-  title: 'Workflows/Build Demo/04 Add Steps to Flow',
-  component: AddStepsToFlow,
-  tags: ['wf-1', 'domain-flows', 'domain-steps'],
-};
 export default meta;
-
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {};
+export const Default: Story = {
+  play: async ({ canvasElement, step }) => {
+    const canvas = within(canvasElement);
+    await step('1. User opens flow in dev mode', async () => {
+      // TODO: wire to real component
+    });
+    await step('2. System shows FlowTimeline (center) + StepLibrary (sidebar)', async () => {
+      // TODO: wire to real component
+    });
+    await step('3. User selects a step from StepLibrary', async () => {
+      // TODO: wire to real component
+    });
+    await step('4. System adds step to FlowTimeline at next seq position', async () => {
+      // TODO: wire to real component
+    });
+    await step('5. Step appears with label, type chip, and sequence number', async () => {
+      // TODO: wire to real component
+    });
+    await step('6. User can repeat to add more steps', async () => {
+      // TODO: wire to real component
+    });
+  },
+};

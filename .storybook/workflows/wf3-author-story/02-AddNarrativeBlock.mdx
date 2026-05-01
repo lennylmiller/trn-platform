@@ -1,0 +1,37 @@
+import { Meta, Canvas } from '@storybook/addon-docs/blocks';
+import * as Stories from './02-AddNarrativeBlock.stories';
+
+<Meta of={Stories} />
+
+# UC-COMP-5: Add Block (narrative type)
+
+**Actor:** Author | **Tier:** Core | **Workflow:** WF3 Author Story
+
+## Precondition
+A composition is open in the editor.
+
+## Trigger
+Click "Narrative" button in AddBlockBar.
+
+## Main Flow
+1. Author clicks the "Narrative" button in the AddBlockBar
+2. System appends a new narrative block at the next sequence position
+3. Author enters story content (markdown) in the content field
+4. Author optionally enters technical_content
+5. Author sets a heading for the block
+6. System sends POST /api/v2/compositions/:id/blocks
+
+## Alternate Flows
+- **AF-1:** Empty content -- Block is created with placeholder text; author can edit later
+
+## Postcondition
+A narrative block is appended to the composition with the authored content.
+
+## Interactive Demo
+<Canvas of={Stories.Default} />
+
+## Data
+- **Schema:** `BlockCreateSchema` (shared)
+- **Table:** `composition_block` (qc_training)
+- **Hooks:** `useAddBlock` (data-access), `useCompositionEditor` (feature)
+- **Component:** `AddBlockBar` + `CompositionBlockCard` (`packages/compositions/ui-mui`)

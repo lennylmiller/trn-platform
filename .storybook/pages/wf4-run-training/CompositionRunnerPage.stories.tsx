@@ -29,7 +29,7 @@ const CompositionRunnerPage = () => {
 };
 
 const meta: Meta = {
-  title: 'Pages/Run Training/Composition Runner Page',
+  title: 'Pages/WF4 Run Training/Composition Runner Page',
   component: CompositionRunnerPage,
   parameters: { layout: 'fullscreen' },
   tags: ['page', 'wf-4', 'domain-compositions', 'domain-execution'],

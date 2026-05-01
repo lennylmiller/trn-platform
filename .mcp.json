@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "trn-platform": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "tsx",
+        "packages/mcp-server/src/index.ts"
+      ],
+      "cwd": "/mnt/c/Users/lmiller/Documents/inner-agility.dev/trn-platform",
+      "env": {
+        "DOTENV_CONFIG_PATH": "/mnt/c/Users/lmiller/Documents/inner-agility.dev/trn-platform/.env"
+      }
+    }
+  }
+}

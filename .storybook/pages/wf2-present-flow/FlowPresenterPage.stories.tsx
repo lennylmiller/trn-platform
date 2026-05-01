@@ -10,7 +10,7 @@ const FlowPresenterPage = () => (
 );
 
 const meta: Meta = {
-  title: 'Pages/Present Flow/Flow Presenter Page',
+  title: 'Pages/WF2 Present Flow/Flow Presenter Page',
   component: FlowPresenterPage,
   parameters: { layout: 'fullscreen' },
   tags: ['page', 'wf-2', 'domain-flows', 'domain-execution'],

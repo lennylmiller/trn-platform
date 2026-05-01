@@ -1,4 +1,3 @@
-import React from 'react';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
@@ -54,7 +53,9 @@ export function ExecutionControls({
   const chip = STATUS_CHIP[status];
 
   return (
-    <Stack direction="row" spacing={1.5} alignItems="center">
+    <Stack direction="row" spacing={1.5} sx={{
+      alignItems: "center"
+    }}>
       <Chip
         label={chip.label}
         color={chip.color}
@@ -62,7 +63,6 @@ export function ExecutionControls({
         variant="filled"
         sx={{ fontWeight: 600, minWidth: 80, justifyContent: 'center' }}
       />
-
       <Button
         variant="contained"
         color="primary"
@@ -73,7 +73,6 @@ export function ExecutionControls({
       >
         Run
       </Button>
-
       <Button
         variant="contained"
         color="warning"
@@ -84,7 +83,6 @@ export function ExecutionControls({
       >
         Continue
       </Button>
-
       <Button
         variant="outlined"
         color="error"

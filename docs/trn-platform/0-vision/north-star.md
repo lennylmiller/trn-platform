@@ -1,3 +1,14 @@
+
+
+How can I convert the pdf into a living, breathing, training ground that keeps track of what your doing, allows you to build scenarios for testing....
+
+
+
+
+
+
+
+
 # North Star: TRN Platform
 
 ## Vision

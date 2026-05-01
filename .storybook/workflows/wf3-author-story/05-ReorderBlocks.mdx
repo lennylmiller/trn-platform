@@ -1,0 +1,37 @@
+import { Meta, Canvas } from '@storybook/addon-docs/blocks';
+import * as Stories from './05-ReorderBlocks.stories';
+
+<Meta of={Stories} />
+
+# UC-COMP-7: Reorder Blocks
+
+**Actor:** Author | **Tier:** Core | **Workflow:** WF3 Author Story
+
+## Precondition
+A composition is open in the editor with two or more blocks.
+
+## Trigger
+Drag block handle to reorder.
+
+## Main Flow
+1. Author grabs the drag handle on a CompositionBlockCard
+2. Author drags the block to the desired position (up or down)
+3. System resequences all blocks and updates seq values
+4. System sends PUT /api/v2/compositions/:id/blocks with new order
+5. Blocks display in the new sequence
+
+## Alternate Flows
+- **AF-1:** Single block -- Drag handles are visible but non-functional when only one block exists
+- **AF-2:** Drop in same position -- No change is persisted
+
+## Postcondition
+Blocks are resequenced in the new order; seq values are contiguous starting from 1.
+
+## Interactive Demo
+<Canvas of={Stories.Default} />
+
+## Data
+- **Schema:** `composition_blocks.seq` column
+- **Table:** `composition_block` (qc_training)
+- **Hooks:** `useCompositionEditor.reorderBlocks` (feature), `useReplaceBlocks` (data-access)
+- **Component:** `CompositionBlockCard` (`packages/compositions/ui-mui`)

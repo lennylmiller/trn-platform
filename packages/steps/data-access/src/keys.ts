@@ -11,9 +11,9 @@
 export const stepsKeys = {
   all: ['steps'] as const,
   lists: () => [...stepsKeys.all, 'list'] as const,
-  list: (category?: string) =>
-    category
-      ? ([...stepsKeys.lists(), { category }] as const)
+  list: (filters?: { category?: string; story?: string }) =>
+    filters && Object.values(filters).some(Boolean)
+      ? ([...stepsKeys.lists(), filters] as const)
       : stepsKeys.lists(),
   details: () => [...stepsKeys.all, 'detail'] as const,
   detail: (stepId: number) => [...stepsKeys.details(), stepId] as const,

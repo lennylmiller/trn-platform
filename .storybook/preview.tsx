@@ -48,7 +48,32 @@ const preview: Preview = {
     },
     options: {
       storySort: {
-        order: ['Workflows', 'Pages', 'Domains'],
+        order: [
+          'Workflows',
+          [
+            'WF1 Build Demo',
+            'WF2 Present Flow',
+            'WF3 Author Story',
+            'WF4 Run Training',
+            'WF5 Manage Steps',
+            'Standalone',
+          ],
+          'Pages',
+          [
+            'WF1 Build Demo',
+            'WF2 Present Flow',
+            'WF3 Author Story',
+            'WF4 Run Training',
+            'WF5 Manage Steps',
+          ],
+          'Domains',
+          [
+            'Steps',
+            'Flows',
+            'Compositions',
+            'Execution',
+          ],
+        ],
       },
     },
   },

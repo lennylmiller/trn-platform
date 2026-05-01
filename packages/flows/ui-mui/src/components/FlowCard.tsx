@@ -1,4 +1,3 @@
-import React from 'react';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardActions from '@mui/material/CardActions';
@@ -32,7 +31,13 @@ export function FlowCard({ flow, onOpenDev, onPresent, onDelete }: FlowCardProps
       }}
     >
       <CardContent sx={{ flexGrow: 1 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" mb={1}>
+        <Stack
+          direction="row"
+          sx={{
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            mb: 1
+          }}>
           <Typography variant="h6" component="div" noWrap sx={{ flexGrow: 1, mr: 1 }}>
             {flow.name}
           </Typography>
@@ -46,19 +51,23 @@ export function FlowCard({ flow, onOpenDev, onPresent, onDelete }: FlowCardProps
         {flow.description && (
           <Typography
             variant="body2"
-            color="text.secondary"
             sx={{
+              color: "text.secondary",
               display: '-webkit-box',
               WebkitLineClamp: 3,
               WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-            }}
-          >
+              overflow: 'hidden'
+            }}>
             {flow.description}
           </Typography>
         )}
         {!flow.description && (
-          <Typography variant="body2" color="text.disabled" fontStyle="italic">
+          <Typography
+            variant="body2"
+            sx={{
+              color: "text.disabled",
+              fontStyle: "italic"
+            }}>
             No description
           </Typography>
         )}

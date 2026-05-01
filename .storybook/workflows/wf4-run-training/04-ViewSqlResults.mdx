@@ -1,0 +1,39 @@
+import { Meta, Canvas } from '@storybook/addon-docs/blocks';
+import * as Stories from './04-ViewSqlResults.stories';
+
+<Meta of={Stories} />
+
+# UC-EXEC-6: Run SQL Query
+
+**Actor:** User | **Tier:** Core | **Workflow:** WF4 Run Training
+
+## Precondition
+A flow step with display queries has been executed, or trainee opens ad-hoc SQL runner.
+
+## Trigger
+Click display query or run ad-hoc SQL.
+
+## Main Flow
+1. User triggers a display query (from step execution) or opens ad-hoc SQL
+2. System sends POST /api/v2/execute/sql with SQL statement
+3. System executes against qc_core database
+4. SqlResultsModal opens with results
+5. Table shows columns from result.columns, rows from result.rows
+6. Footer shows row count
+
+## Alternate Flows
+- **AF-1:** SQL error -- Error message shown with the SQL error details
+- **AF-2:** Empty result set -- Table shows column headers with "0 rows returned"
+- **AF-3:** Large result set -- Results are paginated or truncated with a warning
+
+## Postcondition
+SQL results are displayed to the trainee for review.
+
+## Interactive Demo
+<Canvas of={Stories.Default} />
+
+## Data
+- **Schema:** `SqlExecutionSchema` (shared)
+- **Table:** `qc_core` (target database)
+- **Hooks:** `useExecuteSql` (data-access), `useSqlRunner` (feature)
+- **Component:** `SqlResultsModal` (`packages/execution/ui-mui`)

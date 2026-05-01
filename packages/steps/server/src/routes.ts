@@ -1,9 +1,9 @@
-import { Router } from 'express';
+import { type Router as RouterType, Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { StepCreateSchema, StepUpdateSchema } from '@trn-platform/shared';
 import { listSteps, getStep, createStep, updateStep, deleteStep } from './queries';
 
-export const stepsRouter = Router();
+export const stepsRouter: RouterType = Router();
 
 // ---------------------------------------------------------------------------
 // GET / — list steps, optional ?category= filter
@@ -11,7 +11,8 @@ export const stepsRouter = Router();
 stepsRouter.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const category = req.query.category as string | undefined;
-    const steps = await listSteps(category);
+    const story = req.query.story as string | undefined;
+    const steps = await listSteps(category, story);
     res.json(steps);
   } catch (err) {
     next(err);

@@ -66,7 +66,7 @@ const mockSteps: Step[] = [
 ];
 
 const meta: Meta<typeof StepLibrary> = {
-  title: 'Steps/StepLibrary',
+  title: 'Domains/Steps/StepLibrary',
   component: StepLibrary,
   tags: ['autodocs'],
   decorators: [

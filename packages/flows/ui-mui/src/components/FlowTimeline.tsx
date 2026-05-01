@@ -1,4 +1,3 @@
-import React from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -28,10 +27,17 @@ export function FlowTimeline({
           textAlign: 'center',
         }}
       >
-        <Typography variant="body1" color="text.secondary">
+        <Typography variant="body1" sx={{
+          color: "text.secondary"
+        }}>
           No steps in this flow yet.
         </Typography>
-        <Typography variant="body2" color="text.disabled" sx={{ mt: 1 }}>
+        <Typography
+          variant="body2"
+          sx={{
+            color: "text.disabled",
+            mt: 1
+          }}>
           Add steps from the step library to build your flow.
         </Typography>
       </Box>

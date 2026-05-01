@@ -1,0 +1,37 @@
+import { Meta, Canvas } from '@storybook/addon-docs/blocks';
+import * as Stories from './01-SelectComposition.stories';
+
+<Meta of={Stories} />
+
+# UC-COMP-1: List Compositions
+
+**Actor:** User | **Tier:** Core | **Workflow:** WF4 Run Training
+
+## Precondition
+Trainee has an active session and at least one composition exists.
+
+## Trigger
+Navigate to Compositions tab.
+
+## Main Flow
+1. System loads compositions from GET /api/v2/compositions
+2. Tabs display (Story / Tutorial / Module)
+3. User selects a tab to filter by kind
+4. CompositionCards show title, kind chip, block count, flow count
+5. User clicks "Present" on desired composition
+
+## Alternate Flows
+- **AF-1:** Empty library -- System shows an empty state message
+- **AF-2:** Filter yields no results -- System shows "No compositions match your filter"
+
+## Postcondition
+Trainee has selected a composition and is ready to enter presentation mode.
+
+## Interactive Demo
+<Canvas of={Stories.Default} />
+
+## Data
+- **Schema:** `CompositionListSchema` (shared)
+- **Table:** `composition` (qc_training)
+- **Hooks:** `useCompositions(kind)` (data-access), `useCompositionList` (feature)
+- **Component:** `CompositionListTab` (`packages/compositions/ui-mui`)

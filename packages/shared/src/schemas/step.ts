@@ -36,6 +36,7 @@ export const StepSchema = z.object({
   description: z.string().nullable().optional(),
   display_queries: z.array(DisplayQuerySchema).nullable().optional(),
   is_seed: z.boolean().default(false),
+  story: z.string().nullable().optional(),
   created_at: z.string().nullable().optional(),
   updated_at: z.string().nullable().optional(),
 });
@@ -61,6 +62,7 @@ export const StepCreateSchema = z.object({
   command_text: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
   display_queries: z.array(DisplayQuerySchema).nullable().optional(),
+  story: z.string().nullable().optional(),
 });
 export type StepCreate = z.infer<typeof StepCreateSchema>;
 

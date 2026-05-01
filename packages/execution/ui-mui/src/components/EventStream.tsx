@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import List from '@mui/material/List';
@@ -57,9 +57,14 @@ export function EventStream({ events = [] }: EventStreamProps) {
 
   if (events.length === 0) {
     return (
-      <Typography variant="body2" color="text.secondary" sx={{ p: 2, fontStyle: 'italic' }}>
-        No events yet. Start an execution to see events stream in.
-      </Typography>
+      <Typography
+        variant="body2"
+        sx={{
+          color: "text.secondary",
+          p: 2,
+          fontStyle: 'italic'
+        }}>No events yet. Start an execution to see events stream in.
+              </Typography>
     );
   }
 
@@ -112,13 +117,15 @@ export function EventStream({ events = [] }: EventStreamProps) {
               {/* Data summary */}
               <ListItemText
                 primary={summary}
-                primaryTypographyProps={{
-                  variant: 'body2',
-                  sx: {
-                    fontFamily: 'monospace',
-                    fontSize: '0.75rem',
-                    color: 'text.primary',
-                    wordBreak: 'break-word',
+                slotProps={{
+                  primary: {
+                    variant: 'body2',
+                    sx: {
+                      fontFamily: 'monospace',
+                      fontSize: '0.75rem',
+                      color: 'text.primary',
+                      wordBreak: 'break-word',
+                    },
                   },
                 }}
               />

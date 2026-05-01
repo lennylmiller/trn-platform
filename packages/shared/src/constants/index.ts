@@ -33,6 +33,14 @@ export const STEP_CATEGORY_LABELS: Record<string, string> = {
 };
 
 /**
+ * Step story labels for UI — groups steps by narrative
+ */
+export const STEP_STORY_LABELS: Record<string, string> = {
+  garcia: 'Garcia Family',
+  miller: 'Miller Family',
+};
+
+/**
  * Composition kind labels for UI
  */
 export const COMPOSITION_KIND_LABELS: Record<string, string> = {

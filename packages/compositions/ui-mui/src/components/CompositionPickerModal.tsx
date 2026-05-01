@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -65,7 +65,12 @@ export function CompositionPickerModal({
         )}
 
         {!isLoading && filtered.length === 0 && (
-          <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+          <Typography
+            sx={{
+              color: "text.secondary",
+              textAlign: 'center',
+              py: 4
+            }}>
             No compositions found
           </Typography>
         )}
@@ -82,7 +87,9 @@ export function CompositionPickerModal({
               >
                 <ListItemText
                   primary={
-                    <Stack direction="row" spacing={1} alignItems="center">
+                    <Stack direction="row" spacing={1} sx={{
+                      alignItems: "center"
+                    }}>
                       <span>{comp.title}</span>
                       <Chip
                         label={comp.kind}

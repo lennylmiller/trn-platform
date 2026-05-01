@@ -26,7 +26,7 @@ function createQueryClient() {
 }
 
 const meta: Meta<typeof StepEditorModal> = {
-  title: 'Steps/StepEditorModal',
+  title: 'Domains/Steps/StepEditorModal',
   component: StepEditorModal,
   decorators: [
     (Story) => (

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -11,7 +11,7 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import type { StepCategory } from '@trn-platform/shared';
-import { STEP_CATEGORY_LABELS } from '@trn-platform/shared';
+import { STEP_CATEGORY_LABELS, STEP_STORY_LABELS } from '@trn-platform/shared';
 import { useSteps } from '@trn-platform/steps-data-access';
 import { useStepFilters } from '@trn-platform/steps-feature';
 import { StepCard } from './StepCard';
@@ -28,11 +28,13 @@ export interface StepListTabProps {
  */
 export function StepListTab({ onStepClick }: StepListTabProps) {
   const [category, setCategory] = useState<StepCategory | ''>('');
+  const [storyFilter, setStoryFilter] = useState<string>('');
   const [search, setSearch] = useState('');
 
   const { data: steps, isLoading, error } = useSteps();
   const { filtered } = useStepFilters(steps, {
     category: category || undefined,
+    story: storyFilter === '_common' ? null : (storyFilter || undefined),
     search,
   });
 
@@ -42,7 +44,12 @@ export function StepListTab({ onStepClick }: StepListTabProps) {
 
   if (isLoading) {
     return (
-      <Box display="flex" justifyContent="center" py={4}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          py: 4
+        }}>
         <CircularProgress />
       </Box>
     );
@@ -76,6 +83,24 @@ export function StepListTab({ onStepClick }: StepListTabProps) {
           </Select>
         </FormControl>
 
+        <FormControl size="small" sx={{ minWidth: 160 }}>
+          <InputLabel id="step-story-filter-label">Story</InputLabel>
+          <Select
+            labelId="step-story-filter-label"
+            value={storyFilter}
+            label="Story"
+            onChange={(e: SelectChangeEvent<string>) => setStoryFilter(e.target.value)}
+          >
+            <MenuItem value="">All Stories</MenuItem>
+            <MenuItem value="_common"><em>Common Only</em></MenuItem>
+            {Object.entries(STEP_STORY_LABELS).map(([key, label_]) => (
+              <MenuItem key={key} value={key}>
+                {label_}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
         <TextField
           size="small"
           placeholder="Search steps..."
@@ -84,9 +109,13 @@ export function StepListTab({ onStepClick }: StepListTabProps) {
           sx={{ flexGrow: 1 }}
         />
       </Stack>
-
       {filtered.length === 0 ? (
-        <Typography color="text.secondary" textAlign="center" py={4}>
+        <Typography
+          sx={{
+            color: "text.secondary",
+            textAlign: "center",
+            py: 4
+          }}>
           No steps found.
         </Typography>
       ) : (

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -55,7 +55,12 @@ export function FlowPickerModal({ open, onClose, onSelect }: FlowPickerModalProp
         )}
 
         {!isLoading && filtered.length === 0 && (
-          <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+          <Typography
+            sx={{
+              color: "text.secondary",
+              textAlign: 'center',
+              py: 4
+            }}>
             No flows found
           </Typography>
         )}
@@ -72,7 +77,9 @@ export function FlowPickerModal({ open, onClose, onSelect }: FlowPickerModalProp
               >
                 <ListItemText
                   primary={
-                    <Stack direction="row" spacing={1} alignItems="center">
+                    <Stack direction="row" spacing={1} sx={{
+                      alignItems: "center"
+                    }}>
                       <span>{flow.name}</span>
                       <Chip
                         label={`${flow.step_count} step${flow.step_count !== 1 ? 's' : ''}`}

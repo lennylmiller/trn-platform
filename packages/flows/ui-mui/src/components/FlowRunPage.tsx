@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -44,11 +44,17 @@ export function FlowRunPage({ flowId, onAbort }: FlowRunPageProps) {
   const presenter = useFlowPresenter({ flowId });
   const [notesExpanded, setNotesExpanded] = useState(true);
 
-  const { flow, visibleSteps, currentStep, currentIndex, totalSteps, state, isLoading, isError, error } = presenter;
+  const { flow, currentStep, currentIndex, totalSteps, state, isLoading, isError, error } = presenter;
 
   if (isLoading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: 400
+        }}>
         <CircularProgress />
       </Box>
     );
@@ -107,7 +113,6 @@ export function FlowRunPage({ flowId, onAbort }: FlowRunPageProps) {
           />
         )}
       </AppBar>
-
       {/* Main Content */}
       <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center', p: 4 }}>
         {state === 'idle' ? (
@@ -116,11 +121,23 @@ export function FlowRunPage({ flowId, onAbort }: FlowRunPageProps) {
               {flow.name}
             </Typography>
             {flow.description && (
-              <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 600, mx: 'auto' }}>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "text.secondary",
+                  mb: 3,
+                  maxWidth: 600,
+                  mx: 'auto'
+                }}>
                 {flow.description}
               </Typography>
             )}
-            <Typography variant="body2" color="text.disabled" sx={{ mb: 4 }}>
+            <Typography
+              variant="body2"
+              sx={{
+                color: "text.disabled",
+                mb: 4
+              }}>
               {totalSteps} step{totalSteps !== 1 ? 's' : ''} in this flow
             </Typography>
             <Button
@@ -138,10 +155,17 @@ export function FlowRunPage({ flowId, onAbort }: FlowRunPageProps) {
             <Typography variant="h4" gutterBottom>
               Presentation Complete
             </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+            <Typography
+              variant="body1"
+              sx={{
+                color: "text.secondary",
+                mb: 4
+              }}>
               All {totalSteps} steps have been presented.
             </Typography>
-            <Stack direction="row" spacing={2} justifyContent="center">
+            <Stack direction="row" spacing={2} sx={{
+              justifyContent: "center"
+            }}>
               <Button variant="outlined" onClick={presenter.reset}>
                 Start Over
               </Button>
@@ -153,7 +177,13 @@ export function FlowRunPage({ flowId, onAbort }: FlowRunPageProps) {
         ) : currentStep ? (
           <Box sx={{ maxWidth: 800, width: '100%' }}>
             <Paper variant="outlined" sx={{ p: 4, borderLeft: `5px solid ${typeColor}` }}>
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+              <Stack
+                direction="row"
+                spacing={1}
+                sx={{
+                  alignItems: "center",
+                  mb: 2
+                }}>
                 <Chip
                   label={currentStep.type}
                   size="small"
@@ -172,12 +202,19 @@ export function FlowRunPage({ flowId, onAbort }: FlowRunPageProps) {
                 />
               </Stack>
 
-              <Typography variant="h5" fontWeight={600} gutterBottom>
+              <Typography variant="h5" gutterBottom sx={{
+                fontWeight: 600
+              }}>
                 {currentStep.label}
               </Typography>
 
               {currentStep.description && (
-                <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: "text.secondary",
+                    mb: 2
+                  }}>
                   {currentStep.description}
                 </Typography>
               )}
@@ -209,7 +246,12 @@ export function FlowRunPage({ flowId, onAbort }: FlowRunPageProps) {
                   <Stack spacing={1.5}>
                     {displayQueries.map((dq, i) => (
                       <Box key={i}>
-                        <Typography variant="caption" fontWeight={600} color="text.secondary">
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            fontWeight: 600,
+                            color: "text.secondary"
+                          }}>
                           {dq.label}
                         </Typography>
                         <Paper
@@ -247,7 +289,9 @@ export function FlowRunPage({ flowId, onAbort }: FlowRunPageProps) {
                     '&:hover': { bgcolor: 'grey.100' },
                   }}
                 >
-                  <Typography variant="subtitle2" color="text.secondary">
+                  <Typography variant="subtitle2" sx={{
+                    color: "text.secondary"
+                  }}>
                     Presenter Notes
                   </Typography>
                   {notesExpanded ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
@@ -264,11 +308,12 @@ export function FlowRunPage({ flowId, onAbort }: FlowRunPageProps) {
           </Box>
         ) : null}
       </Box>
-
       {/* Bottom Navigation Bar */}
       {state !== 'idle' && state !== 'complete' && (
         <Paper elevation={3} sx={{ p: 2 }}>
-          <Stack direction="row" justifyContent="center" spacing={2}>
+          <Stack direction="row" spacing={2} sx={{
+            justifyContent: "center"
+          }}>
             <Button
               variant="outlined"
               color="error"
