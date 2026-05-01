@@ -240,5 +240,143 @@ export function createServer(): McpServer {
     },
   );
 
+  // -------------------------------------------------------------------------
+  // Story tools (via Express API)
+  // -------------------------------------------------------------------------
+
+  server.tool(
+    'list_stories',
+    'List all stories with their status (draft, planning, authoring, review, complete)',
+    {},
+    async () => {
+      const stories = await apiFetch<unknown[]>('/api/v2/stories');
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify(stories, null, 2),
+        }],
+      };
+    },
+  );
+
+  server.tool(
+    'get_story',
+    'Get a story by ID with its full plan (ordered list of plan items with status)',
+    {
+      storyId: z.number().describe('The story_id to retrieve'),
+    },
+    async ({ storyId }) => {
+      const story = await apiFetch<unknown>(`/api/v2/stories/${storyId}`);
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify(story, null, 2),
+        }],
+      };
+    },
+  );
+
+  server.tool(
+    'create_story',
+    'Create a new story (training narrative). Provide a short identifier, title, and description.',
+    {
+      story_ud: z.string().describe('Short identifier (e.g. "miller", "johnson"). Used to tag steps.'),
+      title: z.string().describe('Display title (e.g. "Miller Family")'),
+      description: z.string().optional().describe('The narrative premise'),
+    },
+    async ({ story_ud, title, description }) => {
+      const story = await apiFetch<unknown>('/api/v2/stories', {
+        method: 'POST',
+        body: JSON.stringify({ story_ud, title, description }),
+      });
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify(story, null, 2),
+        }],
+      };
+    },
+  );
+
+  server.tool(
+    'update_story',
+    'Update a story (status, title, description, or link flow/composition)',
+    {
+      storyId: z.number().describe('The story_id to update'),
+      status: z.string().optional().describe('New status: draft, planning, authoring, review, complete'),
+      title: z.string().optional().describe('New title'),
+      description: z.string().optional().describe('New description'),
+      flow_id: z.number().optional().describe('Link the produced flow'),
+      composition_id: z.number().optional().describe('Link the produced composition'),
+    },
+    async ({ storyId, ...updates }) => {
+      const body: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(updates)) {
+        if (v !== undefined) body[k] = v;
+      }
+      const story = await apiFetch<unknown>(`/api/v2/stories/${storyId}`, {
+        method: 'PUT',
+        body: JSON.stringify(body),
+      });
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify(story, null, 2),
+        }],
+      };
+    },
+  );
+
+  server.tool(
+    'add_plan_items',
+    'Add plan items to a story. Each item is a blueprint for a step to author.',
+    {
+      storyId: z.number().describe('The story_id to add items to'),
+      items: z.string().describe('JSON array of plan items: [{seq, act?, title, description?, tables_involved?: string[]}]'),
+    },
+    async ({ storyId, items }) => {
+      const parsed = JSON.parse(items) as unknown[];
+      const result = await apiFetch<unknown>(`/api/v2/stories/${storyId}/plan`, {
+        method: 'POST',
+        body: JSON.stringify(parsed),
+      });
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify(result, null, 2),
+        }],
+      };
+    },
+  );
+
+  server.tool(
+    'update_plan_item',
+    'Update a plan item (change status, link a step_id, update description)',
+    {
+      storyId: z.number().describe('The story_id'),
+      planItemId: z.number().describe('The plan_item_id to update'),
+      status: z.string().optional().describe('New status: pending, in_progress, done, skipped'),
+      step_id: z.number().optional().describe('Link to a created step'),
+      title: z.string().optional().describe('Updated title'),
+      description: z.string().optional().describe('Updated description'),
+    },
+    async ({ storyId, planItemId, ...updates }) => {
+      const body: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(updates)) {
+        if (v !== undefined) body[k] = v;
+      }
+      const item = await apiFetch<unknown>(`/api/v2/stories/${storyId}/plan/${planItemId}`, {
+        method: 'PUT',
+        body: JSON.stringify(body),
+      });
+      return {
+        content: [{
+          type: 'text' as const,
+          text: JSON.stringify(item, null, 2),
+        }],
+      };
+    },
+  );
+
   return server;
 }

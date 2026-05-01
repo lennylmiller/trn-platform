@@ -15,6 +15,7 @@ const { flowsRouter } = require('@trn-platform/flows-server') as typeof import('
 const { compositionsRouter } = require('@trn-platform/compositions-server') as typeof import('@trn-platform/compositions-server');
 const { executionRouter } = require('@trn-platform/execution-server') as typeof import('@trn-platform/execution-server');
 const { chatRouter } = require('@trn-platform/chat-server') as typeof import('@trn-platform/chat-server');
+const { storiesRouter } = require('@trn-platform/stories-server') as typeof import('@trn-platform/stories-server');
 
 console.log('[server] AUTH_DISABLED:', process.env.AUTH_DISABLED);
 const app = express();
@@ -50,6 +51,7 @@ app.use('/api/v2/flows', flowsRouter);
 app.use('/api/v2/compositions', compositionsRouter);
 app.use('/api/v2/execute', executionRouter);
 app.use('/api/v2/chat', chatRouter);
+app.use('/api/v2/stories', storiesRouter);
 
 // Error handling
 app.use(errorHandler);

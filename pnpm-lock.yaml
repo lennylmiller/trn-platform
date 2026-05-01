@@ -248,6 +248,15 @@ importers:
       '@trn-platform/steps-ui-mui':
         specifier: workspace:*
         version: link:../../packages/steps/ui-mui
+      '@trn-platform/stories-data-access':
+        specifier: workspace:*
+        version: link:../../packages/stories/data-access
+      '@trn-platform/stories-feature':
+        specifier: workspace:*
+        version: link:../../packages/stories/feature
+      '@trn-platform/stories-ui-mui':
+        specifier: workspace:*
+        version: link:../../packages/stories/ui-mui
       react:
         specifier: 19.2.4
         version: 19.2.4
@@ -1037,6 +1046,106 @@ importers:
         specifier: 4.1.5
         version: 4.1.5(@types/node@25.6.0)(@vitest/browser-playwright@4.1.5)(@vitest/coverage-v8@4.1.5)(jsdom@29.0.2(@noble/hashes@1.8.0))(msw@2.13.6(@types/node@25.6.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.6.0)(esbuild@0.27.7)(tsx@4.21.0))
 
+  packages/stories/data-access:
+    dependencies:
+      '@tanstack/react-query':
+        specifier: 5.96.2
+        version: 5.96.2(react@19.2.4)
+      '@trn-platform/shared':
+        specifier: workspace:*
+        version: link:../../shared
+      react:
+        specifier: 19.2.4
+        version: 19.2.4
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+      vite:
+        specifier: ^8.0.3
+        version: 8.0.10(@types/node@25.6.0)(esbuild@0.27.7)(tsx@4.21.0)
+
+  packages/stories/feature:
+    dependencies:
+      '@trn-platform/shared':
+        specifier: workspace:*
+        version: link:../../shared
+      '@trn-platform/stories-data-access':
+        specifier: workspace:*
+        version: link:../data-access
+      react:
+        specifier: 19.2.4
+        version: 19.2.4
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/stories/server:
+    dependencies:
+      '@trn-platform/shared':
+        specifier: workspace:*
+        version: link:../../shared
+      express:
+        specifier: ^5.1.0
+        version: 5.2.1
+      mssql:
+        specifier: ^12.5.0
+        version: 12.5.0(@azure/core-client@1.10.1)
+      zod:
+        specifier: 4.1.12
+        version: 4.1.12
+    devDependencies:
+      '@types/express':
+        specifier: ^5.0.2
+        version: 5.0.6
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
+  packages/stories/ui-mui:
+    dependencies:
+      '@trn-platform/shared':
+        specifier: workspace:*
+        version: link:../../shared
+      '@trn-platform/steps-data-access':
+        specifier: workspace:*
+        version: link:../../steps/data-access
+      '@trn-platform/stories-data-access':
+        specifier: workspace:*
+        version: link:../data-access
+      '@trn-platform/stories-feature':
+        specifier: workspace:*
+        version: link:../feature
+    devDependencies:
+      '@emotion/react':
+        specifier: ^11.14.0
+        version: 11.14.0(@types/react@19.2.14)(react@19.2.4)
+      '@emotion/styled':
+        specifier: ^11.14.1
+        version: 11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4)
+      '@mui/icons-material':
+        specifier: ^9.0.0
+        version: 9.0.0(@mui/material@9.0.0(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@types/react@19.2.14)(react@19.2.4)
+      '@mui/material':
+        specifier: ^9.0.0
+        version: 9.0.0(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@tanstack/react-query':
+        specifier: 5.96.2
+        version: 5.96.2(react@19.2.4)
+      '@types/react':
+        specifier: 19.2.14
+        version: 19.2.14
+      react:
+        specifier: 19.2.4
+        version: 19.2.4
+      react-dom:
+        specifier: 19.2.4
+        version: 19.2.4(react@19.2.4)
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
   server:
     dependencies:
       '@trn-platform/chat-server':
@@ -1057,6 +1166,9 @@ importers:
       '@trn-platform/steps-server':
         specifier: workspace:*
         version: link:../packages/steps/server
+      '@trn-platform/stories-server':
+        specifier: workspace:*
+        version: link:../packages/stories/server
       cors:
         specifier: ^2.8.5
         version: 2.8.6

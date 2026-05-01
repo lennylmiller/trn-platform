@@ -10,6 +10,7 @@
     "@trn-platform/compositions-server": "workspace:*",
     "@trn-platform/execution-server": "workspace:*",
     "@trn-platform/chat-server": "workspace:*",
+    "@trn-platform/stories-server": "workspace:*",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "helmet": "^8.1.0",
