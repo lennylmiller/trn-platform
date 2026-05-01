@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "bugs/4-bug.md",
+                "file": "0-vision/north-star.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "4-bug"
+              "title": "north-star"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "bugs/4-bug.md",
+                "file": "bugs/5-bug.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for 4-bug"
+              "title": "Backlinks for 5-bug"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "bugs/4-bug.md",
+                "file": "bugs/5-bug.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from 4-bug"
+              "title": "Outgoing links from 5-bug"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "bugs/4-bug.md",
+                "file": "bugs/5-bug.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of 4-bug"
+              "title": "Outline of 5-bug"
             }
           }
         ]
@@ -186,19 +186,44 @@
   "active": "dc1a8c71a5b32d97",
   "lastOpenFiles": [
     "Pasted image 20260426134617.png",
-    "bugs/3-bug.md",
-    "bugs/4-bug.md",
-    "bugs/Pasted image 20260426132614.png",
-    "bugs/1-bug.md",
-    "bugs/Pasted image 20260426132046.png",
-    "bugs/Pasted image 20260426130909.png",
-    "bugs/0-bug.md",
+    "pure-wobbling-sonnet.md",
+    "0-vision/north-star.md",
+    "2-on-deck/5-bug.md",
+    "2-on-deck/localhost-1777590717524.log",
+    "Pasted image 20260430161116.png",
+    "4-reference/miller-family-qa-guide.md",
+    "bugs/9-bug.md",
+    "bugs/8-bug.md",
+    "Pasted image 20260429195201.png",
+    "Pasted image 20260429194653.png",
+    "bugs/7-bug.md",
+    "Pasted image 20260429193225.png",
+    "1-specs/animated-shorts/00-series-overview.md",
+    "1-specs/bridge-builder-content-plan.md",
+    "1-specs/ai-step-authoring-workflow.md",
+    "1-specs/animated-shorts/ep0-the-twist.md",
+    "1-specs/animated-shorts/ep1-the-wall.md",
+    "2-on-deck/4-bug.md",
+    "Pasted image 20260428121535.png",
+    "2-on-deck/3-bug.md",
+    "Pasted image 20260428115125.png",
+    "2-on-deck/2-bug.md",
+    "2-on-deck/Pasted image 20260428092413.png",
+    "2-on-deck/0-info.md",
+    "Pasted image 20260427211148.png",
+    "2-on-deck/1-bug.md",
+    "Pasted image 20260427205558.png",
+    "2-on-deck/0-bug.md",
+    "bugs/Pasted image 20260427204034.png",
+    "2-on-deck/bug-1.md",
+    "2-on-deck/localhost-1777346459066.log",
     "2-on-deck/sprint-1-scaffold.md",
-    "bugs",
-    "1-specs/use-cases/steps.md",
-    "1-specs/use-cases/flows.md",
-    "1-specs/use-cases/execution.md",
-    "1-specs/use-cases/compositions.md",
-    "0-vision/north-star.md"
+    "2-on-deck/images",
+    "bugs/6-bug.md",
+    "bugs/5-bug.md",
+    "4-reference/pipeline-guide.md",
+    "bugs/4-bug.md",
+    "bugs/3-bug.md",
+    "bugs"
   ]
 }
