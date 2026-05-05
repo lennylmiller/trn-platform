@@ -175,3 +175,4 @@ export type SlideUpdate = z.infer<typeof SlideUpdateSchema>;
 // ============================================================================
 
 export const CoursesResponseSchema = z.array(CourseListItemSchema);
+export const SeriesResponseSchema = z.array(CourseSeriesSchema);

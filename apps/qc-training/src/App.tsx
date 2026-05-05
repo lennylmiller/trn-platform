@@ -16,6 +16,8 @@ import StepWorkbenchPage from './pages/StepWorkbenchPage';
 import TrainingPlayerPage from './pages/TrainingPlayerPage';
 import CoursePlayerPage from './pages/CoursePlayerPage';
 import CoursesPage from './pages/CoursesPage';
+import CaptureDemoPage from './pages/CaptureDemoPage';
+import { installFeedbackActionTracking } from './capture';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -59,7 +61,7 @@ function Shell({ onToggleTheme, mode }: { onToggleTheme: () => void; mode: 'ligh
   }, [showDevTabs]);
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+    <Box data-feedback-capture-root sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       <AppBar position="static" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Toolbar>
           <Typography variant="h6" sx={{ fontWeight: 700, mr: 4, cursor: 'pointer' }} onClick={() => navigate('/')}>
@@ -81,6 +83,7 @@ function Shell({ onToggleTheme, mode }: { onToggleTheme: () => void; mode: 'ligh
           {/* Hidden dev toggle — invisible 24x24 hit area */}
           <Box
             onClick={() => setShowDevTabs(v => !v)}
+            data-feedback-ignore="true"
             sx={{ width: 24, height: 24, cursor: 'default', mr: 1, opacity: 0 }}
           />
           <IconButton color="inherit" onClick={onToggleTheme}>
@@ -127,6 +130,10 @@ export default function App() {
   const theme = useMemo(() => buildTheme(mode), [mode]);
   const toggleTheme = () => setMode((m) => (m === 'light' ? 'dark' : 'light'));
 
+  useEffect(() => {
+    installFeedbackActionTracking();
+  }, []);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -139,6 +146,7 @@ export default function App() {
             <Route path="/compositions/run/:compositionId" element={<CompositionRunPage />} />
             <Route path="/compositions/play/:compositionId" element={<TrainingPlayerPage />} />
             <Route path="/courses/play/:courseId" element={<CoursePlayerPage />} />
+            <Route path="/capture-demo" element={<CaptureDemoPage />} />
             <Route path="/workbench/:stepId" element={<StepWorkbenchPage />} />
             <Route path="*" element={<Shell onToggleTheme={toggleTheme} mode={mode} />} />
           </Routes>

@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "0-vision/north-star.md",
+                "file": "items/auto/sixth-tryme.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "north-star"
+              "title": "sixth-tryme"
             }
           }
         ]
@@ -183,24 +183,33 @@
       "bases:Create new base": false
     }
   },
-  "active": "dc1a8c71a5b32d97",
+  "active": "31b2537b374cbfa7",
   "lastOpenFiles": [
+    "1-specs/ai-step-authoring-workflow.md",
+    "items/auto/sixth-tryme.md",
+    "items/auto/images/2026-05-03_13-06-08.png",
+    "items/auto/images/2026-05-03_13-05-56.png",
+    "items/auto/images/2026-05-03_13-05-20.png",
+    "items/auto/images/2026-05-03_13-04-58.png",
+    "items/auto/images/2026-05-03_13-04-16.png",
+    "items/auto/images",
+    "items/auto",
+    "0-vision/north-star.md",
+    "0-vision/fun-0.md",
+    "items/SUN-05-03-2026-1202.md",
+    "items/chore-0.md",
+    "items/10-bug.md",
+    "Pasted image 20260502091739.png",
+    "Pasted image 20260501182123.png",
     "pure-wobbling-sonnet.md",
-    "bugs/Pasted image 20260427204034.png",
-    "bugs/Pasted image 20260426211454.png",
-    "bugs/Pasted image 20260426153546.png",
-    "bugs/Pasted image 20260426153434.png",
-    "bugs/Pasted image 20260426153252.png",
-    "bugs/Pasted image 20260426134617.png",
-    "bugs/9-bug.md",
-    "bugs/8-bug.md",
-    "bugs/7-bug.md",
-    "bugs/6-bug.md",
-    "bugs/5-bug.md",
-    "_fur-derp.png",
-    "Pasted image 20260430161116.png",
-    "Pasted image 20260429195201.png",
-    "Pasted image 20260429194653.png",
+    "items/Pasted image 20260427204034.png",
+    "items/Pasted image 20260426211454.png",
+    "items/Pasted image 20260426153546.png",
+    "items/9-bug.md",
+    "items/8-bug.md",
+    "items/7-bug.md",
+    "items/6-bug.md",
+    "items/5-bug.md",
     "4-reference/step-workbench-training.md",
     "4-reference/miller-family-qa-guide.md",
     "2-on-deck/images",
@@ -215,16 +224,9 @@
     "1-specs/bridge-builder-content-plan.md",
     "1-specs/animated-shorts/ep7-the-arc.md",
     "1-specs/animated-shorts/ep6-speak-it.md",
-    "1-specs/animated-shorts/ep5-inside-the-proof.md",
-    "1-specs/animated-shorts/ep4-ten-prompts.md",
-    "1-specs/animated-shorts/ep3-one-forty-eight.md",
-    "1-specs/animated-shorts/ep2-zoom-levels.md",
-    "1-specs/animated-shorts/ep1-the-wall.md",
-    "1-specs/animated-shorts/ep0-the-twist.md",
-    "1-specs/animated-shorts/00-series-overview.md",
     "1-specs/animated-shorts",
     "2-on-deck/localhost-1777590717524.log",
     "2-on-deck/localhost-1777346459066.log",
-    "bugs"
+    "items"
   ]
 }

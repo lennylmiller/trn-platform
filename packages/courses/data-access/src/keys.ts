@@ -4,3 +4,8 @@ export const coursesKeys = {
   details: () => [...coursesKeys.all, 'detail'] as const,
   detail: (courseId: number) => [...coursesKeys.details(), courseId] as const,
 };
+
+export const seriesKeys = {
+  all: ['series'] as const,
+  lists: () => [...seriesKeys.all, 'list'] as const,
+};

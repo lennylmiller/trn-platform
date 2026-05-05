@@ -2,7 +2,7 @@ import type {
   Course, CourseCreate, CourseUpdate, CourseDetail,
   CourseSection, SectionCreate, SectionUpdate,
   CourseSlide, SlideCreate, SlideUpdate,
-  CourseListItem, CourseSectionDetail,
+  CourseListItem, CourseSectionDetail, CourseSeries,
 } from '@trn-platform/shared';
 import { getPool } from '@trn-platform/shared/db';
 
@@ -67,6 +67,21 @@ function mapSlide(row: Record<string, unknown>): CourseSlide {
 }
 
 // ---------------------------------------------------------------------------
+// Series
+// ---------------------------------------------------------------------------
+
+export async function listSeries(): Promise<CourseSeries[]> {
+  const pool = await getPool('qc_training');
+  const result = await pool.request().query('SELECT * FROM course_series ORDER BY title');
+  return result.recordset.map((r: Record<string, unknown>) => ({
+    series_id: r.series_id as number,
+    title: r.title as string,
+    description: (r.description as string) ?? null,
+    created_at: (r.created_at as string) ?? null,
+  }));
+}
+
+// ---------------------------------------------------------------------------
 // Course CRUD
 // ---------------------------------------------------------------------------
 
@@ -79,7 +94,7 @@ export async function listCourses(): Promise<CourseListItem[]> {
        JOIN course_section cs2 ON sl.section_id = cs2.section_id
        WHERE cs2.course_id = c.course_id) AS slide_count
     FROM course c
-    ORDER BY c.title
+    ORDER BY COALESCE(c.series_id, 2147483647), COALESCE(c.series_seq, 2147483647), c.title
   `);
   return result.recordset.map((r: Record<string, unknown>) => ({
     ...mapCourse(r),
