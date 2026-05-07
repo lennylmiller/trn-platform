@@ -1,0 +1,16 @@
+title: Code Management — Procedure & Diagnosis Codes
+description: >-
+  Load the medical code sets that adjudication needs: CPT procedure codes (99201, 73560), ICD-10 diagnosis codes, and
+  treatment type sets that bridge benefits to codes. Without these, claims have nothing to price against.
+category: implementation
+actor: QC Administrator
+series:
+  title: 'QC Implementation: Setting Up Verda Health Plan'
+  description: >-
+    A 10-course series that walks a QC administrator through standing up a new health plan from scratch. Each course
+    produces data the next one depends on — building Verda Health Plan, Acme Manufacturing, the HMO Gold plan, the
+    Garcia family, and their complete claim lifecycle.
+  seq: 3
+prerequisites:
+  - QC System Foundations
+lessons: []

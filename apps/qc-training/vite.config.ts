@@ -19,6 +19,9 @@ export default defineConfig({
       '@trn-platform/execution-data-access': path.resolve(__dirname, '../../packages/execution/data-access/src'),
       '@trn-platform/execution-feature': path.resolve(__dirname, '../../packages/execution/feature/src'),
       '@trn-platform/execution-ui-mui': path.resolve(__dirname, '../../packages/execution/ui-mui/src'),
+      '@trn-platform/courses-data-access': path.resolve(__dirname, '../../packages/courses/data-access/src'),
+      '@trn-platform/courses-feature': path.resolve(__dirname, '../../packages/courses/feature/src'),
+      '@trn-platform/courses-ui-mui': path.resolve(__dirname, '../../packages/courses/ui-mui/src'),
     },
   },
   server: {

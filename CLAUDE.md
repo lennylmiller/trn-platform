@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-TRN Platform is a Training & Demo platform for QC (Quality Care) systems, built as a pnpm monorepo with 4 domains. Each domain follows a strict 4-layer architecture using React 19, TypeScript (strict), MUI 9, TanStack Query 5, and SQL Server via Express as the backend.
+TRN Platform is a Training & Demo platform for QC (Quality Care) systems, built as a pnpm monorepo with 7 domains. Each domain follows a strict 4-layer architecture using React 19, TypeScript (strict), MUI 9, TanStack Query 5, and SQL Server via Express as the backend.
 
 **Stack:** React 19 · MUI 9 · Emotion · TanStack Query 5 · SQL Server (mssql) · Express 5 · Zod · Vitest · Storybook 10 · tsup · pnpm workspaces · changesets
 
@@ -59,7 +59,7 @@ pnpm version                                             # Version packages
 
 ## Architecture
 
-### 4-Layer Architecture (per domain)
+### Layered Architecture (per domain, up to 4 layers)
 
 ```
 server  →  data-access  →  feature  →  ui-mui  →  shared
@@ -81,11 +81,12 @@ packages/{domain}/feature/       # Business logic
 packages/{domain}/server/        # Domain-specific Express routes
 packages/{domain}/ui-mui/        # MUI components + stories
 packages/shared/                 # Cross-domain schemas, types, constants, db
+packages/mcp-server/             # MCP server for AI-assisted training (bin: trn-mcp)
 server/                          # Root Express entry point, middleware, db migrations
 apps/component-demo/             # Demo app (excluded from default build)
 ```
 
-Note: `server/` at root (Express entry point + middleware) is distinct from `packages/*/server/` (domain route handlers). The root server imports and mounts domain routers.
+Note: `server/` at root (Express entry point + middleware) is distinct from `packages/*/server/` (domain route handlers). The root server imports and mounts domain routers at `/api/v2/{domain}` (e.g., `/api/v2/steps`, `/api/v2/flows`). Health check at `/api/health` (no auth).
 
 ### Critical Dependency Rules
 - Never skip layers (ui-mui must not import data-access directly when feature exists for that use case)
@@ -93,9 +94,10 @@ Note: `server/` at root (Express entry point + middleware) is distinct from `pac
 - All shared types/schemas live in `packages/shared/`
 - Import by package name (`@trn-platform/...`), never relative paths across packages
 - Import from package root only: `from '@trn-platform/shared'` not `from '@trn-platform/shared/types'`
+- Exception: `@trn-platform/shared` exports sub-paths `./db` and `./tools` for server-side use
 
-### 4 Domains
-`steps`, `flows`, `compositions`, `execution` — plus `shared` for cross-domain schemas, types, constants, and database utilities.
+### 7 Domains
+`steps`, `flows`, `compositions`, `execution`, `chat`, `stories`, `courses` — plus `shared` for cross-domain schemas, types, constants, and database utilities. Not all domains have all 4 layers (e.g., `chat` has only `server/`).
 
 ### Shared Package (`packages/shared/`)
 - **Zod schemas** (`src/schemas/`) — API validation, types inferred via `z.infer<>`

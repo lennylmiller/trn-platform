@@ -1,13 +1,15 @@
 import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
-const express = require('express') as typeof import('express').default;
-const cors = require('cors') as typeof import('cors').default;
-const helmet = require('helmet') as typeof import('helmet').default;
+import express from 'express';
+import type { Request, Response } from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
 
 import { authMiddleware } from './middleware/auth';
 import { errorHandler } from './middleware/error';
-import { getPool, healthCheck, closePool } from '../db/connection';
+import { getFeedbackCaptureDir, handleFeedbackSubmit } from './capture/feedback';
+import { healthCheck, closePool } from '../db/connection';
+
+const require = createRequire(import.meta.url);
 
 // Domain routers — loaded from compiled dist via workspace package resolution
 const { stepsRouter } = require('@trn-platform/steps-server') as typeof import('@trn-platform/steps-server');
@@ -31,13 +33,13 @@ app.use(cors({
   origin: corsOrigins,
   credentials: true,
 }));
-app.use(express.json());
+app.use(express.json({ limit: '15mb' }));
 
-// Database connections are lazy — getPool() connects on first API request
+// Database connections are lazy and connect on first API request.
 console.log('[server] Database connections will be established on first request');
 
 // Health check (no auth required)
-app.get('/api/health', async (_req, res) => {
+app.get('/api/health', async (_req: Request, res: Response) => {
   const dbs = await healthCheck();
   const allOk = Object.values(dbs).every(Boolean);
   res.status(allOk ? 200 : 503).json({ status: allOk ? 'ok' : 'degraded', databases: dbs });
@@ -45,6 +47,12 @@ app.get('/api/health', async (_req, res) => {
 
 // Auth middleware for all /api routes below
 app.use('/api', authMiddleware);
+
+// Low-friction app feedback capture
+app.post('/api/v2/feedback', handleFeedbackSubmit);
+app.get('/api/v2/feedback/info', (_req: Request, res: Response) => {
+  res.json({ feedbackDir: getFeedbackCaptureDir() });
+});
 
 // Mount domain routers
 app.use('/api/v2/steps', stepsRouter);

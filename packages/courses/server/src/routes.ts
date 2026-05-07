@@ -2,16 +2,25 @@ import { type Router as RouterType, Router } from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import {
   CourseCreateSchema, CourseUpdateSchema,
-  SectionCreateSchema, SectionUpdateSchema,
+  LessonCreateSchema, LessonUpdateSchema,
   SlideCreateSchema, SlideUpdateSchema,
-} from '@trn-platform/shared';
+} from '@trn-platform/shared/schemas';
 import {
+  listSeries,
   listCourses, getCourse, createCourse, updateCourse, deleteCourse,
-  addSection, updateSection, deleteSection,
+  addLesson, updateLesson, deleteLesson,
   addSlide, updateSlide, deleteSlide,
 } from './queries';
 
 export const coursesRouter: RouterType = Router();
+
+// ---------------------------------------------------------------------------
+// Series
+// ---------------------------------------------------------------------------
+
+coursesRouter.get('/series', async (_req: Request, res: Response, next: NextFunction) => {
+  try { res.json(await listSeries()); } catch (err) { next(err); }
+});
 
 // ---------------------------------------------------------------------------
 // Course CRUD
@@ -59,34 +68,34 @@ coursesRouter.delete('/:id', async (req: Request, res: Response, next: NextFunct
 });
 
 // ---------------------------------------------------------------------------
-// Section CRUD
+// Lesson CRUD
 // ---------------------------------------------------------------------------
 
-coursesRouter.post('/:id/sections', async (req: Request, res: Response, next: NextFunction) => {
+coursesRouter.post('/:id/lessons', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const courseId = Number(req.params.id);
     if (Number.isNaN(courseId)) { res.status(400).json({ message: 'Invalid course ID' }); return; }
-    const input = SectionCreateSchema.parse(req.body);
-    res.status(201).json(await addSection(courseId, input));
+    const input = LessonCreateSchema.parse(req.body);
+    res.status(201).json(await addLesson(courseId, input));
   } catch (err) { next(err); }
 });
 
-coursesRouter.put('/:id/sections/:secId', async (req: Request, res: Response, next: NextFunction) => {
+coursesRouter.put('/:id/lessons/:lessonId', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const secId = Number(req.params.secId);
-    if (Number.isNaN(secId)) { res.status(400).json({ message: 'Invalid section ID' }); return; }
-    const updates = SectionUpdateSchema.parse(req.body);
-    const section = await updateSection(secId, updates);
-    if (!section) { res.status(404).json({ message: 'Section not found' }); return; }
-    res.json(section);
+    const lessonId = Number(req.params.lessonId);
+    if (Number.isNaN(lessonId)) { res.status(400).json({ message: 'Invalid lesson ID' }); return; }
+    const updates = LessonUpdateSchema.parse(req.body);
+    const lesson = await updateLesson(lessonId, updates);
+    if (!lesson) { res.status(404).json({ message: 'Lesson not found' }); return; }
+    res.json(lesson);
   } catch (err) { next(err); }
 });
 
-coursesRouter.delete('/:id/sections/:secId', async (req: Request, res: Response, next: NextFunction) => {
+coursesRouter.delete('/:id/lessons/:lessonId', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const secId = Number(req.params.secId);
-    if (Number.isNaN(secId)) { res.status(400).json({ message: 'Invalid section ID' }); return; }
-    if (!(await deleteSection(secId))) { res.status(404).json({ message: 'Section not found' }); return; }
+    const lessonId = Number(req.params.lessonId);
+    if (Number.isNaN(lessonId)) { res.status(400).json({ message: 'Invalid lesson ID' }); return; }
+    if (!(await deleteLesson(lessonId))) { res.status(404).json({ message: 'Lesson not found' }); return; }
     res.status(204).end();
   } catch (err) { next(err); }
 });
@@ -95,16 +104,16 @@ coursesRouter.delete('/:id/sections/:secId', async (req: Request, res: Response,
 // Slide CRUD
 // ---------------------------------------------------------------------------
 
-coursesRouter.post('/:id/sections/:secId/slides', async (req: Request, res: Response, next: NextFunction) => {
+coursesRouter.post('/:id/lessons/:lessonId/slides', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const secId = Number(req.params.secId);
-    if (Number.isNaN(secId)) { res.status(400).json({ message: 'Invalid section ID' }); return; }
+    const lessonId = Number(req.params.lessonId);
+    if (Number.isNaN(lessonId)) { res.status(400).json({ message: 'Invalid lesson ID' }); return; }
     const input = SlideCreateSchema.parse(req.body);
-    res.status(201).json(await addSlide(secId, input));
+    res.status(201).json(await addSlide(lessonId, input));
   } catch (err) { next(err); }
 });
 
-coursesRouter.put('/:id/sections/:secId/slides/:slId', async (req: Request, res: Response, next: NextFunction) => {
+coursesRouter.put('/:id/lessons/:lessonId/slides/:slId', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const slId = Number(req.params.slId);
     if (Number.isNaN(slId)) { res.status(400).json({ message: 'Invalid slide ID' }); return; }
@@ -115,7 +124,7 @@ coursesRouter.put('/:id/sections/:secId/slides/:slId', async (req: Request, res:
   } catch (err) { next(err); }
 });
 
-coursesRouter.delete('/:id/sections/:secId/slides/:slId', async (req: Request, res: Response, next: NextFunction) => {
+coursesRouter.delete('/:id/lessons/:lessonId/slides/:slId', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const slId = Number(req.params.slId);
     if (Number.isNaN(slId)) { res.status(400).json({ message: 'Invalid slide ID' }); return; }

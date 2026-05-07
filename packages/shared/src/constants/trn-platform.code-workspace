@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "../../../.."
+		},
+		{
+			"path": "../../../../../../client-development-tickets/training/QC-Training/web"
+		}
+	],
+	"settings": {
+		"workbench.colorTheme": "Quiet Light"
+	}
+}

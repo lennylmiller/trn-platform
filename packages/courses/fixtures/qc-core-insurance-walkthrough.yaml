@@ -1,0 +1,578 @@
+title: QC Core Insurance Walkthrough
+description: >-
+  From Insurance Card to Payment — A Visual Guide to the qc_core Database. Follow the Garcia Family through the
+  health insurance lifecycle: enrollment, PCP assignment, referral, claim, and payment. The weekly QCAP sync is its
+  own course (see "Weekly QCAP Sync"); this walkthrough focuses on the per-member story from card to EOB.
+category: walkthrough
+lessons:
+  - title: The Big Picture
+    description: How health insurance maps to qc_core — the seven bounded contexts from insurance card to payment.
+    slides:
+      - slide_type: narrative
+        title: From Insurance Card to Payment
+        content: >-
+          # The Garcia Family Story
+
+
+          A narrative guide to the **qc_core** database, telling the story of health insurance through the tables that
+          make it work. Each "Act" follows a real-world event and maps it to the specific qc_core entities involved.
+
+
+          Health insurance is a chain of events: a person gets coverage through their employer, picks a doctor, gets
+          sick, sees the doctor, the doctor submits a bill, the insurance company decides how much to pay, and everyone
+          gets notified.
+
+
+          **Every one of those steps lives in qc_core as tables and relationships.**
+      - slide_type: narrative
+        title: The Seven Bounded Contexts
+        content: >-
+          Here's how the real-world chain maps to qc_core:
+
+
+          | Real World | QC_CORE Bounded Context |
+
+          |---|---|
+
+          | Employer buys group plan | Benefit Administration |
+
+          | Employee enrolls, gets ID card | Member Services + Benefit Admin |
+
+          | Member picks a PCP | Provider Management |
+
+          | IPA codes auto-assigned weekly | Member Services (QCAP Sync) |
+
+          | Member needs specialist referral | Referrals & Authorizations |
+
+          | Member visits doctor | Claims Processing (claim created) |
+
+          | Insurance adjudicates claim | Claims Processing (adjudication) |
+
+          | Provider gets paid | Payment Contracts + Accounting |
+
+          | Member gets EOB | Accounting Services |
+
+
+          > **Key insight:** The `family_eligibility_member_benefit_plan` table (abbreviated **fembp** everywhere) is
+          the **nexus of the entire system**. It answers "which member has which plan" and is the FK target for claims,
+          provider assignments, result codes, and referrals.
+  - title: 'Act 1: Enrollment — "I Got My Insurance Card"'
+    description: >-
+      Maria starts at Acme Manufacturing, enrolls in Verda Health Plan with HMO Gold. The enrollment chain from client
+      to member.
+    slides:
+      - slide_type: narrative
+        title: The Real-World Story
+        content: >-
+          Maria Garcia-TRAIN starts a new job at **Acme Manufacturing**. During orientation, HR tells her the company
+          offers health insurance through **Verda Health Plan**. Maria fills out enrollment forms, choosing the "**HMO
+          Gold**" plan. She picks coverage for herself, her husband Carlos, and their daughter Sofia. Two weeks later,
+          she receives insurance ID cards in the mail.
+      - slide_type: live_demo
+        title: See the Garcia Family in qc_core
+        content: >-
+          Every entity in Maria's story already exists in your local qc_core database (seeded by `qc-train setup`).
+
+
+          Run this query to see the three Garcia family members. If you get 0 rows, the training data hasn't been loaded
+          yet — ask your instructor to run the setup.
+        sql_text: |-
+          SELECT mn.name_first + ' ' + mn.name_last AS member_name, m.member_id
+          FROM member m
+          JOIN member_name mn ON m.member_id = mn.member_id AND mn.is_primary = 1
+          WHERE mn.name_last = 'Garcia-TRAIN'
+          ORDER BY mn.name_first
+        sql_label: Garcia Members
+      - slide_type: narrative
+        title: What Just Happened in qc_core
+        content: >-
+          Every entity in Maria's story maps to a specific table — and to a real row you can query:
+
+
+          | Real World | qc_core Table | Seeded Value |
+
+          |---|---|---|
+
+          | Verda Health Plan (the TPA) | `client` / `client_name` | client_ud = TRAIN_VERDA |
+
+          | Acme Manufacturing (employer) | `client_group` / `client_group_name` | client_group_ud = TRAIN_ACME |
+
+          | The insurance contract | `benefit_contract` | benefit_contract_ud = TRAIN_ACME_2026 |
+
+          | Contract period (Jan-Dec 2026) | `benefit_contract_period` | effective_from = 2026-01-01 |
+
+          | "HMO Gold" plan | `benefit_plan` / `benefit_framework` | benefit_framework_ud = TRAIN_HMO_GOLD |
+
+          | The Garcia household | `family_eligibility` | benefit_contract_id ? TRAIN_ACME_2026 |
+
+          | Maria (subscriber) | `family_eligibility_member` | relationship_to_insured = Self |
+
+          | Carlos (spouse) | `family_eligibility_member` | relationship_to_insured = Spouse |
+
+          | Sofia (child) | `family_eligibility_member` | relationship_to_insured = Child |
+
+          | Maria enrolled in HMO Gold | `family_eligibility_member_benefit_plan` | effective_from = 2026-01-01,
+          effective_thru = NULL |
+
+          | Maria herself | `member` / `member_name` | name_first = Maria, name_last = Garcia-TRAIN |
+
+
+          **Reading it top-down:**
+
+          1. `client` is the health plan organization (TRAIN - Verda Health Plan)
+
+          2. `client_group` is the employer (TRAIN - Acme Manufacturing)
+
+          3. `benefit_contract` is the legal agreement (TRAIN_ACME_2026)
+
+          4. `benefit_contract_period` is the annual coverage window (2026-01-01 to 2026-12-31)
+
+          5. `family_eligibility` is the Garcia household — linked to the contract
+
+          6. `family_eligibility_member` links each person (Maria=Self, Carlos=Spouse, Sofia=Child)
+
+          7. `family_eligibility_member_benefit_plan` is the golden record: Maria is enrolled in TRAIN_HMO_GOLD
+      - slide_type: live_demo
+        title: Walk the Enrollment Chain
+        content: >-
+          Run this against your local qc_core. You should see Maria, Carlos, and Sofia — the full 10-table enrollment
+          chain from member through benefit_framework.
+        sql_text: |-
+          SELECT
+              m.member_id,
+              mn.name_first + ' ' + mn.name_last AS member_name,
+              ri.relationship_to_insured_ud AS relationship,
+              fe.family_eligibility_id AS family_id,
+              bc.benefit_contract_ud AS contract,
+              cgn.client_group_nm AS employer_group,
+              bf.benefit_framework_ud AS plan_type,
+              fembp.effective_from AS coverage_start,
+              fembp.effective_thru AS coverage_end
+          FROM member m
+          JOIN member_name mn ON m.member_id = mn.member_id AND mn.is_primary = 1
+          JOIN family_eligibility_member fem ON m.member_id = fem.member_id
+          JOIN relationship_to_insured ri ON fem.relationship_to_insured_id = ri.relationship_to_insured_id
+          JOIN family_eligibility fe ON fem.family_eligibility_id = fe.family_eligibility_id
+          JOIN family_eligibility_member_benefit_plan fembp
+              ON fem.family_eligibility_member_id = fembp.family_eligibility_member_id
+          JOIN benefit_plan bp ON fembp.benefit_plan_id = bp.benefit_plan_id
+          JOIN benefit_framework bf ON bp.benefit_framework_id = bf.benefit_framework_id
+          JOIN benefit_contract bc ON fe.benefit_contract_id = bc.benefit_contract_id
+          JOIN client_group cg ON bc.client_group_id = cg.client_group_id
+          JOIN client_group_name cgn ON cg.client_group_id = cgn.client_group_id AND cgn.primary_name = 1
+          WHERE mn.name_last = 'Garcia-TRAIN'
+          ORDER BY mn.name_first
+        sql_label: Enrollment Chain
+      - slide_type: quiz
+        title: Enrollment Check
+        quiz_question: Which table is the "golden record" that says Maria is enrolled in HMO Gold?
+        quiz_options:
+          - member
+          - family_eligibility
+          - family_eligibility_member_benefit_plan
+          - benefit_contract
+        quiz_answer: 2
+        quiz_explanation: >-
+          family_eligibility_member_benefit_plan (fembp) is the golden record. It links a specific member to a specific
+          benefit plan with effective dates. When effective_thru is NULL, the enrollment is active.
+  - title: 'Act 2: Choosing a Doctor — "Who''s My PCP?"'
+    description: Maria picks Dr. Rodriguez from the Vicare IPA. Provider assignment and the IPA prefix system.
+    slides:
+      - slide_type: narrative
+        title: The Real-World Story
+        content: >-
+          Maria's HMO Gold plan requires her to choose a **Primary Care Provider** (PCP). She browses the provider
+          directory and picks **Dr. Carlos Rodriguez-TRAIN**, who belongs to the **Vicare IPA** (Independent Practice
+          Association). The IPA is a network of doctors who have contracted with the health plan.
+
+
+          Dr. Rodriguez's provider ID is `VIC40001` — the "VIC" prefix identifies his IPA network.
+
+
+          > **Try it now:** `SELECT * FROM provider_name WHERE name_last = 'Rodriguez-TRAIN'`
+      - slide_type: narrative
+        title: What Just Happened in qc_core
+        content: >-
+          | Real World | qc_core Table | Seeded Value |
+
+          |---|---|---|
+
+          | Dr. Rodriguez | `provider` / `provider_name` | name_last = Rodriguez-TRAIN |
+
+          | His NPI identifier | `provider_identifier` | provider_ud = VIC40001, type = NPI |
+
+          | Maria's PCP assignment | `fembp_provider` | effective_from = 2026-01-15, effective_thru = NULL |
+
+          | Vicare IPA network | Derived from `LEFT(provider_ud, 3)` = 'VIC' | IPA identified by prefix |
+
+
+          ## The IPA Prefix System
+
+
+          In managed care (HMO plans), providers are organized into IPAs. In qc_core, the IPA isn't a separate table —
+          it's encoded in the first 3 characters of the `provider_ud` field on `provider_identifier`:
+
+
+          | Prefix | IPA Name | QCAP Result Code |
+
+          |---|---|---|
+
+          | VIC | Vicare | QCAPVICARE |
+
+          | GEN | Genesis Medical Group | QCAPGMG |
+
+          | HOU | Houston Physicians IPA | QCAPHPIPA |
+
+          | TPH | TX Physicians Health Net | QCAPPNS |
+
+          | INT | INet IPA | QCAPINET |
+
+          | OCI | OneCare IPA | QCAPOCIPA |
+
+          | CMR | CareMore IPA | QCAPCM |
+
+          | PHP | Phoenix Physicians IPA | QCAPPPIPA |
+
+
+          > **Why this matters:** When Maria picks Dr. Rodriguez (prefix VIC), the system needs to tag her benefit plan
+          with the result code QCAPVICARE. This is what the weekly QCAP sync does.
+      - slide_type: live_demo
+        title: Find Maria's PCP and IPA
+        content: |-
+          The 5-table eligibility chain from member to PCP:
+
+          `member` ? `family_eligibility_member` ? `fembp` ? `fembp_provider` ? `provider_identifier` ? `provider`
+        sql_text: |-
+          SELECT
+              m.member_id,
+              mn.name_first + ' ' + mn.name_last AS member_name,
+              pn.name_first + ' ' + pn.name_last AS pcp_name,
+              pid.provider_ud AS pcp_identifier,
+              LEFT(pid.provider_ud, 3) AS ipa_prefix,
+              fembpp.effective_from AS pcp_assigned_date,
+              fembpp.effective_thru AS pcp_termed_date
+          FROM member m
+          JOIN member_name mn ON m.member_id = mn.member_id AND mn.is_primary = 1
+          JOIN family_eligibility_member fem ON m.member_id = fem.member_id
+          JOIN family_eligibility_member_benefit_plan fembp
+              ON fem.family_eligibility_member_id = fembp.family_eligibility_member_id
+          JOIN family_eligibility_member_benefit_plan_provider fembpp
+              ON fembp.family_eligibility_member_benefit_plan_id = fembpp.family_eligibility_member_benefit_plan_id
+          JOIN provider_identifier pid ON pid.provider_identifier_id = fembpp.provider_identifier_id
+          LEFT JOIN provider_name pn ON fembpp.provider_id = pn.provider_id AND pn.is_primary = 1
+          WHERE mn.name_last = 'Garcia-TRAIN'
+        sql_label: Member ? PCP Chain
+  - title: 'Act 4: Getting a Referral — "I Need to See a Specialist"'
+    description: Maria gets a referral to Dr. Park for knee pain. Referral authorization structure.
+    slides:
+      - slide_type: narrative
+        title: The Real-World Story
+        content: >-
+          Maria has been having knee pain. Dr. Rodriguez-TRAIN examines her and decides she needs to see an orthopedic
+          specialist. Because Maria's HMO Gold plan requires referrals, Dr. Rodriguez submits a referral authorization.
+          The health plan approves it for **3 visits** to **Dr. Jennifer Park-TRAIN** (the orthopedist) over **90 days**
+          (2026-04-10 to 2026-07-10).
+
+
+          | Real World | qc_core Table | What It Stores |
+
+          |---|---|---|
+
+          | The referral itself | `referral` | Authorization record with dates, limits |
+
+          | Dr. Rodriguez (referring) | `referral.referring_provider_id` | FK to provider |
+
+          | Dr. Park (specialist) | `referral_provider` | Authorized provider(s) |
+
+          | "3 visits, 90 days" | `referral.maximum_visits`, `effective_thru` | Usage limits |
+
+          | Approved knee procedures | `referral_authorized_procedure` | What services are approved |
+
+          | Referral status | `referral_status` | Pending, Approved, Denied, Closed, Voided |
+
+          | Link to Maria's plan | `referral.family_eligibility_member_benefit_plan_id` | FK to fembp |
+
+
+          > **The Referral-to-Claim Link:** When Maria later visits Dr. Park and a claim is submitted, the claim is
+          linked back to the referral through `claim_referral`. During adjudication, the system checks: was this visit
+          authorized? Is it within the visit limit? Is it before the expiration date?
+      - slide_type: live_demo
+        title: View the Referral
+        content: 'Check TRAIN-REF-001 — Maria''s referral to Dr. Park:'
+        sql_text: |-
+          SELECT
+              r.referral_ud,
+              rs.referral_status_ud AS ref_status,
+              r.maximum_visits,
+              CAST(r.effective_from AS DATE) AS eff_from,
+              CAST(r.effective_thru AS DATE) AS eff_thru,
+              pn_ref.name_last AS referring_provider,
+              pn_spec.name_last AS specialist
+          FROM referral r
+          JOIN referral_status rs ON r.referral_status_id = rs.referral_status_id
+          LEFT JOIN provider_name pn_ref ON r.referring_provider_id = pn_ref.provider_id AND pn_ref.is_primary = 1
+          LEFT JOIN referral_provider rp ON r.referral_id = rp.referral_id
+          LEFT JOIN provider_name pn_spec ON rp.provider_id = pn_spec.provider_id AND pn_spec.is_primary = 1
+          WHERE r.referral_ud = 'TRAIN-REF-001'
+        sql_label: Referral Details
+  - title: 'Act 5: The Visit & Claim — "The Doctor Bills Insurance"'
+    description: Maria visits Dr. Park. Claim TRAIN-CLM-001 with two procedure lines and adjudication math.
+    slides:
+      - slide_type: narrative
+        title: The Real-World Story
+        content: >-
+          Maria visits Dr. Park-TRAIN for her knee on 2026-04-15. At check-in, she shows her insurance card. Dr. Park
+          examines her (CPT code **99201** — office visit, new patient) and takes X-rays (CPT code **73560** — knee
+          X-ray). The office submits an electronic claim (**TRAIN-CLM-001**) to Verda Health Plan.
+
+
+          The claim has a **header** (who, when, where) and **line items** (what services, how much). The health plan's
+          adjudication engine automatically: checks eligibility, applies benefit rules, calculates what each party owes.
+      - slide_type: narrative
+        title: The Adjudication Math
+        content: |-
+          Here's what the adjudication engine calculated for Maria's two claim lines:
+
+          ### Line 1: Office Visit (99201, $300 charge)
+
+          | Step | Amount | Note |
+          |---|---|---|
+          | Billed charge | $300.00 | |
+          | - Write-off (contract discount) | -$60.00 | Provider agreed to accept less |
+          | = Contract amount | $240.00 | What the plan considers |
+          | - Copay (Maria's flat fee) | -$30.00 | |
+          | - Deductible (already met) | -$0.00 | |
+          | - Coinsurance (Maria's 5%) | -$10.50 | |
+          | = **Net payment** | **$199.50** | Plan pays provider |
+          | Maria's responsibility | $40.50 | Copay + coinsurance |
+
+          ### Line 2: Knee X-Ray (73560, $150 charge)
+
+          | Step | Amount | Note |
+          |---|---|---|
+          | Billed charge | $150.00 | |
+          | - Write-off | -$25.00 | |
+          | = Contract amount | $125.00 | |
+          | - Copay | -$0.00 | Copay only on office visit |
+          | - Coinsurance (5%) | -$6.25 | |
+          | = **Net payment** | **$118.75** | |
+          | Maria's responsibility | $6.25 | |
+
+          **Totals:** Plan pays Dr. Park **$318.25**. Maria owes **$46.75**.
+      - slide_type: live_demo
+        title: Verify the Adjudication Numbers
+        content: Run this and compare every number to the math above. They should match exactly.
+        sql_text: |-
+          SELECT
+              c.claim_ud,
+              adj_s.adjudication_status_ud AS claim_status,
+              cp.procedure_code_ud AS proc_code,
+              cp.charge,
+              ara.contract_amount,
+              ara.copay_amount,
+              ara.deductible_amount,
+              ara.coinsurance_amount,
+              ara.net_payment,
+              ara.write_off_amount,
+              ara.member_expense_amount AS maria_owes
+          FROM claim c
+          JOIN adjudication_status adj_s ON c.adjudication_status_id = adj_s.adjudication_status_id
+          JOIN claim_procedure cp ON c.claim_id = cp.claim_id
+              AND cp.is_system_generated = 0
+              AND cp.charge > 0
+          LEFT JOIN adjudication_result_amount ara ON cp.claim_procedure_id = ara.claim_procedure_id
+          WHERE c.claim_ud = 'TRAIN-CLM-001'
+          ORDER BY cp.procedure_code_ud
+        sql_label: Claim Adjudication
+      - slide_type: sql_challenge
+        title: Find the Claim Yourself
+        content: >-
+          Write a query that shows TRAIN-CLM-001 with its procedure codes and charges. Join `claim` to
+          `claim_procedure`.
+
+
+          Remember the guard clauses: `is_system_generated = 0` and `charge > 0`.
+        sql_text: |-
+          SELECT c.claim_ud, cp.procedure_code_ud, cp.charge, cp.service_from_date
+          FROM claim c
+          JOIN claim_procedure cp ON cp.claim_id = c.claim_id
+              AND cp.is_system_generated = 0
+              AND cp.charge > 0
+          WHERE c.claim_ud = 'TRAIN-CLM-001'
+          ORDER BY cp.procedure_code_ud
+        hints:
+          - 'Start with: SELECT ... FROM claim c'
+          - JOIN claim_procedure cp ON cp.claim_id = c.claim_id
+          - 'Add: AND cp.is_system_generated = 0 AND cp.charge > 0'
+          - 'Filter: WHERE c.claim_ud = ''TRAIN-CLM-001'''
+  - title: 'Act 6: Payment — "The Provider Gets Paid"'
+    description: Approved claims batched into payment runs. Dr. Park receives $318.25. Maria owes $46.75.
+    slides:
+      - slide_type: narrative
+        title: The Real-World Story
+        content: >-
+          After adjudication, the health plan batches approved claims into **payment runs**. Dr. Park-TRAIN's payment
+          ($318.25 total across both lines) is included in payment run **TRAIN-PAYRUN-001** on 2026-04-22. The plan
+          sends Dr. Park an electronic payment and sends Maria an Explanation of Benefits (EOB) showing what was paid
+          and what she owes ($46.75).
+
+
+          | Real World | qc_core Table | What It Stores |
+
+          |---|---|---|
+
+          | Payment batch | `claim_payment_run` | Batch with start/end timestamps |
+
+          | "Date paid" | `claim_payment_run.start_time` | **Authoritative** paid date |
+
+          | Link to procedure | `claim_procedure.claim_payment_run_id` | Which run paid this line |
+
+          | A/P transaction | `accounting_transaction_ap` | The actual payment record |
+
+          | A/P claim detail | `accounting_transaction_ap_claim_detail` | Links A/P to claim procedure |
+
+          | Payment method | `accounting_transaction_ap_payment_detail` | Check date, EFT info |
+
+
+          ## Business Rules
+
+
+          1. **Date paid** = `claim_payment_run.start_time` (not end_time, not check_date)
+
+          2. **Payment is line-level:** `claim_payment_run` links to `claim_procedure`, not `claim`
+
+          3. **Credit handling:** When `accounting_transaction_ap_type.golden_key = 'CREDIT'`, reverse the sign: `-1 *
+          ABS(amount)`
+
+          4. **EOB print date fallback:** `COALESCE(check_date, last_printed_date, NULL)`
+      - slide_type: live_demo
+        title: View the Payment Run
+        content: 'Check TRAIN-PAYRUN-001 and see which claim lines were paid:'
+        sql_text: |-
+          SELECT
+              c.claim_ud,
+              adj_s.adjudication_status_ud AS claim_status,
+              cp.procedure_code_ud,
+              cp.charge,
+              ara.net_payment,
+              cpr.claim_payment_run_ud AS payment_run
+          FROM claim c
+          JOIN adjudication_status adj_s ON c.adjudication_status_id = adj_s.adjudication_status_id
+          JOIN claim_procedure cp ON c.claim_id = cp.claim_id
+              AND cp.is_system_generated = 0
+              AND cp.charge > 0
+          LEFT JOIN adjudication_result_amount ara ON cp.claim_procedure_id = ara.claim_procedure_id
+          LEFT JOIN claim_payment_run cpr ON cp.claim_payment_run_id = cpr.claim_payment_run_id
+          WHERE c.claim_ud = 'TRAIN-CLM-001'
+          ORDER BY cp.procedure_code_ud
+        sql_label: Payment Run
+  - title: Quick Reference
+    description: The two critical join chains, universal guard clauses, and insurance glossary.
+    slides:
+      - slide_type: narrative
+        title: The Two Critical Join Chains
+        content: |-
+          Almost every report and stored procedure in qc_core uses one of these two join chains:
+
+          ## The Eligibility Chain (Member ? Provider)
+
+          "Given a member, find their PCP."
+
+          ```
+          member
+            ? family_eligibility_member       (ON member_id)
+            ? family_eligibility_member_benefit_plan  (ON family_eligibility_member_id)
+            ? fembp_provider                  (ON fembp_id)
+            ? provider_identifier             (ON provider_identifier_id)
+            ? provider                        (ON provider_id)
+          ```
+
+          ## The Group Chain (Claim ? Client Group)
+
+          "Given a claim, find the employer group."
+
+          ```
+          claim
+            ? family_eligibility_member_benefit_plan  (ON fembp_id)
+            ? family_eligibility_member       (ON family_eligibility_member_id)
+            ? family_eligibility              (ON family_eligibility_id)
+            ? benefit_contract                (ON benefit_contract_id)
+            ? client_group                    (ON client_group_id)
+            ? client_group_name               (ON client_group_id, primary_name = 1)
+          ```
+
+          > If you can write both of these from memory, you can write 80% of the reports in QC.
+      - slide_type: narrative
+        title: Universal Guard Clauses
+        content: >-
+          These filters appear in almost every QC query. Memorize them:
+
+
+          | Table | Filter | Purpose |
+
+          |---|---|---|
+
+          | `member_name` | `is_primary = 1` | One display name per member |
+
+          | `provider_name` | `is_primary = 1` (or `ROW_NUMBER` pattern) | One display name per provider |
+
+          | `client_group_name` | `primary_name = 1` | One display name per group |
+
+          | `claim_procedure` | `is_system_generated = 0 AND charge > 0` | Real billable services only |
+
+          | `fembp` / `fembpuarc` | `effective_thru IS NULL` | Currently active records |
+
+          | `adjudication_status` | `golden_key = 'APPROVED'` | Approved claims only |
+
+
+          > **If your query returns duplicate rows or unexpected counts**, check that you have the right guard clause.
+          Missing `is_primary = 1` on `member_name` is the #1 cause of duplicated member rows.
+      - slide_type: narrative
+        title: Insurance Glossary ? qc_core Tables
+        content: |-
+          | Insurance Term | qc_core Entity | Plain English |
+          |---|---|---|
+          | TPA (Third Party Administrator) | `client` | The company administering the health plan |
+          | Employer Group | `client_group` | The company whose employees are covered |
+          | Benefit Contract | `benefit_contract` | Legal agreement between TPA and employer |
+          | Plan Year | `benefit_contract_period` | Annual coverage window |
+          | Benefit Plan | `benefit_plan` | Specific plan (e.g., "HMO Gold") |
+          | Plan Type | `benefit_framework` | Category (HMO, PPO, POS) |
+          | Subscriber | `member` (via `family_eligibility_member`) | The employee who enrolled |
+          | Dependent | `member` (via `family_eligibility_member`) | Spouse, child covered under subscriber |
+          | PCP | `provider` + `fembp_provider` | Primary Care Provider assigned to member |
+          | IPA | Derived from `provider_identifier` prefix | Independent Practice Association (provider network) |
+          | QCAP Code | `result_code` + `fembpuarc` | Quality Care Access Plan — tags member to IPA |
+          | Referral | `referral` + `referral_provider` | Authorization to see a specialist |
+          | Claim | `claim` + `claim_procedure` | Bill submitted by provider |
+          | Adjudication | `adjudication_result_amount` | What each party owes |
+          | Payment Run | `claim_payment_run` | Batch of approved claims being paid |
+          | EOB | Explanation of Benefits | Statement to member showing what was paid |
+      - slide_type: do_it_in_qc
+        title: 'Final Check: Is the Garcia Data Complete?'
+        content: >-
+          If you've run `qc-train setup`, all the Garcia family data should exist in your local qc_core. Click **Check
+          My Work** to verify everything is in place.
+
+
+          You should see: 3 members, PCP assignments, QCAP codes, a referral, and a claim.
+        sql_text: >-
+          SELECT 'members' AS entity, COUNT(*) AS cnt FROM member_name WHERE name_last = 'Garcia-TRAIN'
+
+          UNION ALL
+
+          SELECT 'PCP assignments', COUNT(*) FROM family_eligibility_member_benefit_plan_provider fembpp JOIN
+          provider_name pn ON fembpp.provider_id = pn.provider_id AND pn.is_primary = 1 WHERE pn.name_last =
+          'Rodriguez-TRAIN'
+
+          UNION ALL
+
+          SELECT 'referrals', COUNT(*) FROM referral WHERE referral_ud = 'TRAIN-REF-001'
+
+          UNION ALL
+
+          SELECT 'claims', COUNT(*) FROM claim WHERE claim_ud = 'TRAIN-CLM-001'
+        sql_label: Garcia Data Check
+        verify_mode: auto
+        expected_json:
+          row_count: 4

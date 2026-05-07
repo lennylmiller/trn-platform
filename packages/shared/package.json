@@ -13,6 +13,11 @@
       "import": "./src/db/index.ts",
       "require": "./src/db/index.ts"
     },
+    "./schemas": {
+      "types": "./src/schemas/index.ts",
+      "import": "./src/schemas/index.ts",
+      "require": "./src/schemas/index.ts"
+    },
     "./tools": {
       "types": "./src/tools/index.ts",
       "import": "./src/tools/index.ts",
@@ -24,6 +29,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "build": "tsup src/index.ts --format esm --dts --clean",
+    "typecheck": "tsc --noEmit",
     "prepublishOnly": "pnpm build"
   },
   "dependencies": {

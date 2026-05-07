@@ -10,14 +10,17 @@
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts --clean"
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@trn-platform/shared": "workspace:*",
+    "js-yaml": "^4.1.0",
     "zod": "4.1.12"
   },
   "devDependencies": {
     "@types/express": "^5.0.2",
+    "@types/js-yaml": "^4.0.9",
     "@types/multer": "^1.4.12",
     "typescript": "5.9.3"
   },

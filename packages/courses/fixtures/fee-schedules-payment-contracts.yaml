@@ -1,0 +1,18 @@
+title: Fee Schedules & Payment Contracts
+description: >-
+  Define how providers get paid: create fee schedules with allowed amounts for each procedure code, set up payment
+  contracts, and assign them to the Vicare provider network. This determines the contract amount on every future claim.
+category: implementation
+actor: QC Administrator
+series:
+  title: 'QC Implementation: Setting Up Verda Health Plan'
+  description: >-
+    A 10-course series that walks a QC administrator through standing up a new health plan from scratch. Each course
+    produces data the next one depends on — building Verda Health Plan, Acme Manufacturing, the HMO Gold plan, the
+    Garcia family, and their complete claim lifecycle.
+  seq: 5
+prerequisites:
+  - Benefit Administration — Creating a Health Plan
+  - Code Management — Procedure & Diagnosis Codes
+  - Provider Network Setup
+lessons: []

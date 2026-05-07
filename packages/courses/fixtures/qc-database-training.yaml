@@ -1,0 +1,343 @@
+title: QC Database Training
+description: >-
+  An interactive introduction to the Quantum Choice database — covering database standards, naming conventions, system
+  tables, entity relationships, finding data, and common table patterns.
+category: database
+lessons:
+  - title: QC Database Standards
+    description: Database basics, naming conventions, primary keys, column suffixes, schema ownership, and normalized design.
+    slides:
+      - slide_type: narrative
+        title: QC's Four Databases
+        content: |-
+          QC uses **four SQL Server databases**:
+
+          | Database | Purpose |
+          |----------|---------|
+          | **qc_core** | Primary database — houses 99% of QC data |
+          | **qc_saga** | Transactional data (service bus) |
+          | **qc_subscription** | Subscriptions between services |
+          | **qc_history** | Adjudication metrics and Payor Compass data |
+
+          Almost everything you'll work with lives in **qc_core**.
+      - slide_type: narrative
+        title: Table Naming Conventions
+        content: |-
+          QC follows strict naming standards:
+
+          - **Descriptive names** where possible
+          - **All lowercase** separated with underscores
+          - Associated tables (resolving many-to-many) combine two parent table names
+            - Example: `member_address`, `provider_provider_network`
+
+          > These conventions make it possible to guess table and column names without looking them up.
+      - slide_type: narrative
+        title: Primary Keys & Column Conventions
+        content: >-
+          ## Primary Keys
+
+
+          - Every table has a primary key column named `<table_name>_id`
+
+          - Example: `member` ? `member_id`, `claim` ? `claim_id`
+
+          - **The primary key is always the first column** in the table
+
+
+          ## Column Suffixes
+
+
+          | Suffix | Meaning | Example |
+
+          |--------|---------|---------|
+
+          | `_id` | Primary identifier (auto-generated) | `member_id` |
+
+          | `_ud` | **User Display** — a value the user can view and change | `claim_ud` |
+
+          | `_nm` | Name column | `client_group_nm` |
+
+          | `_from` / `_thru` | Effective date range | `effective_from`, `effective_thru` |
+
+          | `_date` | Other dates (not date ranges) | `created_date` |
+
+
+          > **Key insight:** When you see `_ud`, that's the human-readable identifier. When you see `_id`, that's the
+          system-generated key.
+      - slide_type: narrative
+        title: Schema, Views & Stored Procedures
+        content: |-
+          ## Schema
+
+          The schema name (owner) for all QC objects is **dbo**.
+
+          ## Views
+
+          Named with logic: `vw_<module>_<purpose>`
+          - Example: `vw_dental_claim_list`
+
+          ## Stored Procedures
+
+          Named: `<prefix>_<description>_<suffix>`
+          - **Only** stored procedures prefixed with `plx_rpt_` (Plexis Reports) should be used by SQL developers
+          - All other stored procedures are strictly for **internal system use**
+
+          > Never call a `plx_` stored procedure directly in custom code unless it starts with `plx_rpt_`.
+      - slide_type: sql_challenge
+        title: Find Tables by Name
+        content: |-
+          Use `INFORMATION_SCHEMA.TABLES` to find all tables in qc_core that have "claim" in the name.
+
+          How many claim-related tables are there?
+        sql_text: >-
+          SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME LIKE '%claim%'
+          ORDER BY TABLE_NAME
+        hints:
+          - 'Start with: SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES'
+          - 'Add: WHERE TABLE_NAME LIKE ''%claim%'''
+          - 'Filter to base tables: TABLE_TYPE = ''BASE TABLE'''
+      - slide_type: quiz
+        title: Column Naming Quiz
+        quiz_question: What does the "_ud" suffix mean on a QC database column?
+        quiz_options:
+          - User Display
+          - Unique Descriptor
+          - Update Date
+          - Undefined
+        quiz_answer: 0
+        quiz_explanation: >-
+          _ud stands for "User Display" — it's a column whose value the user can view and change in the QC application
+          UI. For example, claim_ud is the claim number that users see and type, while claim_id is the system-generated
+          integer key.
+  - title: QC System Tables
+    description: Golden data vs user data, system table editor, lookup tables.
+    slides:
+      - slide_type: narrative
+        title: Golden Data vs User Data
+        content: |-
+          QC has two kinds of lookup data in System Tables:
+
+          **Golden Data** (gold shield icon)
+          - System-protected, cannot be edited
+          - Example: Benefit Plan Type has 3 golden rows: Base Plan, Supplemental Plan, Rider Plan
+
+          **User Data** (notepad and pencil icon)
+          - Configurable per client
+          - Rows can be added, edited, or deleted
+          - Example: Disability Status codes
+
+          > Open the System Table Editor in QC to see both types side by side.
+      - slide_type: quiz
+        title: System Tables Quiz
+        quiz_question: Which type of system table data is protected and cannot be edited by users?
+        quiz_options:
+          - Golden Data
+          - User Data
+          - Both types
+          - Neither type
+        quiz_answer: 0
+        quiz_explanation: >-
+          Golden Data (shown with a gold shield icon) is system-protected and cannot be changed. User Data (notepad
+          icon) is configurable per client.
+  - title: Finding Data in QC
+    description: Data dictionary, F8 tool, INFORMATION_SCHEMA queries, and SQL traces.
+    slides:
+      - slide_type: narrative
+        title: Four Ways to Find Data
+        content: >-
+          There are four powerful ways to find data within the QC database:
+
+
+          1. **Data Dictionary** — Browse tables and columns with descriptions in SSMS
+
+          2. **F8 Tool** — Press F8 on any field in the QC UI to see its database column name
+
+          3. **INFORMATION_SCHEMA** — Query system views to search for tables and columns
+
+          4. **SQL Traces** — Use SQL Server Profiler to see what stored procedures the UI calls
+
+
+          Each method serves a different purpose. The F8 tool is the fastest for mapping UI fields to database columns.
+          INFORMATION_SCHEMA is best for broad searches.
+      - slide_type: live_demo
+        title: 'INFORMATION_SCHEMA: Find Columns'
+        content: >-
+          INFORMATION_SCHEMA lets you search for columns across all tables. This is invaluable when you know a field
+          name but not which table it lives in.
+
+
+          Try searching for columns related to "procedure":
+        sql_text: |-
+          SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE
+          FROM INFORMATION_SCHEMA.COLUMNS
+          WHERE COLUMN_NAME LIKE '%procedure%'
+          ORDER BY TABLE_NAME, COLUMN_NAME
+        sql_label: Find columns by name
+      - slide_type: live_demo
+        title: 'INFORMATION_SCHEMA: Find Tables'
+        content: >-
+          You can also search for tables by name. This is useful when you're looking for all tables related to a
+          specific area.
+        sql_text: |-
+          SELECT TABLE_NAME
+          FROM INFORMATION_SCHEMA.TABLES
+          WHERE TABLE_TYPE = 'BASE TABLE'
+            AND TABLE_NAME LIKE '%member%'
+          ORDER BY TABLE_NAME
+        sql_label: Find tables by name
+      - slide_type: sql_challenge
+        title: Find the Address Tables
+        content: >-
+          Use INFORMATION_SCHEMA to find all tables that contain "address" in the name. Which entity types have address
+          tables?
+        sql_text: >-
+          SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME LIKE
+          '%address%' ORDER BY TABLE_NAME
+        hints:
+          - SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES
+          - WHERE TABLE_NAME LIKE '%address%'
+          - You should find member_address, provider_address, and more
+  - title: Common Tables
+    description: 'The most-used tables and join patterns: claims, members, eligibilities, benefits, and accounting.'
+    slides:
+      - slide_type: narrative
+        title: Product Areas
+        content: >-
+          The most common areas you'll pull data from:
+
+
+          - **Claims** — `claim`, `claim_procedure`, `adjudication_result_amount`
+
+          - **Members** — `member`, `member_name`, `member_address`, `member_personal_id`
+
+          - **Eligibilities** — `family_eligibility`, `family_eligibility_member`,
+          `family_eligibility_member_benefit_plan`
+
+          - **Benefits** — `benefit_contract`, `benefit_plan`, `benefit_framework`
+
+          - **AP Accounting** — `accounting_transaction_ap`, `claim_payment_run`
+
+          - **AR Accounting** — `accounting_transaction_ar`, premium invoicing
+
+
+          > The **family_eligibility_member_benefit_plan** table (abbreviated `fembp`) is the nexus of the entire
+          system. Almost every query eventually joins through it.
+      - slide_type: live_demo
+        title: Claims Join Pattern
+        content: |-
+          The basic claims query joins `claim` to `claim_procedure`. Every claim has one or more procedure lines.
+
+          **Important filters:**
+          - `is_system_generated = 0` — real procedures only (not system-added)
+          - `charge > 0` — billable services only
+        sql_text: |-
+          SELECT
+              c.claim_id,
+              c.claim_ud,
+              cp.procedure_code_ud,
+              cp.charge,
+              cp.service_from_date
+          FROM claim c
+          JOIN claim_procedure cp
+              ON cp.claim_id = c.claim_id
+              AND cp.is_system_generated = 0
+              AND cp.charge > 0
+          ORDER BY c.claim_id DESC
+          OFFSET 0 ROWS FETCH NEXT 20 ROWS ONLY
+        sql_label: Claims + Procedures
+      - slide_type: live_demo
+        title: Members Join Pattern
+        content: |-
+          The member query always joins through `member_name` with `is_primary = 1` — this gives you the display name.
+
+          This is one of the **universal guard clauses** used in nearly every QC query.
+        sql_text: |-
+          SELECT
+              m.member_id,
+              mn.name_first,
+              mn.name_last,
+              m.birth_date,
+              m.active
+          FROM member m
+          JOIN member_name mn
+              ON mn.member_id = m.member_id
+              AND mn.is_primary = 1
+          ORDER BY mn.name_last, mn.name_first
+          OFFSET 0 ROWS FETCH NEXT 20 ROWS ONLY
+        sql_label: Members + Names
+      - slide_type: live_demo
+        title: Eligibility Join Pattern
+        content: >-
+          The eligibility chain connects members to their benefit plans. This is the **most important join pattern** in
+          qc_core:
+
+
+          `family_eligibility` ? `family_eligibility_member` ? `family_eligibility_member_benefit_plan`
+        sql_text: |-
+          SELECT
+              fe.family_eligibility_id,
+              mn.name_first + ' ' + mn.name_last AS member_name,
+              ri.relationship_to_insured_ud AS relationship,
+              fembp.effective_from,
+              fembp.effective_thru
+          FROM family_eligibility fe
+          JOIN family_eligibility_member fem
+              ON fem.family_eligibility_id = fe.family_eligibility_id
+          JOIN member m
+              ON m.member_id = fem.member_id
+          JOIN member_name mn
+              ON mn.member_id = m.member_id AND mn.is_primary = 1
+          JOIN relationship_to_insured ri
+              ON ri.relationship_to_insured_id = fem.relationship_to_insured_id
+          JOIN family_eligibility_member_benefit_plan fembp
+              ON fembp.family_eligibility_member_id = fem.family_eligibility_member_id
+          WHERE mn.name_last = 'Garcia-TRAIN'
+          ORDER BY mn.name_first
+        sql_label: Eligibility Chain
+      - slide_type: sql_challenge
+        title: Write the Member Query
+        content: |-
+          Write a query that returns the **first name**, **last name**, and **date of birth** for all members.
+
+          Remember to use the `is_primary = 1` filter on `member_name`.
+        sql_text: |-
+          SELECT mn.name_first, mn.name_last, m.birth_date
+          FROM member m
+          JOIN member_name mn
+              ON mn.member_id = m.member_id
+              AND mn.is_primary = 1
+          ORDER BY mn.name_last
+          OFFSET 0 ROWS FETCH NEXT 20 ROWS ONLY
+        hints:
+          - 'Start with: SELECT ... FROM member m'
+          - JOIN member_name mn ON mn.member_id = m.member_id
+          - 'Don''t forget: AND mn.is_primary = 1'
+      - slide_type: narrative
+        title: Universal Guard Clauses
+        content: |-
+          These filters appear in almost every QC query. Memorize them:
+
+          | Table | Filter | Purpose |
+          |-------|--------|---------|
+          | `member_name` | `is_primary = 1` | One display name per member |
+          | `provider_name` | `is_primary = 1` | One display name per provider |
+          | `client_group_name` | `primary_name = 1` | One display name per group |
+          | `claim_procedure` | `is_system_generated = 0 AND charge > 0` | Real billable services only |
+          | `fembp` / `fembpuarc` | `effective_thru IS NULL` | Currently active records |
+          | `adjudication_status` | `golden_key = 'APPROVED'` | Approved claims only |
+
+          > If your query returns duplicate rows or unexpected counts, check that you have the right guard clause.
+      - slide_type: quiz
+        title: The Nexus Table
+        quiz_question: >-
+          Which table is described as the "nexus of the entire system" — the central hub that almost everything joins
+          through?
+        quiz_options:
+          - member
+          - claim
+          - family_eligibility_member_benefit_plan
+          - benefit_contract
+        quiz_answer: 2
+        quiz_explanation: >-
+          family_eligibility_member_benefit_plan (fembp) answers "which member has which plan" and is the FK target for
+          claims, provider assignments, result codes, and referrals. Almost every report eventually joins through it.

@@ -1,0 +1,18 @@
+title: Member Enrollment
+description: >-
+  Enroll the Garcia family: create Maria, Carlos, and Sofia as members, build the family_eligibility household, assign
+  them to HMO Gold benefit plans, and assign Dr. Rodriguez as Maria''s PCP. The 10-table enrollment chain from client to
+  member.
+category: implementation
+actor: QC Administrator
+series:
+  title: 'QC Implementation: Setting Up Verda Health Plan'
+  description: >-
+    A 10-course series that walks a QC administrator through standing up a new health plan from scratch. Each course
+    produces data the next one depends on — building Verda Health Plan, Acme Manufacturing, the HMO Gold plan, the
+    Garcia family, and their complete claim lifecycle.
+  seq: 7
+prerequisites:
+  - Benefit Administration — Creating a Health Plan
+  - Provider Network Setup
+lessons: []

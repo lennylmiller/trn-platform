@@ -1,0 +1,17 @@
+title: Accumulators & Benefit Rules
+description: >-
+  Configure the cost-sharing rules for HMO Gold: accumulator frameworks for deductibles and OOP maximums, copay amounts
+  ($30 office visit), coinsurance rates (5%), and link everything to the benefit plan through treatment type sets.
+category: implementation
+actor: QC Administrator
+series:
+  title: 'QC Implementation: Setting Up Verda Health Plan'
+  description: >-
+    A 10-course series that walks a QC administrator through standing up a new health plan from scratch. Each course
+    produces data the next one depends on — building Verda Health Plan, Acme Manufacturing, the HMO Gold plan, the
+    Garcia family, and their complete claim lifecycle.
+  seq: 6
+prerequisites:
+  - Benefit Administration — Creating a Health Plan
+  - Code Management — Procedure & Diagnosis Codes
+lessons: []

@@ -1,0 +1,438 @@
+title: QC System Foundations
+description: >-
+  Orientation to the Quantum Choice database — its 4 databases, naming conventions, system tables, golden data, finding
+  data with INFORMATION_SCHEMA and the F8 tool, and security roles. The foundation for every other course in the series.
+category: implementation
+actor: QC Administrator
+series:
+  title: 'QC Implementation: Setting Up Verda Health Plan'
+  description: >-
+    A 10-course series that walks a QC administrator through standing up a new health plan from scratch. Each course
+    produces data the next one depends on — building Verda Health Plan, Acme Manufacturing, the HMO Gold plan, the
+    Garcia family, and their complete claim lifecycle.
+  seq: 1
+lessons:
+  - title: QC's Four Databases
+    description: >-
+      The QC platform runs on four SQL Server databases. qc_core holds 99% of everything — members, claims, providers,
+      benefits. The other three are supporting infrastructure.
+    slides:
+      - slide_type: narrative
+        title: Four Databases, One System
+        content: >-
+          Quantum Choice runs on **four SQL Server databases**. Almost everything you'll ever need is in one of them:
+
+
+          | Database | Purpose | You'll Use It |
+
+          |---|---|---|
+
+          | **qc_core** | Primary database — members, claims, providers, benefits, accounting | **99% of the time** |
+
+          | **qc_saga** | Transactional data — service bus messages, long-running process state | Rarely (system
+          internals) |
+
+          | **qc_subscription** | Subscriptions between QC services — message routing configuration | Almost never |
+
+          | **qc_history** | Adjudication metrics, Payor Compass analytics data | For reporting/analytics |
+
+
+          **Rule of thumb:** If you're writing a query, you're querying `qc_core`. The other three databases support
+          QC's internal processing engine and are not meant for direct querying by report writers or analysts.
+
+
+          This entire course series works exclusively in `qc_core`.
+      - slide_type: live_demo
+        title: How Big Is qc_core?
+        content: >-
+          Let's see how many tables are in each schema. The `dbo` schema holds the business tables — everything else is
+          internal infrastructure.
+        sql_text: |-
+          SELECT s.name AS schema_name, COUNT(*) AS table_count
+          FROM sys.tables t
+          JOIN sys.schemas s ON t.schema_id = s.schema_id
+          GROUP BY s.name
+          ORDER BY table_count DESC
+        sql_label: Tables by Schema
+      - slide_type: quiz
+        title: Database Check
+        quiz_question: Which database holds 99% of all QC data — members, claims, providers, and benefits?
+        quiz_options:
+          - qc_saga
+          - qc_core
+          - qc_history
+          - qc_subscription
+        quiz_answer: 1
+        quiz_explanation: >-
+          qc_core is the primary database. The other three (qc_saga, qc_subscription, qc_history) support internal
+          processing and analytics.
+  - title: Naming Conventions
+    description: >-
+      QC follows strict naming conventions that make the 1,600+ table database navigable. Learn the patterns once and
+      you can predict table names, column names, and join paths.
+    slides:
+      - slide_type: narrative
+        title: Table Naming Conventions
+        content: >-
+          QC's table names follow predictable patterns that make a 1,600+ table database navigable:
+
+
+          - **All lowercase**, words separated by underscores: `member_name`, `claim_procedure`
+
+          - **Primary entity tables** are short, descriptive nouns: `member`, `provider`, `claim`
+
+          - **Child tables** prepend the parent name: `member_name`, `member_address`, `member_telephone_number`
+
+          - **Many-to-many (M2M) tables** combine both parent names: `provider_provider_network` (links provider to
+          network), `benefit_contract_period_benefit_plan`
+
+          - **The schema owner** is always `dbo` for all objects
+
+
+          > **Why this matters:** If you need the address for a member, you can *guess* the table name:
+          `member_address`. If you need to link a benefit plan to a contract period, it's
+          `benefit_contract_period_benefit_plan`. The naming convention is your map.
+      - slide_type: narrative
+        title: Column Naming Conventions
+        content: >-
+          Column names are equally predictable. Learn these suffixes:
+
+
+          | Suffix | Meaning | Example |
+
+          |---|---|---|
+
+          | **`_id`** | Primary key (auto-generated INT IDENTITY) | `member_id`, `claim_id` |
+
+          | **`_ud`** | User Display — a human-readable identifier the user can view/change | `claim_ud`,
+          `benefit_contract_ud` |
+
+          | **`_nm`** | Name column | `client_group_nm` |
+
+          | **`_from` / `_thru`** | Effective date range (thru = NULL means currently active) | `effective_from`,
+          `effective_thru` |
+
+          | **`_date`** | Dates other than effective ranges | `birth_date`, `received_date` |
+
+
+          **Primary key rules:**
+
+          1. The PK column is **always the first column** in the table
+
+          2. It's always named `<table_name>_id` — e.g., `member` has PK `member_id`
+
+
+          **Foreign key rules:**
+
+          1. FK columns are named the **same as the parent's PK** — e.g., `claim.provider_id` references
+          `provider.provider_id`
+
+          2. Exception: when there are multiple FKs to the same parent — e.g., `primary_provider_id`,
+          `secondary_provider_id`
+      - slide_type: narrative
+        title: Views & Stored Procedures
+        content: >-
+          **Views** follow the pattern `vw_<module>_<purpose>`:
+
+          - `vw_` prefix always
+
+          - Module = functional area (e.g., `dental`, `claim`, `member`)
+
+          - Purpose = descriptive name
+
+          - Example: `vw_dental_claim_list`
+
+
+          **Stored procedures** follow `<prefix>_<description>_<suffix>`:
+
+
+          > **Critical rule:** Only stored procedures with the prefix **`plx_rpt_`** (Plexis Reports) should be used by
+          SQL developers and report writers. **ALL other stored procedures are strictly for internal system use.**
+          Calling them directly can corrupt data or trigger unintended side effects.
+      - slide_type: live_demo
+        title: See the Conventions in Action
+        content: >-
+          Let's look at the `member` table and its children. Notice how every child table starts with `member_` and
+          every PK follows the `<table>_id` pattern.
+        sql_text: |-
+          SELECT t.name AS table_name, c.name AS pk_column
+          FROM sys.tables t
+          JOIN sys.indexes i ON t.object_id = i.object_id AND i.is_primary_key = 1
+          JOIN sys.index_columns ic ON i.object_id = ic.object_id AND i.index_id = ic.index_id
+          JOIN sys.columns c ON ic.object_id = c.object_id AND ic.column_id = c.column_id
+          WHERE t.name LIKE 'member%' AND SCHEMA_NAME(t.schema_id) = 'dbo'
+          ORDER BY t.name
+        sql_label: Member Tables & PKs
+      - slide_type: quiz
+        title: Naming Convention Check
+        quiz_question: A table links providers to provider networks (many-to-many). What would you expect it to be named?
+        quiz_options:
+          - provider_network_link
+          - provider_provider_network
+          - network_provider_map
+          - provider_to_network
+        quiz_answer: 1
+        quiz_explanation: >-
+          M2M tables in QC combine both parent names: provider_provider_network. The naming convention is consistent —
+          no '_link', '_map', or '_to_' suffixes.
+  - title: System Tables & Golden Data
+    description: >-
+      System tables are the lookup/reference data that drives QC's behavior. Some rows are golden (protected by Plexis),
+      others are user-definable. Understanding the difference prevents costly mistakes.
+    slides:
+      - slide_type: narrative
+        title: System Tables — The Lookup Layer
+        content: >-
+          QC uses hundreds of **system tables** (also called lookup tables) that define the valid values for dropdowns,
+          statuses, types, and codes throughout the application. Examples:
+
+
+          - `adjudication_status` — Approved, Denied, Pend, Closed, Error, etc. (16 statuses)
+
+          - `claim_form_type` — Dental, Institutional (UB-04), Professional (CMS-1500), All Claims
+
+          - `benefit_plan_type` — Base Plan, Supplemental Plan, Rider Plan
+
+          - `relationship_to_insured` — Self, Spouse, Child, etc.
+
+          - `gender` — Male, Female, Unknown
+
+
+          These tables are managed through the **System Table Editor** in the QC application. They are *not* meant to be
+          modified via direct SQL — the application enforces validation rules that raw INSERT/UPDATE would bypass.
+      - slide_type: narrative
+        title: Golden Data vs User Data
+        content: >-
+          Every row in a system table is either **golden** (protected) or **user-definable**:
+
+
+          ### Golden Data (Golden Shield icon)
+
+          - Rows shipped by Plexis that **cannot be edited or deleted**
+
+          - They have a `golden_key` column with a non-NULL value
+
+          - QC's internal processing engine relies on these exact values
+
+          - Example: `adjudication_status` rows like 'Approved' (golden_key = 'APPROVED') are golden — adjudication
+          depends on this exact key
+
+
+          ### User Data (Notepad/Pencil icon)
+
+          - Rows that your organization creates and manages
+
+          - `golden_key` is NULL
+
+          - Can be edited or deleted through the System Table Editor
+
+          - Example: custom `result_code` entries your organization defines for IPA tracking (like the QCAP codes)
+
+
+          > **Why this matters:** If you see a `golden_key` column in a table, that's your signal that some rows are
+          system-protected. Always check before attempting to modify lookup data.
+      - slide_type: live_demo
+        title: Explore Adjudication Statuses
+        content: >-
+          The `adjudication_status` table is a perfect example. Notice the `golden_key` column — non-NULL values are
+          protected by Plexis.
+        sql_text: |-
+          SELECT 
+              adjudication_status_id,
+              adjudication_status_ud AS status,
+              golden_key,
+              CASE WHEN golden_key IS NOT NULL THEN 'GOLDEN (protected)' ELSE 'User-definable' END AS row_type
+          FROM adjudication_status
+          ORDER BY adjudication_status_id
+        sql_label: Adjudication Statuses
+      - slide_type: live_demo
+        title: How Many Tables Have Golden Keys?
+        content: >-
+          Let's see how many tables in qc_core have a `golden_key` column — these are all system/lookup tables with
+          protected rows.
+        sql_text: |-
+          SELECT COUNT(DISTINCT TABLE_NAME) AS tables_with_golden_key
+          FROM INFORMATION_SCHEMA.COLUMNS
+          WHERE COLUMN_NAME = 'golden_key'
+              AND TABLE_SCHEMA = 'dbo'
+        sql_label: Golden Key Count
+      - slide_type: quiz
+        title: Golden Data Check
+        quiz_question: You find a row in `adjudication_status` with golden_key = 'APPROVED'. Can you delete it via SQL?
+        quiz_options:
+          - Yes — it's just a regular row
+          - No — golden_key rows are protected by Plexis and the system depends on them
+          - Yes — but only through the System Table Editor
+          - It depends on your security role
+        quiz_answer: 1
+        quiz_explanation: >-
+          Golden data rows are shipped by Plexis and must not be modified. QC's adjudication engine references these by
+          golden_key. Deleting or modifying them would break claim processing.
+  - title: Finding Data in QC
+    description: >-
+      Four techniques for locating data in a 1,600+ table database: the Data Dictionary, the F8 Tool, INFORMATION_SCHEMA
+      queries, and SQL Traces.
+    slides:
+      - slide_type: narrative
+        title: Four Ways to Find Data
+        content: >-
+          With 1,600+ tables, you need efficient ways to locate data. QC provides four techniques:
+
+
+          1. **Data Dictionary** — Plexis delivers SQL scripts (ERDs) via sFTP that document every table relationship
+          for each module. These are `.sql` files you can run in SSMS to generate entity relationship diagrams.
+
+
+          2. **F8 Tool** — Inside the QC application, pressing F8 on any screen shows the underlying table and column
+          names. This is the fastest way to find what table stores the data you're looking at.
+
+
+          3. **INFORMATION_SCHEMA** — SQL Server's built-in metadata views. Query `INFORMATION_SCHEMA.TABLES` and
+          `INFORMATION_SCHEMA.COLUMNS` to search for tables and columns by name pattern.
+
+
+          4. **SQL Traces** — Run a SQL Server Profiler trace while performing an action in the QC application to see
+          exactly which tables and stored procedures are being called.
+
+
+          > **Start with F8** when you can see the data in the app. **Use INFORMATION_SCHEMA** when you know part of a
+          column or table name. **Use ERDs** when you need to understand a whole module's relationships.
+      - slide_type: live_demo
+        title: Find Tables by Name
+        content: 'INFORMATION_SCHEMA lets you search for tables by pattern. Let''s find all tables related to "referral":'
+        sql_text: |-
+          SELECT TABLE_NAME
+          FROM INFORMATION_SCHEMA.TABLES
+          WHERE TABLE_SCHEMA = 'dbo'
+              AND TABLE_NAME LIKE '%referral%'
+          ORDER BY TABLE_NAME
+        sql_label: Referral Tables
+      - slide_type: live_demo
+        title: Find Columns by Name
+        content: >-
+          Looking for a specific column across all tables? Search INFORMATION_SCHEMA.COLUMNS. Let's find every table
+          that has a `provider_id` column — this shows you everywhere providers are referenced:
+        sql_text: |-
+          SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE
+          FROM INFORMATION_SCHEMA.COLUMNS
+          WHERE COLUMN_NAME = 'provider_id'
+              AND TABLE_SCHEMA = 'dbo'
+          ORDER BY TABLE_NAME
+        sql_label: Tables with provider_id
+      - slide_type: sql_challenge
+        title: Find It Yourself
+        content: >-
+          Write a query against `INFORMATION_SCHEMA.COLUMNS` to find all tables that have a column containing the word
+          "capitation". How many tables reference capitation data?
+        sql_text: |-
+          SELECT DISTINCT TABLE_NAME
+          FROM INFORMATION_SCHEMA.COLUMNS
+          WHERE COLUMN_NAME LIKE '%capitation%'
+              AND TABLE_SCHEMA = 'dbo'
+          ORDER BY TABLE_NAME
+        hints:
+          - 'Start with: SELECT DISTINCT TABLE_NAME FROM INFORMATION_SCHEMA.COLUMNS'
+          - 'Add: WHERE COLUMN_NAME LIKE ''%capitation%'''
+          - 'Filter to dbo schema: AND TABLE_SCHEMA = ''dbo'''
+      - slide_type: narrative
+        title: Delivered ERDs
+        content: >-
+          Plexis delivers a set of SQL scripts to your sFTP folder that generate Entity Relationship Diagrams for each
+          module. Key ones include:
+
+
+          | ERD Script | What It Maps |
+
+          |---|---|
+
+          | Member Services_Members.sql | Member and all child tables |
+
+          | Member Services_Enrollment.sql | Enrollment chain (family_eligibility down) |
+
+          | Benefit Administration_Clients_Groups and Benefit Contracts.sql | Client → Group → Contract hierarchy |
+
+          | Claim HighLevel.sql | Claim structure overview |
+
+          | Adjudication.sql | Adjudication result tables |
+
+          | Provider.sql | Provider entity and children |
+
+          | Referral_Authorization.sql | Referral structure |
+
+          | Accounts Payable and Payment.sql | AP transaction chain |
+
+          | Premium Billing.sql | Premium setup and billing |
+
+
+          These are your **definitive reference** for understanding how tables relate within each bounded context.
+  - title: Security & Users
+    description: 'QC''s role-based security model: users, roles, data areas, field permissions, and claim approval limits.'
+    slides:
+      - slide_type: narrative
+        title: QC's Security Model
+        content: >-
+          QC uses **role-based access control** with four layers:
+
+
+          1. **Security Users** (`security_user`) — Individual login accounts mapped to Windows/AD credentials
+
+          2. **Security Roles** (`security_role`) — Named permission groups (e.g., "Claims Examiner", "Enrollment
+          Specialist", "System Admin")
+
+          3. **Role Permissions** (`security_role_permission`) — What each role can do — form access, field visibility,
+          read/write/delete per screen
+
+          4. **Data Areas** (`security_data_area`) — Row-level restrictions that limit which members, providers, or
+          groups a user can see
+
+
+          Users are assigned to roles via `security_user_security_role`. A user can have multiple roles — permissions
+          are additive (union of all assigned roles).
+
+
+          ### Special Permissions
+
+          - **Claim Approval Limits** (`security_role_claim_approval_limit`) — Maximum dollar amount a role can approve
+          on a claim. Claims above the limit are routed to a higher authority.
+
+          - **Field Permissions** (`security_field_permission`) — Controls whether specific fields are visible,
+          read-only, or editable per role.
+
+          - **Note Security** (`security_note_permission`) — Controls who can view/edit notes by note category.
+      - slide_type: live_demo
+        title: Explore Security Roles
+        content: 'Let''s see what security roles are defined in this QC instance:'
+        sql_text: |-
+          SELECT 
+              sr.security_role_id,
+              sr.security_role_ud AS role_name,
+              sr.active,
+              (SELECT COUNT(*) FROM security_user_security_role susr WHERE susr.security_role_id = sr.security_role_id) AS user_count
+          FROM security_role sr
+          WHERE sr.active = 1
+          ORDER BY sr.security_role_ud
+        sql_label: Active Security Roles
+      - slide_type: live_demo
+        title: See the Security Tables
+        content: 'The security model spans several tables. Let''s see them all:'
+        sql_text: |-
+          SELECT TABLE_NAME
+          FROM INFORMATION_SCHEMA.TABLES
+          WHERE TABLE_SCHEMA = 'dbo'
+              AND TABLE_NAME LIKE 'security%'
+          ORDER BY TABLE_NAME
+        sql_label: Security Tables
+      - slide_type: quiz
+        title: Security Check
+        quiz_question: >-
+          A claims examiner has two security roles: one allows approving claims up to $500, the other up to $2,000. What
+          is their effective approval limit?
+        quiz_options:
+          - $500 — the more restrictive role wins
+          - $2,000 — permissions are additive across roles
+          - $1,250 — the average of both
+          - They cannot approve any claims — conflicting limits cancel out
+        quiz_answer: 1
+        quiz_explanation: >-
+          QC security permissions are additive. When a user has multiple roles, they get the union of all permissions —
+          so the higher claim approval limit applies.
