@@ -7,6 +7,9 @@ export type { CourseEditorProps } from './components/CourseEditor';
 export { CourseOutline } from './components/CourseOutline';
 export type { CourseOutlineProps } from './components/CourseOutline';
 
+export { SlideEditorForm } from './components/SlideEditorForm';
+export type { SlideEditorFormProps } from './components/SlideEditorForm';
+
 export { SlideRenderer } from './components/SlideRenderer';
 export type { SlideRendererProps } from './components/SlideRenderer';
 

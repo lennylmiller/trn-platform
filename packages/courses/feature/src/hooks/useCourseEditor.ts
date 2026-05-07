@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
-import type { CourseSlide, CourseLesson } from '@trn-platform/shared';
-import { useCourse } from '@trn-platform/courses-data-access';
+import type { CourseSlide, CourseLesson, SlideUpdate } from '@trn-platform/shared';
+import { useCourse, useUpdateSlide } from '@trn-platform/courses-data-access';
 
 export interface CourseEditorSelection {
   lessonId: number;
@@ -8,11 +8,11 @@ export interface CourseEditorSelection {
 }
 
 /**
- * Manages course editor state: data fetching + selection.
- * Grows to include mutations in later experiments.
+ * Manages course editor state: data fetching, selection, and mutations.
  */
 export function useCourseEditor(courseId: number | undefined) {
   const { data: course, isLoading, error } = useCourse(courseId);
+  const updateSlideMutation = useUpdateSlide();
   const [selection, setSelection] = useState<CourseEditorSelection | null>(null);
 
   const selectLesson = useCallback((lessonId: number) => {
@@ -37,6 +37,11 @@ export function useCourseEditor(courseId: number | undefined) {
         ?.slides.find((s) => s.slide_id === selection.slideId))
     : undefined;
 
+  const updateSlide = useCallback((slideId: number, lessonId: number, updates: SlideUpdate) => {
+    if (!courseId) return;
+    updateSlideMutation.mutate({ courseId, lessonId, slideId, updates });
+  }, [courseId, updateSlideMutation]);
+
   return {
     course,
     isLoading,
@@ -47,5 +52,7 @@ export function useCourseEditor(courseId: number | undefined) {
     selectLesson,
     selectSlide,
     clearSelection,
+    updateSlide,
+    isSaving: updateSlideMutation.isPending,
   };
 }

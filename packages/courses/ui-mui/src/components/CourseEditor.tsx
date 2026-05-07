@@ -3,8 +3,6 @@ import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
-import Divider from '@mui/material/Divider';
-import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -12,7 +10,8 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { useCourseEditor } from '@trn-platform/courses-feature';
 import { CourseOutline } from './CourseOutline';
 import { SlideRenderer } from './SlideRenderer';
-import type { CourseSlide, CourseLesson } from '@trn-platform/shared';
+import { SlideEditorForm } from './SlideEditorForm';
+import type { CourseLesson } from '@trn-platform/shared';
 
 export interface CourseEditorProps {
   courseId: number;
@@ -25,59 +24,6 @@ const STATUS_COLORS: Record<string, 'default' | 'success' | 'warning'> = {
   published: 'success',
   archived: 'default',
 };
-
-function SlidePropertiesPanel({ slide, lesson }: { slide: CourseSlide; lesson?: CourseLesson }) {
-  const fields: { label: string; value: string | number | null | undefined }[] = [
-    { label: 'Slide ID', value: slide.slide_id },
-    { label: 'Type', value: slide.slide_type },
-    { label: 'Seq', value: slide.seq },
-    { label: 'Lesson', value: lesson?.title },
-    { label: 'Title', value: slide.title },
-  ];
-
-  if (slide.sql_text) fields.push({ label: 'SQL Label', value: slide.sql_label });
-  if (slide.verify_mode) fields.push({ label: 'Verify Mode', value: slide.verify_mode });
-  if (slide.quiz_question) {
-    fields.push({ label: 'Quiz Answer', value: slide.quiz_options?.[slide.quiz_answer ?? 0] });
-    fields.push({ label: 'Options', value: `${slide.quiz_options?.length ?? 0} choices` });
-  }
-  if (slide.hints) fields.push({ label: 'Hints', value: `${slide.hints.length} hints` });
-  if (slide.presenter_notes) fields.push({ label: 'Notes', value: 'Yes' });
-  if (slide.seed_sql) fields.push({ label: 'Seed SQL', value: slide.seed_label ?? 'Yes' });
-
-  return (
-    <Box sx={{ p: 2 }}>
-      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
-        Slide Properties
-      </Typography>
-      <Stack spacing={1}>
-        {fields.map((f) => (
-          <Box key={f.label}>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-              {f.label}
-            </Typography>
-            <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
-              {f.value ?? '—'}
-            </Typography>
-          </Box>
-        ))}
-      </Stack>
-      {slide.sql_text && (
-        <>
-          <Divider sx={{ my: 2 }} />
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-            SQL
-          </Typography>
-          <Paper variant="outlined" sx={{ p: 1, bgcolor: 'action.hover', maxHeight: 200, overflow: 'auto' }}>
-            <Typography variant="caption" component="pre" sx={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace', fontSize: '0.7rem' }}>
-              {slide.sql_text}
-            </Typography>
-          </Paper>
-        </>
-      )}
-    </Box>
-  );
-}
 
 function LessonPropertiesPanel({ lesson }: { lesson: CourseLesson }) {
   return (
@@ -114,6 +60,7 @@ export function CourseEditor({ courseId, onExit, onPreview }: CourseEditorProps)
     course, isLoading, error,
     selection, selectedLesson, selectedSlide,
     selectLesson, selectSlide,
+    updateSlide, isSaving,
   } = useCourseEditor(courseId);
 
   if (isLoading) {
@@ -214,16 +161,20 @@ export function CourseEditor({ courseId, onExit, onPreview }: CourseEditorProps)
           )}
         </Box>
 
-        {/* Right: Properties */}
-        <Box sx={{ width: 260, flexShrink: 0, borderLeft: 1, borderColor: 'divider', overflow: 'auto', bgcolor: 'background.paper' }}>
-          {selectedSlide && selectedLesson ? (
-            <SlidePropertiesPanel slide={selectedSlide} lesson={selectedLesson} />
+        {/* Right: Editor / Properties */}
+        <Box sx={{ width: 360, flexShrink: 0, borderLeft: 1, borderColor: 'divider', overflow: 'hidden', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column' }}>
+          {selectedSlide && selection ? (
+            <SlideEditorForm
+              slide={selectedSlide}
+              onSave={(updates) => updateSlide(selectedSlide.slide_id, selection.lessonId, updates)}
+              isSaving={isSaving}
+            />
           ) : selectedLesson ? (
             <LessonPropertiesPanel lesson={selectedLesson} />
           ) : (
             <Box sx={{ p: 2 }}>
               <Typography variant="body2" color="text.secondary">
-                Select a lesson or slide to view its properties.
+                Select a slide to edit its properties.
               </Typography>
             </Box>
           )}

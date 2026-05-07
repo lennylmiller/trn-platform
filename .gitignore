@@ -23,6 +23,12 @@ coverage/
 *.swo
 *~
 
+# Local agent/editor state
+.serena/project.local.yml
+.serena/cache/
+docs/trn-platform/.obsidian/workspace.json
+docs/trn-platform/.obsidian/workspace-mobile.json
+
 # OS
 .DS_Store
 Thumbs.db
