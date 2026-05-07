@@ -1,0 +1,19 @@
+title: Claims & Adjudication
+description: >-
+  Process Maria''s claim end-to-end: create TRAIN-CLM-001 with two procedure lines (office visit + knee X-ray), walk
+  through adjudication math ($318.25 to Dr. Park, $46.75 from Maria), set up her referral to Dr. Park, and verify every
+  number.
+category: implementation
+actor: QC Administrator
+series:
+  title: 'QC Implementation: Setting Up Verda Health Plan'
+  description: >-
+    A 10-course series that walks a QC administrator through standing up a new health plan from scratch. Each course
+    produces data the next one depends on — building Verda Health Plan, Acme Manufacturing, the HMO Gold plan, the
+    Garcia family, and their complete claim lifecycle.
+  seq: 9
+prerequisites:
+  - Fee Schedules & Payment Contracts
+  - Accumulators & Benefit Rules
+  - Member Enrollment
+sections: []

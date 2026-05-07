@@ -1,0 +1,653 @@
+title: Benefit Administration — Creating a Health Plan
+description: >-
+  Stand up Verda Health Plan from scratch: create the client (TPA), Acme Manufacturing (employer group), the
+  TRAIN_ACME_2026 benefit contract, and the HMO Gold benefit framework and plan. The organizational backbone everything
+  else hangs from.
+category: implementation
+actor: QC Administrator
+series:
+  title: 'QC Implementation: Setting Up Verda Health Plan'
+  description: >-
+    A 10-course series that walks a QC administrator through standing up a new health plan from scratch. Each course
+    produces data the next one depends on — building Verda Health Plan, Acme Manufacturing, the HMO Gold plan, the
+    Garcia family, and their complete claim lifecycle.
+  seq: 2
+prerequisites:
+  - QC System Foundations
+sections:
+  - title: The Big Picture
+    description: >-
+      How the Plexis high-level conceptual diagram maps to the bounded contexts you'll configure throughout this series.
+      Benefit Administration is the starting point — everything else hangs from it.
+    slides:
+      - slide_type: narrative
+        title: Where Benefit Administration Fits
+        content: >-
+          In the QC conceptual model, **Benefit Administration** is the top of the hierarchy. Everything else — members,
+          claims, providers, payments — connects back to the structures you create here.
+
+
+          The chain you'll build in this course:
+
+
+          ```
+
+          client (TPA: Verda Health Plan)
+            └── client_group (Employer: Acme Manufacturing)
+                  └── benefit_contract (Agreement: TRAIN_ACME_2026)
+                        └── benefit_contract_period (Coverage: Jan-Dec 2026)
+                              └── benefit_contract_period_benefit_plan
+                                    └── benefit_plan (Product: HMO Gold)
+                                          └── benefit_framework (Type: TRAIN_HMO_GOLD)
+          ```
+
+
+          This is the **organizational backbone**. Without it, you can't enroll members, process claims, or bill
+          premiums. Every downstream course in this series depends on these records existing.
+      - slide_type: narrative
+        title: Real-World Mapping
+        content: >-
+          Before we start creating records, let's map the real-world insurance concepts to QC tables:
+
+
+          | Real World | QC Table | Our Training Value |
+
+          |---|---|---|
+
+          | The insurance company (TPA) | `client` + `client_name` | TRAIN_VERDA — Verda Health Plan |
+
+          | The employer buying coverage | `client_group` + `client_group_name` | TRAIN_ACME — Acme Manufacturing |
+
+          | The legal agreement | `benefit_contract` | TRAIN_ACME_2026 |
+
+          | The coverage year | `benefit_contract_period` | Jan 1 – Dec 31, 2026 |
+
+          | The plan type (HMO) | `benefit_framework` | TRAIN_HMO_GOLD |
+
+          | The specific plan product | `benefit_plan` | Linked to TRAIN_HMO_GOLD |
+
+          | Linking plan to contract year | `benefit_contract_period_benefit_plan` | The M2M bridge |
+
+
+          > **Notice the naming pattern:** `client` has a child `client_name`. `client_group` has a child
+          `client_group_name`. Names are separated from the entity because an entity can have multiple names (aliases)
+          over time.
+  - title: Create the Client (TPA)
+    description: >-
+      The client is the health plan organization — the Third Party Administrator that runs the insurance. Verda Health
+      Plan is our TPA.
+    slides:
+      - slide_type: narrative
+        title: What Is a Client?
+        content: >-
+          In QC, a **client** is the health plan organization — the Third Party Administrator (TPA) that administers
+          insurance coverage. It's the top of the hierarchy.
+
+
+          A client has two tables:
+
+          - **`client`** — The entity itself: effective dates, accounting company, accumulator framework
+
+          - **`client_name`** — The display name(s): `client_ud` (short code), `client_nm` (full name), `primary_name`
+          flag
+
+
+          Why two tables? Because a client can have multiple names over time — legal name changes, DBA names, aliases.
+          The `primary_name = 1` flag marks the current display name.
+
+
+          Our client is **Verda Health Plan** — a fictional TPA that administers health insurance for employer groups.
+      - slide_type: narrative
+        title: The Client Table Structure
+        content: |-
+          Key columns on `client`:
+
+          | Column | Type | Purpose |
+          |---|---|---|
+          | `client_id` | INT IDENTITY | PK — auto-generated |
+          | `client_acronym` | NVARCHAR(25) | Short identifier |
+          | `effective_from` | DATETIME | When this client became active |
+          | `effective_thru` | DATETIME | NULL = currently active |
+          | `accounting_company_id` | INT FK | Links to the accounting entity |
+          | `active` | BIT | Soft-delete flag |
+
+          Key columns on `client_name`:
+
+          | Column | Type | Purpose |
+          |---|---|---|
+          | `client_name_id` | INT IDENTITY | PK |
+          | `client_id` | INT FK | Links to parent client |
+          | `client_ud` | NVARCHAR(50) | **User Display** — the short code you'll see everywhere (TRAIN_VERDA) |
+          | `client_nm` | NVARCHAR(100) | Full display name |
+          | `primary_name` | BIT | 1 = this is the current display name |
+      - slide_type: live_demo
+        title: See Verda Health Plan
+        content: 'The TRAIN_VERDA client already exists in your training database. Let''s examine it:'
+        sql_text: |-
+          SELECT 
+              c.client_id,
+              cn.client_ud,
+              cn.client_nm,
+              cn.primary_name,
+              c.effective_from,
+              c.effective_thru,
+              c.active
+          FROM client c
+          JOIN client_name cn ON c.client_id = cn.client_id
+          WHERE cn.client_ud = 'TRAIN_VERDA'
+        sql_label: Verda Health Plan
+      - slide_type: quiz
+        title: Client Check
+        quiz_question: >-
+          Why does QC separate `client` and `client_name` into two tables instead of putting the name directly on the
+          client record?
+        quiz_options:
+          - Performance — names are queried more often
+          - A client can have multiple names over time (legal changes, aliases, DBAs)
+          - Security — names need different permissions than the client entity
+          - It's a legacy design that should be consolidated
+        quiz_answer: 1
+        quiz_explanation: >-
+          QC's highly normalized design separates names from entities so that an organization can have multiple names:
+          legal name, DBA, aliases. The primary_name = 1 flag marks the current display name. This pattern repeats
+          across member_name, provider_name, and client_group_name.
+  - title: Create the Client Group (Employer)
+    description: >-
+      Client groups are the employers whose employees get coverage. Acme Manufacturing is our employer group under Verda
+      Health Plan.
+    slides:
+      - slide_type: narrative
+        title: What Is a Client Group?
+        content: >-
+          A **client group** is an employer whose employees get health coverage through the TPA. One client (Verda) can
+          have many groups (Acme Manufacturing, Beta Corp, Gamma Inc.).
+
+
+          The relationship: `client` → `client_group` (via `client_group.client_id`)
+
+
+          Like clients, groups have a separate name table:
+
+          - **`client_group`** — The entity: `client_id` FK, effective dates, billing type, industry code
+
+          - **`client_group_name`** — Display names: `client_group_ud` (TRAIN_ACME), `client_group_nm`, `primary_name`
+
+
+          Key fields on `client_group`:
+
+          - `billing_type_id` — How premiums are billed: **Group** (one invoice to the employer) or **Enrollment**
+          (per-family invoices)
+
+          - `client_id` — FK linking this group to its parent TPA
+
+          - `effective_from` / `effective_thru` — When this employer started/stopped coverage
+      - slide_type: live_demo
+        title: See Acme Manufacturing
+        content: 'TRAIN_ACME is Acme Manufacturing, an employer group under Verda Health Plan:'
+        sql_text: |-
+          SELECT 
+              cg.client_group_id,
+              cgn.client_group_ud,
+              cgn.client_group_nm,
+              cgn.primary_name,
+              cn.client_ud AS parent_client,
+              cg.effective_from,
+              cg.effective_thru
+          FROM client_group cg
+          JOIN client_group_name cgn ON cg.client_group_id = cgn.client_group_id
+          JOIN client c ON cg.client_id = c.client_id
+          JOIN client_name cn ON c.client_id = cn.client_id AND cn.primary_name = 1
+          WHERE cgn.client_group_ud = 'TRAIN_ACME'
+        sql_label: Acme Manufacturing
+      - slide_type: live_demo
+        title: Client → Group Relationship
+        content: 'Let''s see all client groups under TRAIN_VERDA. In production, a TPA might have hundreds of employer groups:'
+        sql_text: |-
+          SELECT 
+              cn.client_ud AS tpa,
+              cgn.client_group_ud AS employer_group,
+              cgn.client_group_nm AS group_name,
+              cg.effective_from,
+              cg.active
+          FROM client c
+          JOIN client_name cn ON c.client_id = cn.client_id AND cn.primary_name = 1
+          JOIN client_group cg ON c.client_id = cg.client_id
+          JOIN client_group_name cgn ON cg.client_group_id = cgn.client_group_id AND cgn.primary_name = 1
+          WHERE cn.client_ud = 'TRAIN_VERDA'
+          ORDER BY cgn.client_group_ud
+        sql_label: Groups Under Verda
+  - title: Create the Benefit Contract
+    description: >-
+      The benefit contract is the legal agreement between the TPA and the employer, with a contract period defining the
+      coverage window.
+    slides:
+      - slide_type: narrative
+        title: What Is a Benefit Contract?
+        content: >-
+          A **benefit contract** is the legal agreement between the TPA and the employer group. It defines:
+
+
+          - Which employer group is covered (`client_group_id`)
+
+          - The contract identifier (`benefit_contract_ud` = TRAIN_ACME_2026)
+
+          - Effective dates and termination rules
+
+          - Billing type, product line, and accounting company
+
+          - Grace period and timely filing rules
+
+
+          Each contract has one or more **contract periods** (`benefit_contract_period`) — typically annual. The
+          contract period defines the coverage window (Jan 1 – Dec 31, 2026) and is where benefit plans get attached.
+
+
+          **The chain so far:**
+
+          ```
+
+          client (TRAIN_VERDA)
+            └── client_group (TRAIN_ACME)
+                  └── benefit_contract (TRAIN_ACME_2026)    ← you are here
+                        └── benefit_contract_period (2026)
+          ```
+      - slide_type: live_demo
+        title: See the Contract and Period
+        content: 'TRAIN_ACME_2026 is Acme''s 2026 contract. Notice the contract period with its Jan–Dec coverage window:'
+        sql_text: |-
+          SELECT 
+              bc.benefit_contract_id,
+              bc.benefit_contract_ud,
+              bc.benefit_contract_nm,
+              cgn.client_group_ud AS employer_group,
+              bc.effective_from AS contract_from,
+              bc.effective_thru AS contract_thru,
+              bcp.benefit_contract_period_id,
+              bcp.effective_from AS period_from,
+              bcp.effective_thru AS period_thru
+          FROM benefit_contract bc
+          JOIN client_group_name cgn ON bc.client_group_id = cgn.client_group_id AND cgn.primary_name = 1
+          JOIN benefit_contract_period bcp ON bc.benefit_contract_id = bcp.benefit_contract_id
+          WHERE bc.benefit_contract_ud = 'TRAIN_ACME_2026'
+        sql_label: Contract & Period
+      - slide_type: narrative
+        title: Contract vs Contract Period
+        content: >-
+          A common source of confusion:
+
+
+          | Concept | Table | What It Represents |
+
+          |---|---|---|
+
+          | **Contract** | `benefit_contract` | The overall agreement — "Acme has coverage through Verda" |
+
+          | **Contract Period** | `benefit_contract_period` | A specific coverage year — "2026 coverage window" |
+
+
+          Why separate them?
+
+          - A contract can span **multiple years**. Each year gets its own period.
+
+          - Benefit plans can change year-to-year (different copays, new plans added)
+
+          - Accumulators (deductibles, OOP) reset at period boundaries
+
+          - Premium rates change at renewal
+
+
+          The contract period is where benefit plans get attached — via `benefit_contract_period_benefit_plan`. This M2M
+          table says "during this coverage year, these specific plans are available."
+  - title: Create the Benefit Framework & Plan
+    description: >-
+      The benefit framework defines the plan type (HMO, PPO, POS) and the benefit plan is the specific product members
+      enroll in.
+    slides:
+      - slide_type: narrative
+        title: Framework vs Plan
+        content: >-
+          Two more tables complete the benefits hierarchy:
+
+
+          ### Benefit Framework (`benefit_framework`)
+
+          The **type** of plan — the template that defines what category of insurance this is.
+
+          - `benefit_framework_ud` = TRAIN_HMO_GOLD
+
+          - `benefit_category_id` — links to a category (Medical, Dental, Vision, etc.)
+
+          - Treatment type sets are attached here (what services are covered)
+
+          - This is where accumulators and benefit rules get configured (in later courses)
+
+
+          ### Benefit Plan (`benefit_plan`)
+
+          The **specific product** that members enroll in.
+
+          - Links to a `benefit_framework_id` — "this plan uses the HMO Gold rules"
+
+          - `primary_care_provider` BIT — does this plan require a PCP? (Yes for HMO)
+
+          - `plan_adjudication_status_id` — default adjudication outcome
+
+          - `pcp_required_result_code_id` — what result code to apply when PCP is missing
+
+
+          > **Think of it this way:** The framework is the recipe (HMO Gold rules). The plan is the dish served to
+          members (the specific product they pick during enrollment).
+      - slide_type: live_demo
+        title: See HMO Gold
+        content: 'Let''s look at the TRAIN_HMO_GOLD framework and its associated benefit plan:'
+        sql_text: |-
+          SELECT 
+              bf.benefit_framework_id,
+              bf.benefit_framework_ud,
+              bf.benefit_framework_nm,
+              bp.benefit_plan_id,
+              bp.benefit_plan_ud,
+              bp.benefit_plan_nm,
+              bp.primary_care_provider AS pcp_required
+          FROM benefit_framework bf
+          JOIN benefit_plan bp ON bf.benefit_framework_id = bp.benefit_framework_id
+          WHERE bf.benefit_framework_ud = 'TRAIN_HMO_GOLD'
+        sql_label: HMO Gold Framework & Plan
+      - slide_type: quiz
+        title: Framework vs Plan
+        quiz_question: >-
+          An employer wants to offer both HMO Gold and HMO Silver with different copay amounts but the same network
+          rules. How would this be modeled?
+        quiz_options:
+          - Two benefit_frameworks, two benefit_plans
+          - One benefit_framework, two benefit_plans
+          - Two benefit_contracts, one benefit_plan each
+          - One benefit_plan with two sets of copay rules
+        quiz_answer: 1
+        quiz_explanation: >-
+          If Gold and Silver share the same type/category/network rules, they'd share one benefit_framework. Each would
+          be a separate benefit_plan with different accumulator and copay configurations. The framework is the template;
+          plans are the specific products.
+  - title: Link It All Together
+    description: >-
+      Connect the benefit plan to the contract period via benefit_contract_period_benefit_plan — completing the top-down
+      chain from client to plan.
+    slides:
+      - slide_type: narrative
+        title: The Bridge Table
+        content: >-
+          The final piece is `benefit_contract_period_benefit_plan` — the M2M table that says **"during this contract
+          period, this benefit plan is available."**
+
+
+          This is a critical table because it's the bridge between the organizational hierarchy (client → group →
+          contract → period) and the product hierarchy (framework → plan).
+
+
+          Key columns:
+
+
+          | Column | Purpose |
+
+          |---|---|
+
+          | `benefit_contract_period_id` | FK — which coverage year |
+
+          | `benefit_plan_id` | FK — which plan product |
+
+          | `principle_plan` | BIT — is this the primary plan (vs rider/supplemental)? |
+
+          | `benefit_plan_type_id` | Base Plan, Supplemental, or Rider |
+
+          | `pay_claim_to_id` | Who gets paid — Provider or Member |
+
+          | `hipaa_claim_filing_indicator_id` | Claim filing type for EDI |
+
+          | `network_not_applicable` | Some plans don't use network tiers |
+
+
+          > **This table name is 42 characters long** — a direct consequence of QC's M2M naming convention. You'll see
+          even longer ones later (`family_eligibility_member_benefit_plan_provider` is 49 characters).
+      - slide_type: live_demo
+        title: See the Link
+        content: 'Let''s verify that HMO Gold is attached to the 2026 contract period:'
+        sql_text: |-
+          SELECT 
+              bc.benefit_contract_ud AS contract,
+              bcp.effective_from AS period_from,
+              bcp.effective_thru AS period_thru,
+              bp.benefit_plan_ud AS plan,
+              bf.benefit_framework_ud AS framework,
+              bcpbp.principle_plan,
+              bcpbp.benefit_contract_period_benefit_plan_id AS bcpbp_id
+          FROM benefit_contract_period_benefit_plan bcpbp
+          JOIN benefit_contract_period bcp ON bcpbp.benefit_contract_period_id = bcp.benefit_contract_period_id
+          JOIN benefit_contract bc ON bcp.benefit_contract_id = bc.benefit_contract_id
+          JOIN benefit_plan bp ON bcpbp.benefit_plan_id = bp.benefit_plan_id
+          JOIN benefit_framework bf ON bp.benefit_framework_id = bf.benefit_framework_id
+          WHERE bc.benefit_contract_ud = 'TRAIN_ACME_2026'
+        sql_label: Contract-Period-Plan Link
+      - slide_type: narrative
+        title: The Complete Chain
+        content: >-
+          Here's the full hierarchy you've built, with the actual table names and join columns:
+
+
+          ```
+
+          client                              (client_id)
+            │
+            └── client_group                  (client_id → client.client_id)
+                  │
+                  └── benefit_contract        (client_group_id → client_group.client_group_id)
+                        │
+                        └── benefit_contract_period    (benefit_contract_id → benefit_contract.benefit_contract_id)
+                              │
+                              └── benefit_contract_period_benefit_plan   (benefit_contract_period_id, benefit_plan_id)
+                                    │
+                                    └── benefit_plan   (benefit_plan_id)
+                                          │
+                                          └── benefit_framework   (benefit_framework_id)
+          ```
+
+
+          Every FK column is named **exactly like the parent's PK** — the naming convention in action. To write any join
+          in this chain, you just match column names.
+  - title: Verify Your Setup
+    description: Walk the full chain from client down to benefit_plan and confirm everything is wired correctly.
+    slides:
+      - slide_type: live_demo
+        title: Walk the Full Chain
+        content: >-
+          This single query walks the entire Benefit Administration hierarchy — from client (TPA) all the way down to
+          benefit framework. If every row returns, your setup is complete.
+        sql_text: >-
+          SELECT 
+              cn.client_ud AS tpa,
+              cn.client_nm AS tpa_name,
+              cgn.client_group_ud AS employer,
+              cgn.client_group_nm AS employer_name,
+              bc.benefit_contract_ud AS contract,
+              bcp.effective_from AS period_from,
+              bcp.effective_thru AS period_thru,
+              bp.benefit_plan_ud AS plan,
+              bf.benefit_framework_ud AS framework,
+              bp.primary_care_provider AS pcp_required
+          FROM client c
+
+          JOIN client_name cn ON c.client_id = cn.client_id AND cn.primary_name = 1
+
+          JOIN client_group cg ON c.client_id = cg.client_id
+
+          JOIN client_group_name cgn ON cg.client_group_id = cgn.client_group_id AND cgn.primary_name = 1
+
+          JOIN benefit_contract bc ON cg.client_group_id = bc.client_group_id
+
+          JOIN benefit_contract_period bcp ON bc.benefit_contract_id = bcp.benefit_contract_id
+
+          JOIN benefit_contract_period_benefit_plan bcpbp ON bcp.benefit_contract_period_id =
+          bcpbp.benefit_contract_period_id
+
+          JOIN benefit_plan bp ON bcpbp.benefit_plan_id = bp.benefit_plan_id
+
+          JOIN benefit_framework bf ON bp.benefit_framework_id = bf.benefit_framework_id
+
+          WHERE cn.client_ud = 'TRAIN_VERDA'
+        sql_label: Full Benefit Admin Chain
+      - slide_type: sql_challenge
+        title: Write the Chain Yourself
+        content: >-
+          Write a query that joins from `benefit_contract` down to `benefit_framework`, showing the contract UD, period
+          dates, plan UD, and framework UD. Filter to TRAIN_ACME_2026.
+
+
+          This is the **Benefits Chain** from the training queries — the bottom half of the hierarchy you just learned.
+        sql_text: >-
+          SELECT 
+              bc.benefit_contract_ud,
+              bcp.effective_from AS period_from,
+              bcp.effective_thru AS period_thru,
+              bp.benefit_plan_ud,
+              bf.benefit_framework_ud
+          FROM benefit_contract bc
+
+          JOIN benefit_contract_period bcp ON bcp.benefit_contract_id = bc.benefit_contract_id
+
+          JOIN benefit_contract_period_benefit_plan bcpbp ON bcpbp.benefit_contract_period_id =
+          bcp.benefit_contract_period_id
+
+          JOIN benefit_plan bp ON bp.benefit_plan_id = bcpbp.benefit_plan_id
+
+          JOIN benefit_framework bf ON bf.benefit_framework_id = bp.benefit_framework_id
+
+          WHERE bc.benefit_contract_ud = 'TRAIN_ACME_2026'
+        hints:
+          - 'Start with: SELECT ... FROM benefit_contract bc'
+          - JOIN benefit_contract_period bcp ON bcp.benefit_contract_id = bc.benefit_contract_id
+          - >-
+            JOIN benefit_contract_period_benefit_plan bcpbp ON bcpbp.benefit_contract_period_id =
+            bcp.benefit_contract_period_id
+          - JOIN benefit_plan bp ON bp.benefit_plan_id = bcpbp.benefit_plan_id
+          - JOIN benefit_framework bf ON bf.benefit_framework_id = bp.benefit_framework_id
+      - slide_type: do_it_in_qc
+        title: Verify Benefit Administration Setup
+        content: >-
+          Click **Check My Work** to confirm all Benefit Administration records exist. You should see counts for:
+          client, client group, contract, contract period, benefit plan, and the contract-period-plan link.
+        sql_text: >-
+          SELECT 'client' AS entity, COUNT(*) AS cnt FROM client_name WHERE client_ud = 'TRAIN_VERDA'
+
+          UNION ALL
+
+          SELECT 'client_group', COUNT(*) FROM client_group_name WHERE client_group_ud = 'TRAIN_ACME'
+
+          UNION ALL
+
+          SELECT 'benefit_contract', COUNT(*) FROM benefit_contract WHERE benefit_contract_ud = 'TRAIN_ACME_2026'
+
+          UNION ALL
+
+          SELECT 'benefit_contract_period', COUNT(*) FROM benefit_contract_period bcp JOIN benefit_contract bc ON
+          bcp.benefit_contract_id = bc.benefit_contract_id WHERE bc.benefit_contract_ud = 'TRAIN_ACME_2026'
+
+          UNION ALL
+
+          SELECT 'benefit_framework', COUNT(*) FROM benefit_framework WHERE benefit_framework_ud = 'TRAIN_HMO_GOLD'
+
+          UNION ALL
+
+          SELECT 'bcpbp_link', COUNT(*) FROM benefit_contract_period_benefit_plan bcpbp JOIN benefit_contract_period bcp
+          ON bcpbp.benefit_contract_period_id = bcp.benefit_contract_period_id JOIN benefit_contract bc ON
+          bcp.benefit_contract_id = bc.benefit_contract_id WHERE bc.benefit_contract_ud = 'TRAIN_ACME_2026'
+        sql_label: Benefit Admin Check
+        verify_mode: auto
+        expected_json: '{"row_count": 6}'
+        seed_sql: >-
+          -- Seed: Benefit Administration (Course 4)
+
+          -- This creates the complete organizational hierarchy for Verda Health Plan
+
+          -- NOTE: Uses SET IDENTITY_INSERT for training reproducibility
+
+
+          -- 1. Client (TPA)
+
+          IF NOT EXISTS (SELECT 1 FROM client_name WHERE client_ud = 'TRAIN_VERDA')
+
+          BEGIN
+              SET IDENTITY_INSERT client ON;
+              INSERT INTO client (client_id, effective_from, active) VALUES (9318, '2026-01-01', 1);
+              SET IDENTITY_INSERT client OFF;
+              SET IDENTITY_INSERT client_name ON;
+              INSERT INTO client_name (client_name_id, client_id, client_ud, client_nm, primary_name, active) VALUES (9318, 9318, 'TRAIN_VERDA', 'TRAIN - Verda Health Plan', 1, 1);
+              SET IDENTITY_INSERT client_name OFF;
+          END;
+
+
+          -- 2. Client Group (Employer)
+
+          IF NOT EXISTS (SELECT 1 FROM client_group_name WHERE client_group_ud = 'TRAIN_ACME')
+
+          BEGIN
+              SET IDENTITY_INSERT client_group ON;
+              INSERT INTO client_group (client_group_id, client_id, effective_from, active) VALUES (9334, 9318, '2026-01-01', 1);
+              SET IDENTITY_INSERT client_group OFF;
+              SET IDENTITY_INSERT client_group_name ON;
+              INSERT INTO client_group_name (client_group_name_id, client_group_id, client_group_ud, client_group_nm, primary_name, active) VALUES (9334, 9334, 'TRAIN_ACME', 'TRAIN - Acme Manufacturing', 1, 1);
+              SET IDENTITY_INSERT client_group_name OFF;
+          END;
+
+
+          -- 3. Benefit Contract
+
+          IF NOT EXISTS (SELECT 1 FROM benefit_contract WHERE benefit_contract_ud = 'TRAIN_ACME_2026')
+
+          BEGIN
+              SET IDENTITY_INSERT benefit_contract ON;
+              INSERT INTO benefit_contract (benefit_contract_id, benefit_contract_ud, benefit_contract_nm, client_group_id, effective_from, active) VALUES (9342, 'TRAIN_ACME_2026', 'TRAIN - Acme Mfg 2026 Contract', 9334, '2026-01-01', 1);
+              SET IDENTITY_INSERT benefit_contract OFF;
+          END;
+
+
+          -- 4. Benefit Contract Period (2026)
+
+          IF NOT EXISTS (SELECT 1 FROM benefit_contract_period WHERE benefit_contract_id = 9342)
+
+          BEGIN
+              SET IDENTITY_INSERT benefit_contract_period ON;
+              INSERT INTO benefit_contract_period (benefit_contract_period_id, benefit_contract_id, effective_from, effective_thru, active) VALUES (9342, 9342, '2026-01-01', '2026-12-31', 1);
+              SET IDENTITY_INSERT benefit_contract_period OFF;
+          END;
+
+
+          -- 5. Benefit Framework (HMO Gold)
+
+          IF NOT EXISTS (SELECT 1 FROM benefit_framework WHERE benefit_framework_ud = 'TRAIN_HMO_GOLD')
+
+          BEGIN
+              SET IDENTITY_INSERT benefit_framework ON;
+              INSERT INTO benefit_framework (benefit_framework_id, benefit_framework_ud, benefit_framework_nm, active) VALUES (9434, 'TRAIN_HMO_GOLD', 'TRAIN - HMO Gold', 1);
+              SET IDENTITY_INSERT benefit_framework OFF;
+          END;
+
+
+          -- 6. Benefit Plan
+
+          IF NOT EXISTS (SELECT 1 FROM benefit_plan WHERE benefit_framework_id = 9434)
+
+          BEGIN
+              SET IDENTITY_INSERT benefit_plan ON;
+              INSERT INTO benefit_plan (benefit_plan_id, benefit_plan_ud, benefit_plan_nm, benefit_framework_id, primary_care_provider, include_mips, include_sequestration, active) VALUES (9434, 'TRAIN_HMO_GOLD', 'TRAIN - HMO Gold Plan', 9434, 1, 0, 0, 1);
+              SET IDENTITY_INSERT benefit_plan OFF;
+          END;
+
+
+          -- 7. Link Plan to Contract Period
+
+          IF NOT EXISTS (SELECT 1 FROM benefit_contract_period_benefit_plan WHERE benefit_contract_period_id = 9342 AND
+          benefit_plan_id = 9434)
+
+          BEGIN
+              INSERT INTO benefit_contract_period_benefit_plan (benefit_contract_period_id, benefit_plan_id, principle_plan, is_ineligible_amount_provider_responsibility, active) VALUES (9342, 9434, 1, 0, 1);
+          END;
+        seed_label: Seed Benefit Administration
