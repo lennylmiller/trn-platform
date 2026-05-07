@@ -10,6 +10,12 @@ export type { CourseOutlineProps } from './components/CourseOutline';
 export { SlideEditorForm } from './components/SlideEditorForm';
 export type { SlideEditorFormProps } from './components/SlideEditorForm';
 
+export { AddLessonDialog } from './components/AddLessonDialog';
+export type { AddLessonDialogProps } from './components/AddLessonDialog';
+
+export { AddSlideDialog } from './components/AddSlideDialog';
+export type { AddSlideDialogProps } from './components/AddSlideDialog';
+
 export { SlideRenderer } from './components/SlideRenderer';
 export type { SlideRendererProps } from './components/SlideRenderer';
 

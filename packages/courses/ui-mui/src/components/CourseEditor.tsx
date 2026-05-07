@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
@@ -11,7 +12,9 @@ import { useCourseEditor } from '@trn-platform/courses-feature';
 import { CourseOutline } from './CourseOutline';
 import { SlideRenderer } from './SlideRenderer';
 import { SlideEditorForm } from './SlideEditorForm';
-import type { CourseLesson } from '@trn-platform/shared';
+import { AddLessonDialog } from './AddLessonDialog';
+import { AddSlideDialog } from './AddSlideDialog';
+import type { CourseLesson, SlideType } from '@trn-platform/shared';
 
 export interface CourseEditorProps {
   courseId: number;
@@ -60,8 +63,12 @@ export function CourseEditor({ courseId, onExit, onPreview }: CourseEditorProps)
     course, isLoading, error,
     selection, selectedLesson, selectedSlide,
     selectLesson, selectSlide,
-    updateSlide, isSaving,
+    updateSlide, addLesson, addSlide, deleteLesson, deleteSlide,
+    isSaving,
   } = useCourseEditor(courseId);
+
+  const [addLessonOpen, setAddLessonOpen] = useState(false);
+  const [addSlideTarget, setAddSlideTarget] = useState<number | null>(null);
 
   if (isLoading) {
     return (
@@ -78,6 +85,35 @@ export function CourseEditor({ courseId, onExit, onPreview }: CourseEditorProps)
   if (!course) {
     return <Typography sx={{ p: 4 }}>Course not found.</Typography>;
   }
+
+  const handleAddLesson = (title: string, _description: string) => {
+    addLesson(title);
+  };
+
+  const handleAddSlide = (slideType: SlideType, title: string) => {
+    if (addSlideTarget === null) return;
+    const lesson = course.lessons.find((l) => l.lesson_id === addSlideTarget);
+    const seq = lesson?.slides.length ?? 0;
+    addSlide(addSlideTarget, { seq, slide_type: slideType, title });
+  };
+
+  const handleDeleteLesson = (lessonId: number) => {
+    const lesson = course.lessons.find((l) => l.lesson_id === lessonId);
+    const slideCount = lesson?.slides.length ?? 0;
+    const msg = slideCount > 0
+      ? `Delete "${lesson?.title}" and its ${slideCount} slides?`
+      : `Delete "${lesson?.title}"?`;
+    if (window.confirm(msg)) deleteLesson(lessonId);
+  };
+
+  const handleDeleteSlide = (lessonId: number, slideId: number) => {
+    const slide = course.lessons
+      .find((l) => l.lesson_id === lessonId)
+      ?.slides.find((s) => s.slide_id === slideId);
+    if (window.confirm(`Delete slide "${slide?.title ?? 'Untitled'}"?`)) {
+      deleteSlide(lessonId, slideId);
+    }
+  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -122,13 +158,17 @@ export function CourseEditor({ courseId, onExit, onPreview }: CourseEditorProps)
       {/* 3-panel layout */}
       <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {/* Left: Outline */}
-        <Box sx={{ width: 280, flexShrink: 0, borderRight: 1, borderColor: 'divider', overflow: 'auto', bgcolor: 'background.paper' }}>
+        <Box sx={{ width: 280, flexShrink: 0, borderRight: 1, borderColor: 'divider', overflow: 'hidden', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column' }}>
           <CourseOutline
             lessons={course.lessons}
             selectedLessonId={selection?.lessonId}
             selectedSlideId={selection?.slideId}
             onSelectLesson={selectLesson}
             onSelectSlide={selectSlide}
+            onAddLesson={() => setAddLessonOpen(true)}
+            onAddSlide={(lessonId) => setAddSlideTarget(lessonId)}
+            onDeleteLesson={handleDeleteLesson}
+            onDeleteSlide={handleDeleteSlide}
           />
         </Box>
 
@@ -180,6 +220,18 @@ export function CourseEditor({ courseId, onExit, onPreview }: CourseEditorProps)
           )}
         </Box>
       </Box>
+
+      {/* Dialogs */}
+      <AddLessonDialog
+        open={addLessonOpen}
+        onClose={() => setAddLessonOpen(false)}
+        onAdd={handleAddLesson}
+      />
+      <AddSlideDialog
+        open={addSlideTarget !== null}
+        onClose={() => setAddSlideTarget(null)}
+        onAdd={handleAddSlide}
+      />
     </Box>
   );
 }

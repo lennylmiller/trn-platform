@@ -9,4 +9,8 @@ export { useAddSlide } from './mutations/useAddSlide';
 export type { AddSlideVars } from './mutations/useAddSlide';
 export { useUpdateSlide } from './mutations/useUpdateSlide';
 export type { UpdateSlideVars } from './mutations/useUpdateSlide';
+export { useDeleteLesson } from './mutations/useDeleteLesson';
+export type { DeleteLessonVars } from './mutations/useDeleteLesson';
+export { useDeleteSlide } from './mutations/useDeleteSlide';
+export type { DeleteSlideVars } from './mutations/useDeleteSlide';
 export { apiFetch, ApiError } from './client';
