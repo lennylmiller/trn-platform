@@ -1,6 +1,12 @@
 export { CoursePlayer } from './components/CoursePlayer';
 export type { CoursePlayerProps } from './components/CoursePlayer';
 
+export { CourseEditor } from './components/CourseEditor';
+export type { CourseEditorProps } from './components/CourseEditor';
+
+export { CourseOutline } from './components/CourseOutline';
+export type { CourseOutlineProps } from './components/CourseOutline';
+
 export { SlideRenderer } from './components/SlideRenderer';
 export type { SlideRendererProps } from './components/SlideRenderer';
 

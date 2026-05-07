@@ -92,7 +92,7 @@ export function CoursePlayer({ courseId, onExit }: CoursePlayerProps) {
         </Typography>
         {current && (
           <>
-            <Chip label={current.sectionTitle} size="small" variant="outlined" sx={{ mr: 1 }} />
+            <Chip label={current.lessonTitle} size="small" variant="outlined" sx={{ mr: 1 }} />
             <Chip label={SLIDE_TYPE_LABELS[current.slide.slide_type] ?? current.slide.slide_type} size="small" color="primary" sx={{ mr: 1 }} />
           </>
         )}

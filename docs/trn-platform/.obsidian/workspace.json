@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "items/auto/sixth-tryme.md",
+                "file": "4-reference/courses-feature-reference.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "sixth-tryme"
+              "title": "courses-feature-reference"
             }
           }
         ]
@@ -183,10 +183,10 @@
       "bases:Create new base": false
     }
   },
-  "active": "31b2537b374cbfa7",
+  "active": "dc1a8c71a5b32d97",
   "lastOpenFiles": [
-    "1-specs/ai-step-authoring-workflow.md",
     "items/auto/sixth-tryme.md",
+    "1-specs/ai-step-authoring-workflow.md",
     "items/auto/images/2026-05-03_13-06-08.png",
     "items/auto/images/2026-05-03_13-05-56.png",
     "items/auto/images/2026-05-03_13-05-20.png",

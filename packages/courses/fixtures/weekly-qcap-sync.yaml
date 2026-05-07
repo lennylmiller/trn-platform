@@ -1,0 +1,151 @@
+title: Weekly QCAP Sync
+description: >-
+  The recurring sync that tags members' benefit plans with the QCAP result code matching their PCP's IPA. Re-runnable
+  every week against any state of the world: handles NEW assignments, CHANGED PCPs, and UNCHANGED rows. Lifted from
+  weekly-qcap-sync.sql (RT-27730 v4).
+category: operations
+actor: QC Administrator
+series:
+  title: 'QC Implementation: Setting Up Verda Health Plan'
+  description: >-
+    A 10-course series that walks a QC administrator through standing up a new health plan from scratch. Each course
+    produces data the next one depends on — building Verda Health Plan, Acme Manufacturing, the HMO Gold plan, the
+    Garcia family, and their complete claim lifecycle.
+  seq: 11
+prerequisites:
+  - Member Enrollment
+  - Code Management — Procedure & Diagnosis Codes
+lessons:
+  - title: Why Weekly QCAP Sync Exists
+    description: >-
+      The recurring operational concern — does every member's benefit plan have the right QCAP result code for their
+      PCP's IPA? Three scenarios cover every state of the world.
+    slides:
+      - slide_type: narrative
+        title: The Real-World Story
+        content: >-
+          Every week, Verda's system needs to answer: "Does every member's benefit plan have the correct QCAP result
+          code for their current PCP's IPA?" This matters because downstream processes (claims adjudication, capitation
+          payments, reporting) rely on these codes to route work correctly.
+
+
+          Three things can happen for any given member:
+
+
+          1. **NEW member/PCP** — Maria just enrolled and picked Dr. Rodriguez (VIC prefix). She needs the QCAPVICARE
+          code assigned.
+
+          2. **CHANGED PCP** — Maria's old doctor Dr. Chen (GEN prefix, QCAPGMG) left the network. She switched to Dr.
+          Rodriguez (VIC prefix). The old QCAPGMG code needs to be terminated and QCAPVICARE inserted.
+
+          3. **UNCHANGED** — Maria still has Dr. Rodriguez, and her QCAPVICARE code is current. Do nothing.
+
+
+          This is exactly what `weekly-qcap-sync.sql` (RT-27730 v4) automates.
+      - slide_type: narrative
+        title: The IPA → QCAP Code Mapping
+        content: >-
+          The mapping is encoded in the first three characters of `provider_identifier.provider_ud`:
+
+
+          | Prefix | IPA Name | QCAP Result Code |
+
+          |---|---|---|
+
+          | VIC | Vicare | QCAPVICARE |
+
+          | GEN | Genesis Medical Group | QCAPGMG |
+
+          | HOU | Houston Physicians IPA | QCAPHPIPA |
+
+          | TPH | TX Physicians Health Net | QCAPPNS |
+
+          | INT | INet IPA | QCAPINET |
+
+          | OCI | OneCare IPA | QCAPOCIPA |
+
+          | CMR | CareMore IPA | QCAPCM |
+
+          | PHP | Phoenix Physicians IPA | QCAPPPIPA |
+
+
+          The IPA isn't a separate table — it's a convention on the provider identifier. The sync's job is to translate
+          "this member's PCP has VIC prefix" into "this member's benefit plan should have QCAPVICARE active."
+  - title: The Sync Algorithm
+    description: Four parts run in order. Each part is anti-join-driven and idempotent.
+    slides:
+      - slide_type: narrative
+        title: 'PART 1: AUDIT'
+        content: >-
+          List all active QCAP codes at the benefit plan level. For each one, compare the **assigned code** vs. the
+          **expected code** (derived from the active provider's IPA prefix). Show MATCH / MISMATCH / NO PROVIDER status.
+
+
+          This is read-only — no writes. It's the report that surfaces drift before any changes happen.
+      - slide_type: narrative
+        title: 'PART 2: TERMINATE'
+        content: >-
+          Find QCAP codes where the associated provider has been **termed** (`fembpp.effective_thru IS NOT NULL`). Set
+          the result code's `effective_thru` = the provider's termed date. Dates mirror each other.
+
+
+          > **Key v4 fix:** Part 2 uses the **provider's termed date**, not `GETDATE()`. This ensures the termination
+          date mirrors the actual provider change date, even if the sync runs days later.
+      - slide_type: narrative
+        title: 'PART 3: INSERT'
+        content: >-
+          Anti-join finds benefit plans with an active provider but **no active QCAP code**. INSERT new result code rows
+          using the active provider's `effective_from` date.
+
+
+          This catches both brand-new assignments (never had a code) and just-terminated ones (Part 2 set the thru date,
+          Part 3 inserts the replacement). Order matters: Part 2 must run before Part 3 so the same-week PCP switch
+          comes out correctly.
+      - slide_type: narrative
+        title: 'PART 4: VERIFY'
+        content: >-
+          Summary counts of active QCAP codes by `result_code_ud`. List any recently terminated codes (last 7 days) so
+          operators can sanity-check that the sync's writes match the PCP changes they expect.
+
+
+          Part 4 is read-only and idempotent. If you re-run the whole sync immediately after, Parts 2 and 3 should
+          touch zero rows on the second run.
+  - title: Run It Yourself
+    description: Execute the audit against the seeded Garcia family and verify the result codes match expectations.
+    slides:
+      - slide_type: live_demo
+        title: Check Current QCAP Codes for Garcia-TRAIN
+        content: >-
+          Before running the sync, see what QCAP codes are currently assigned to Garcia family members. If Member
+          Enrollment was completed and Maria's PCP is Dr. Rodriguez (VIC prefix), expect QCAPVICARE active.
+        sql_text: |-
+          SELECT
+              mn.name_first + ' ' + mn.name_last AS member_name,
+              rc.result_code_ud AS qcap_code,
+              fembpuarc.effective_from,
+              fembpuarc.effective_thru,
+              CASE WHEN fembpuarc.effective_thru IS NULL THEN 'ACTIVE' ELSE 'TERMINATED' END AS code_status
+          FROM family_eligibility_member_benefit_plan_user_assigned_result_code fembpuarc
+          JOIN result_code rc ON fembpuarc.result_code_id = rc.result_code_id
+          JOIN family_eligibility_member_benefit_plan fembp
+              ON fembpuarc.family_eligibility_member_benefit_plan_id = fembp.family_eligibility_member_benefit_plan_id
+          JOIN family_eligibility_member fem ON fembp.family_eligibility_member_id = fem.family_eligibility_member_id
+          JOIN member_name mn ON fem.member_id = mn.member_id AND mn.is_primary = 1
+          WHERE mn.name_last = 'Garcia-TRAIN' AND rc.result_code_ud LIKE 'QCAP%'
+          ORDER BY mn.name_first, fembpuarc.effective_from
+        sql_label: QCAP Codes Now
+      - slide_type: quiz
+        title: Sync Order Check
+        quiz_question: >-
+          A member switched PCPs mid-week. Their old PCP (GEN prefix, QCAPGMG) was termed 3 days ago; their new PCP (VIC
+          prefix, QCAPVICARE) was assigned the same day. What does the weekly sync do for this member?
+        quiz_options:
+          - Part 2 terminates QCAPGMG; Part 3 inserts QCAPVICARE
+          - Part 3 inserts QCAPVICARE; Part 2 terminates QCAPGMG
+          - Part 1 reports the mismatch and the operator manually fixes it
+          - Nothing — the sync only handles one change per member per run
+        quiz_answer: 0
+        quiz_explanation: >-
+          Part 2 runs first and sets effective_thru on the QCAPGMG row using the old provider's termed date. Then Part 3
+          finds the benefit plan has an active provider (VIC) but no active result code, and inserts QCAPVICARE. Order
+          matters — if Part 3 ran first, the anti-join would still see QCAPGMG as active and skip the insert.

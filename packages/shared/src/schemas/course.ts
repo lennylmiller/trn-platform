@@ -53,18 +53,18 @@ export const CourseSchema = z.object({
 });
 export type Course = z.infer<typeof CourseSchema>;
 
-export const CourseSectionSchema = z.object({
-  section_id: z.number(),
+export const CourseLessonSchema = z.object({
+  lesson_id: z.number(),
   course_id: z.number(),
   seq: z.number(),
   title: z.string().min(1),
   description: z.string().nullable().optional(),
 });
-export type CourseSection = z.infer<typeof CourseSectionSchema>;
+export type CourseLesson = z.infer<typeof CourseLessonSchema>;
 
 export const CourseSlideSchema = z.object({
   slide_id: z.number(),
-  section_id: z.number(),
+  lesson_id: z.number(),
   seq: z.number(),
   slide_type: SlideTypeSchema,
   title: z.string().nullable().optional(),
@@ -90,13 +90,13 @@ export type CourseSlide = z.infer<typeof CourseSlideSchema>;
 // DETAIL SCHEMAS
 // ============================================================================
 
-export const CourseSectionDetailSchema = CourseSectionSchema.extend({
+export const CourseLessonDetailSchema = CourseLessonSchema.extend({
   slides: z.array(CourseSlideSchema),
 });
-export type CourseSectionDetail = z.infer<typeof CourseSectionDetailSchema>;
+export type CourseLessonDetail = z.infer<typeof CourseLessonDetailSchema>;
 
 export const CourseDetailSchema = CourseSchema.extend({
-  sections: z.array(CourseSectionDetailSchema),
+  lessons: z.array(CourseLessonDetailSchema),
 });
 export type CourseDetail = z.infer<typeof CourseDetailSchema>;
 
@@ -105,7 +105,7 @@ export type CourseDetail = z.infer<typeof CourseDetailSchema>;
 // ============================================================================
 
 export const CourseListItemSchema = CourseSchema.extend({
-  section_count: z.number(),
+  lesson_count: z.number(),
   slide_count: z.number(),
 });
 export type CourseListItem = z.infer<typeof CourseListItemSchema>;
@@ -136,15 +136,15 @@ export const CourseUpdateSchema = z.object({
 }).partial();
 export type CourseUpdate = z.infer<typeof CourseUpdateSchema>;
 
-export const SectionCreateSchema = z.object({
+export const LessonCreateSchema = z.object({
   seq: z.number(),
   title: z.string().min(1),
   description: z.string().nullable().optional(),
 });
-export type SectionCreate = z.infer<typeof SectionCreateSchema>;
+export type LessonCreate = z.infer<typeof LessonCreateSchema>;
 
-export const SectionUpdateSchema = SectionCreateSchema.partial();
-export type SectionUpdate = z.infer<typeof SectionUpdateSchema>;
+export const LessonUpdateSchema = LessonCreateSchema.partial();
+export type LessonUpdate = z.infer<typeof LessonUpdateSchema>;
 
 export const SlideCreateSchema = z.object({
   seq: z.number(),

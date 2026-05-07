@@ -36,8 +36,8 @@ interface SeriesRow {
   description: string | null;
 }
 
-interface SectionRow {
-  section_id: number;
+interface LessonRow {
+  lesson_id: number;
   course_id: number;
   seq: number;
   title: string;
@@ -46,7 +46,7 @@ interface SectionRow {
 
 interface SlideRow {
   slide_id: number;
-  section_id: number;
+  lesson_id: number;
   seq: number;
   slide_type: FixtureSlide['slide_type'];
   title: string | null;
@@ -88,11 +88,11 @@ function pruneFixture(course: FixtureCourse): unknown {
   if (course.actor) out.actor = course.actor;
   if (course.series) out.series = course.series;
   if (course.prerequisites && course.prerequisites.length > 0) out.prerequisites = course.prerequisites;
-  out.sections = course.sections.map((s) => {
-    const sec: Record<string, unknown> = { title: s.title };
-    if (s.description) sec.description = s.description;
-    sec.slides = s.slides.map((sl) => pruneSlide(sl));
-    return sec;
+  out.lessons = course.lessons.map((l) => {
+    const lesson: Record<string, unknown> = { title: l.title };
+    if (l.description) lesson.description = l.description;
+    lesson.slides = l.slides.map((sl) => pruneSlide(sl));
+    return lesson;
   });
   return out;
 }
@@ -127,11 +127,11 @@ async function main() {
     const courseRows: CourseRow[] = (await pool.request()
       .query('SELECT course_id, title, description, category, status, cover_image_url, actor, series_id, series_seq FROM course ORDER BY course_id')).recordset;
 
-    const sectionRows: SectionRow[] = (await pool.request()
-      .query('SELECT section_id, course_id, seq, title, description FROM course_section ORDER BY course_id, seq')).recordset;
+    const lessonRows: LessonRow[] = (await pool.request()
+      .query('SELECT lesson_id, course_id, seq, title, description FROM course_lesson ORDER BY course_id, seq')).recordset;
 
     const slideRows: SlideRow[] = (await pool.request()
-      .query('SELECT * FROM course_slide ORDER BY section_id, seq')).recordset;
+      .query('SELECT * FROM course_slide ORDER BY lesson_id, seq')).recordset;
 
     const dependencyRows: DependencyRow[] = (await pool.request()
       .query('SELECT course_id, depends_on_course_id FROM course_dependency')).recordset;
@@ -140,13 +140,13 @@ async function main() {
 
     let written = 0;
     for (const course of courseRows) {
-      const sections = sectionRows
-        .filter((s) => s.course_id === course.course_id)
-        .map((s) => ({
-          title: s.title,
-          description: s.description,
+      const lessons = lessonRows
+        .filter((l) => l.course_id === course.course_id)
+        .map((l) => ({
+          title: l.title,
+          description: l.description,
           slides: slideRows
-            .filter((sl) => sl.section_id === s.section_id)
+            .filter((sl) => sl.lesson_id === l.lesson_id)
             .map<FixtureSlide>((sl) => ({
               slide_type: sl.slide_type,
               title: sl.title,
@@ -193,7 +193,7 @@ async function main() {
         actor: course.actor,
         series,
         prerequisites,
-        sections,
+        lessons,
       });
 
       const yamlBody = yaml.dump(pruneFixture(fixture), {

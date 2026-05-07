@@ -3,7 +3,7 @@ description: >-
   An interactive introduction to the Quantum Choice database — covering database standards, naming conventions, system
   tables, entity relationships, finding data, and common table patterns.
 category: database
-sections:
+lessons:
   - title: QC Database Standards
     description: Database basics, naming conventions, primary keys, column suffixes, schema ownership, and normalized design.
     slides:

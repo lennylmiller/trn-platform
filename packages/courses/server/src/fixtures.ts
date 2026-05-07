@@ -17,7 +17,7 @@ import {
  * Upsert semantics — keep course_id stable so foreign keys (course_dependency,
  * course_completion) survive reseeds:
  *   - Course row: UPDATE if a row with the same title exists, else INSERT.
- *   - Sections + slides: DELETE existing sections for that course (cascade
+ *   - Lessons + slides: DELETE existing lessons for that course (cascade
  *     drops slides) then INSERT fresh from the fixture.
  *   - Series: upsert by title.
  *   - Prerequisites: DELETE existing course_dependency rows for the course
@@ -28,7 +28,7 @@ import {
 
 interface LoadResult {
   courses: number;
-  sections: number;
+  lessons: number;
   slides: number;
   series: number;
   dependencies: number;
@@ -110,45 +110,45 @@ async function upsertCourseRow(
   return inserted.recordset[0].course_id as number;
 }
 
-async function replaceSectionsAndSlides(
+async function replaceLessonsAndSlides(
   pool: any,
   courseId: number,
   fixture: FixtureCourse,
-): Promise<{ sections: number; slides: number }> {
-  // CASCADE on course_section drops dependent slides.
+): Promise<{ lessons: number; slides: number }> {
+  // CASCADE on course_lesson drops dependent slides.
   await pool.request()
     .input('id', courseId)
-    .query('DELETE FROM course_section WHERE course_id = @id');
+    .query('DELETE FROM course_lesson WHERE course_id = @id');
 
-  let sectionCount = 0;
+  let lessonCount = 0;
   let slideCount = 0;
 
-  for (let secIdx = 0; secIdx < fixture.sections.length; secIdx += 1) {
-    const section = fixture.sections[secIdx]!;
+  for (let lessonIdx = 0; lessonIdx < fixture.lessons.length; lessonIdx += 1) {
+    const lesson = fixture.lessons[lessonIdx]!;
     const inserted = await pool.request()
       .input('courseId', courseId)
-      .input('seq', secIdx)
-      .input('title', section.title)
-      .input('description', section.description ?? null)
-      .query(`INSERT INTO course_section (course_id, seq, title, description)
-              OUTPUT INSERTED.section_id
+      .input('seq', lessonIdx)
+      .input('title', lesson.title)
+      .input('description', lesson.description ?? null)
+      .query(`INSERT INTO course_lesson (course_id, seq, title, description)
+              OUTPUT INSERTED.lesson_id
               VALUES (@courseId, @seq, @title, @description)`);
-    const sectionId = inserted.recordset[0].section_id as number;
-    sectionCount += 1;
+    const lessonId = inserted.recordset[0].lesson_id as number;
+    lessonCount += 1;
 
-    for (let slideIdx = 0; slideIdx < section.slides.length; slideIdx += 1) {
-      const slide = section.slides[slideIdx]!;
-      await insertSlide(pool, sectionId, slideIdx, slide);
+    for (let slideIdx = 0; slideIdx < lesson.slides.length; slideIdx += 1) {
+      const slide = lesson.slides[slideIdx]!;
+      await insertSlide(pool, lessonId, slideIdx, slide);
       slideCount += 1;
     }
   }
 
-  return { sections: sectionCount, slides: slideCount };
+  return { lessons: lessonCount, slides: slideCount };
 }
 
-async function insertSlide(pool: any, sectionId: number, seq: number, slide: FixtureSlide) {
+async function insertSlide(pool: any, lessonId: number, seq: number, slide: FixtureSlide) {
   await pool.request()
-    .input('sectionId', sectionId)
+    .input('lessonId', lessonId)
     .input('seq', seq)
     .input('slide_type', slide.slide_type)
     .input('title', slide.title ?? null)
@@ -167,10 +167,10 @@ async function insertSlide(pool: any, sectionId: number, seq: number, slide: Fix
     .input('seed_sql', slide.seed_sql ?? null)
     .input('seed_label', slide.seed_label ?? null)
     .query(`INSERT INTO course_slide
-      (section_id, seq, slide_type, title, content, image_url, sql_text, sql_label,
+      (lesson_id, seq, slide_type, title, content, image_url, sql_text, sql_label,
        verify_mode, expected_json, quiz_question, quiz_options, quiz_answer,
        quiz_explanation, hints, presenter_notes, seed_sql, seed_label)
-      VALUES (@sectionId, @seq, @slide_type, @title, @content, @image_url, @sql_text, @sql_label,
+      VALUES (@lessonId, @seq, @slide_type, @title, @content, @image_url, @sql_text, @sql_label,
        @verify_mode, @expected_json, @quiz_question, @quiz_options, @quiz_answer,
        @quiz_explanation, @hints, @presenter_notes, @seed_sql, @seed_label)`);
 }
@@ -198,13 +198,13 @@ export async function loadFixturesFromDir(dir: string): Promise<LoadResult> {
   const fixtures = readFixtures(dir);
   if (fixtures.length === 0) {
     console.warn(`No fixtures found in ${dir}`);
-    return { courses: 0, sections: 0, slides: 0, series: 0, dependencies: 0 };
+    return { courses: 0, lessons: 0, slides: 0, series: 0, dependencies: 0 };
   }
 
   const pool = await getPool('qc_training');
-  const result: LoadResult = { courses: 0, sections: 0, slides: 0, series: 0, dependencies: 0 };
+  const result: LoadResult = { courses: 0, lessons: 0, slides: 0, series: 0, dependencies: 0 };
 
-  // Pass 1 — series + courses + sections + slides.
+  // Pass 1 — series + courses + lessons + slides.
   // We track course_id per title for the prerequisite second pass.
   const seriesIdByTitle = new Map<string, number>();
   const courseIdByTitle = new Map<string, number>();
@@ -226,11 +226,11 @@ export async function loadFixturesFromDir(dir: string): Promise<LoadResult> {
     courseIdByTitle.set(fixture.title, courseId);
     result.courses += 1;
 
-    const counts = await replaceSectionsAndSlides(pool, courseId, fixture);
-    result.sections += counts.sections;
+    const counts = await replaceLessonsAndSlides(pool, courseId, fixture);
+    result.lessons += counts.lessons;
     result.slides += counts.slides;
 
-    console.log(`loaded ${filename}: course_id=${courseId} sections=${counts.sections} slides=${counts.slides}`);
+    console.log(`loaded ${filename}: course_id=${courseId} lessons=${counts.lessons} slides=${counts.slides}`);
   }
 
   // Pass 2 — prerequisites (need every course_id from pass 1).
@@ -261,7 +261,7 @@ async function main() {
   try {
     const result = await loadFixturesFromDir(dir);
     console.log(
-      `Done. courses=${result.courses} sections=${result.sections} slides=${result.slides} series=${result.series} deps=${result.dependencies}`,
+      `Done. courses=${result.courses} lessons=${result.lessons} slides=${result.slides} series=${result.series} deps=${result.dependencies}`,
     );
   } finally {
     await closePool();

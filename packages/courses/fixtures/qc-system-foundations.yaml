@@ -11,7 +11,7 @@ series:
     produces data the next one depends on — building Verda Health Plan, Acme Manufacturing, the HMO Gold plan, the
     Garcia family, and their complete claim lifecycle.
   seq: 1
-sections:
+lessons:
   - title: QC's Four Databases
     description: >-
       The QC platform runs on four SQL Server databases. qc_core holds 99% of everything — members, claims, providers,

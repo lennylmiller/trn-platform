@@ -4,34 +4,34 @@ import { useCourse } from '@trn-platform/courses-data-access';
 
 export interface FlatSlide {
   slide: CourseSlide;
-  sectionTitle: string;
-  sectionIndex: number;
+  lessonTitle: string;
+  lessonIndex: number;
   globalIndex: number;
 }
 
 /**
  * Manages course player navigation state.
- * Flattens sections + slides into a linear sequence for next/prev navigation.
+ * Flattens lessons + slides into a linear sequence for next/prev navigation.
  */
 export function useCoursePlayer(courseId: number | undefined) {
   const { data: course, isLoading, error } = useCourse(courseId);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const flatSlides = useMemo((): FlatSlide[] => {
-    if (!course?.sections) return [];
+    if (!course?.lessons) return [];
     const result: FlatSlide[] = [];
-    course.sections.forEach((section, sectionIdx) => {
-      section.slides.forEach((slide) => {
+    course.lessons.forEach((lesson, lessonIdx) => {
+      lesson.slides.forEach((slide) => {
         result.push({
           slide,
-          sectionTitle: section.title,
-          sectionIndex: sectionIdx,
+          lessonTitle: lesson.title,
+          lessonIndex: lessonIdx,
           globalIndex: result.length,
         });
       });
     });
     return result;
-  }, [course?.sections]);
+  }, [course?.lessons]);
 
   const totalSlides = flatSlides.length;
   const current = flatSlides[currentIndex];
@@ -52,17 +52,17 @@ export function useCoursePlayer(courseId: number | undefined) {
 
   const reset = useCallback(() => setCurrentIndex(0), []);
 
-  // Section progress
-  const sectionBreaks = useMemo(() => {
-    if (!course?.sections) return [];
+  // Lesson progress
+  const lessonBreaks = useMemo(() => {
+    if (!course?.lessons) return [];
     const breaks: { title: string; startIndex: number; count: number }[] = [];
     let idx = 0;
-    for (const section of course.sections) {
-      breaks.push({ title: section.title, startIndex: idx, count: section.slides.length });
-      idx += section.slides.length;
+    for (const lesson of course.lessons) {
+      breaks.push({ title: lesson.title, startIndex: idx, count: lesson.slides.length });
+      idx += lesson.slides.length;
     }
     return breaks;
-  }, [course?.sections]);
+  }, [course?.lessons]);
 
   return {
     course,
@@ -74,7 +74,7 @@ export function useCoursePlayer(courseId: number | undefined) {
     totalSlides,
     isFirst,
     isLast,
-    sectionBreaks,
+    lessonBreaks,
     next,
     prev,
     goTo,

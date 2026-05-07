@@ -1,8 +1,9 @@
 import {
   Accordion, AccordionDetails, AccordionSummary,
   Alert, Box, Card, CardActionArea, CardContent,
-  Chip, CircularProgress, Stack, Typography,
+  Chip, CircularProgress, IconButton, Stack, Typography,
 } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useNavigate } from 'react-router-dom';
 import { useCourses, useSeries } from '@trn-platform/courses-data-access';
@@ -35,7 +36,15 @@ function CourseCard({ course, showSeq }: { course: CourseListItem; showSeq?: boo
               <Typography variant="subtitle1" sx={{ fontWeight: 700 }} noWrap>
                 {course.title}
               </Typography>
-              <Stack direction="row" spacing={1} sx={{ flexShrink: 0, ml: 1 }}>
+              <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0, ml: 1, alignItems: 'center' }}>
+                <IconButton
+                  size="small"
+                  onClick={(e) => { e.stopPropagation(); e.preventDefault(); navigate(`/courses/edit/${course.course_id}`); }}
+                  title="Edit course"
+                  sx={{ mr: 0.5 }}
+                >
+                  <EditIcon fontSize="small" />
+                </IconButton>
                 <Chip label={course.status} size="small" color={STATUS_COLORS[course.status] ?? 'default'} sx={{ textTransform: 'capitalize' }} />
                 {course.category && <Chip label={course.category} size="small" variant="outlined" />}
               </Stack>
@@ -46,7 +55,7 @@ function CourseCard({ course, showSeq }: { course: CourseListItem; showSeq?: boo
               </Typography>
             )}
             <Typography variant="caption" color="text.secondary">
-              {course.section_count} sections &middot; {course.slide_count} slides
+              {course.lesson_count} lessons &middot; {course.slide_count} slides
             </Typography>
           </Box>
         </CardContent>

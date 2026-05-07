@@ -1,9 +1,9 @@
 import type {
   Course, CourseCreate, CourseUpdate, CourseDetail,
-  CourseSection, SectionCreate, SectionUpdate,
+  CourseLesson, LessonCreate, LessonUpdate,
   CourseSlide, SlideCreate, SlideUpdate,
-  CourseListItem, CourseSectionDetail, CourseSeries,
-} from '@trn-platform/shared';
+  CourseListItem, CourseLessonDetail, CourseSeries,
+} from '@trn-platform/shared/schemas';
 import { getPool } from '@trn-platform/shared/db';
 
 // ---------------------------------------------------------------------------
@@ -31,9 +31,9 @@ function mapCourse(row: Record<string, unknown>): Course {
   };
 }
 
-function mapSection(row: Record<string, unknown>): CourseSection {
+function mapLesson(row: Record<string, unknown>): CourseLesson {
   return {
-    section_id: row.section_id as number,
+    lesson_id: row.lesson_id as number,
     course_id: row.course_id as number,
     seq: row.seq as number,
     title: row.title as string,
@@ -44,7 +44,7 @@ function mapSection(row: Record<string, unknown>): CourseSection {
 function mapSlide(row: Record<string, unknown>): CourseSlide {
   return {
     slide_id: row.slide_id as number,
-    section_id: row.section_id as number,
+    lesson_id: row.lesson_id as number,
     seq: row.seq as number,
     slide_type: row.slide_type as CourseSlide['slide_type'],
     title: (row.title as string) ?? null,
@@ -89,16 +89,16 @@ export async function listCourses(): Promise<CourseListItem[]> {
   const pool = await getPool('qc_training');
   const result = await pool.request().query(`
     SELECT c.*,
-      (SELECT COUNT(*) FROM course_section cs WHERE cs.course_id = c.course_id) AS section_count,
+      (SELECT COUNT(*) FROM course_lesson cl WHERE cl.course_id = c.course_id) AS lesson_count,
       (SELECT COUNT(*) FROM course_slide sl
-       JOIN course_section cs2 ON sl.section_id = cs2.section_id
-       WHERE cs2.course_id = c.course_id) AS slide_count
+       JOIN course_lesson cl2 ON sl.lesson_id = cl2.lesson_id
+       WHERE cl2.course_id = c.course_id) AS slide_count
     FROM course c
     ORDER BY COALESCE(c.series_id, 2147483647), COALESCE(c.series_seq, 2147483647), c.title
   `);
   return result.recordset.map((r: Record<string, unknown>) => ({
     ...mapCourse(r),
-    section_count: r.section_count as number,
+    lesson_count: r.lesson_count as number,
     slide_count: r.slide_count as number,
   }));
 }
@@ -112,26 +112,26 @@ export async function getCourse(id: number): Promise<CourseDetail | null> {
   const courseRow = courseResult.recordset[0];
   if (!courseRow) return null;
 
-  const sectionsResult = await pool.request()
+  const lessonsResult = await pool.request()
     .input('courseId', id)
-    .query('SELECT * FROM course_section WHERE course_id = @courseId ORDER BY seq');
+    .query('SELECT * FROM course_lesson WHERE course_id = @courseId ORDER BY seq');
 
-  const sectionIds = sectionsResult.recordset.map((r: Record<string, unknown>) => r.section_id as number);
+  const lessonIds = lessonsResult.recordset.map((r: Record<string, unknown>) => r.lesson_id as number);
 
   let slides: CourseSlide[] = [];
-  if (sectionIds.length > 0) {
-    const idList = sectionIds.join(',');
+  if (lessonIds.length > 0) {
+    const idList = lessonIds.join(',');
     const slidesResult = await pool.request()
-      .query(`SELECT * FROM course_slide WHERE section_id IN (${idList}) ORDER BY section_id, seq`);
+      .query(`SELECT * FROM course_slide WHERE lesson_id IN (${idList}) ORDER BY lesson_id, seq`);
     slides = slidesResult.recordset.map(mapSlide);
   }
 
-  const sections: CourseSectionDetail[] = sectionsResult.recordset.map((r: Record<string, unknown>) => ({
-    ...mapSection(r),
-    slides: slides.filter(s => s.section_id === (r.section_id as number)),
+  const lessons: CourseLessonDetail[] = lessonsResult.recordset.map((r: Record<string, unknown>) => ({
+    ...mapLesson(r),
+    slides: slides.filter(s => s.lesson_id === (r.lesson_id as number)),
   }));
 
-  return { ...mapCourse(courseRow), sections };
+  return { ...mapCourse(courseRow), lessons };
 }
 
 export async function createCourse(input: CourseCreate): Promise<Course> {
@@ -172,37 +172,37 @@ export async function deleteCourse(id: number): Promise<boolean> {
 }
 
 // ---------------------------------------------------------------------------
-// Section CRUD
+// Lesson CRUD
 // ---------------------------------------------------------------------------
 
-export async function addSection(courseId: number, input: SectionCreate): Promise<CourseSection> {
+export async function addLesson(courseId: number, input: LessonCreate): Promise<CourseLesson> {
   const pool = await getPool('qc_training');
   const result = await pool.request()
     .input('courseId', courseId)
     .input('seq', input.seq)
     .input('title', input.title)
     .input('description', input.description ?? null)
-    .query('INSERT INTO course_section (course_id, seq, title, description) OUTPUT INSERTED.* VALUES (@courseId, @seq, @title, @description)');
-  return mapSection(result.recordset[0]);
+    .query('INSERT INTO course_lesson (course_id, seq, title, description) OUTPUT INSERTED.* VALUES (@courseId, @seq, @title, @description)');
+  return mapLesson(result.recordset[0]);
 }
 
-export async function updateSection(sectionId: number, updates: SectionUpdate): Promise<CourseSection | null> {
+export async function updateLesson(lessonId: number, updates: LessonUpdate): Promise<CourseLesson | null> {
   const pool = await getPool('qc_training');
   const setClauses: string[] = [];
-  const request = pool.request().input('id', sectionId);
+  const request = pool.request().input('id', lessonId);
 
   if (updates.seq !== undefined) { setClauses.push('seq = @seq'); request.input('seq', updates.seq); }
   if (updates.title !== undefined) { setClauses.push('title = @title'); request.input('title', updates.title); }
   if (updates.description !== undefined) { setClauses.push('description = @description'); request.input('description', updates.description ?? null); }
 
   if (setClauses.length === 0) return null;
-  const result = await request.query(`UPDATE course_section SET ${setClauses.join(', ')} OUTPUT INSERTED.* WHERE section_id = @id`);
-  return result.recordset[0] ? mapSection(result.recordset[0]) : null;
+  const result = await request.query(`UPDATE course_lesson SET ${setClauses.join(', ')} OUTPUT INSERTED.* WHERE lesson_id = @id`);
+  return result.recordset[0] ? mapLesson(result.recordset[0]) : null;
 }
 
-export async function deleteSection(sectionId: number): Promise<boolean> {
+export async function deleteLesson(lessonId: number): Promise<boolean> {
   const pool = await getPool('qc_training');
-  const result = await pool.request().input('id', sectionId).query('DELETE FROM course_section WHERE section_id = @id');
+  const result = await pool.request().input('id', lessonId).query('DELETE FROM course_lesson WHERE lesson_id = @id');
   return (result.rowsAffected[0] ?? 0) > 0;
 }
 
@@ -210,10 +210,10 @@ export async function deleteSection(sectionId: number): Promise<boolean> {
 // Slide CRUD
 // ---------------------------------------------------------------------------
 
-export async function addSlide(sectionId: number, input: SlideCreate): Promise<CourseSlide> {
+export async function addSlide(lessonId: number, input: SlideCreate): Promise<CourseSlide> {
   const pool = await getPool('qc_training');
   const result = await pool.request()
-    .input('sectionId', sectionId)
+    .input('lessonId', lessonId)
     .input('seq', input.seq)
     .input('slide_type', input.slide_type)
     .input('title', input.title ?? null)
@@ -231,9 +231,9 @@ export async function addSlide(sectionId: number, input: SlideCreate): Promise<C
     .input('presenter_notes', input.presenter_notes ?? null)
     .input('seed_sql', input.seed_sql ?? null)
     .input('seed_label', input.seed_label ?? null)
-    .query(`INSERT INTO course_slide (section_id, seq, slide_type, title, content, image_url, sql_text, sql_label, verify_mode, expected_json, quiz_question, quiz_options, quiz_answer, quiz_explanation, hints, presenter_notes, seed_sql, seed_label)
+    .query(`INSERT INTO course_slide (lesson_id, seq, slide_type, title, content, image_url, sql_text, sql_label, verify_mode, expected_json, quiz_question, quiz_options, quiz_answer, quiz_explanation, hints, presenter_notes, seed_sql, seed_label)
             OUTPUT INSERTED.*
-            VALUES (@sectionId, @seq, @slide_type, @title, @content, @image_url, @sql_text, @sql_label, @verify_mode, @expected_json, @quiz_question, @quiz_options, @quiz_answer, @quiz_explanation, @hints, @presenter_notes, @seed_sql, @seed_label)`);
+            VALUES (@lessonId, @seq, @slide_type, @title, @content, @image_url, @sql_text, @sql_label, @verify_mode, @expected_json, @quiz_question, @quiz_options, @quiz_answer, @quiz_explanation, @hints, @presenter_notes, @seed_sql, @seed_label)`);
   return mapSlide(result.recordset[0]);
 }
 

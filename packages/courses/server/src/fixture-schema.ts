@@ -33,12 +33,12 @@ export const FixtureSlideSchema = z.object({
 });
 export type FixtureSlide = z.infer<typeof FixtureSlideSchema>;
 
-export const FixtureSectionSchema = z.object({
+export const FixtureLessonSchema = z.object({
   title: z.string().min(1),
   description: z.string().nullable().optional(),
   slides: z.array(FixtureSlideSchema).default([]),
 });
-export type FixtureSection = z.infer<typeof FixtureSectionSchema>;
+export type FixtureLesson = z.infer<typeof FixtureLessonSchema>;
 
 export const FixtureSeriesRefSchema = z.object({
   title: z.string().min(1),
@@ -56,7 +56,7 @@ export const FixtureCourseSchema = z.object({
   actor: z.string().nullable().optional(),
   series: FixtureSeriesRefSchema.nullable().optional(),
   prerequisites: z.array(z.string().min(1)).default([]),
-  sections: z.array(FixtureSectionSchema).default([]),
+  lessons: z.array(FixtureLessonSchema).default([]),
 });
 export type FixtureCourse = z.infer<typeof FixtureCourseSchema>;
 
