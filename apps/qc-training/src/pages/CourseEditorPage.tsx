@@ -14,7 +14,6 @@ export default function CourseEditorPage() {
       <CourseEditor
         courseId={id}
         onExit={() => navigate('/courses')}
-        onPreview={() => navigate(`/courses/play/${id}`)}
       />
     </Box>
   );

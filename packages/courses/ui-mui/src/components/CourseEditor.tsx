@@ -1,15 +1,18 @@
 import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import ButtonGroup from '@mui/material/ButtonGroup';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import EditIcon from '@mui/icons-material/Edit';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { useCourseEditor } from '@trn-platform/courses-feature';
 import { CourseOutline } from './CourseOutline';
+import { CoursePlayer } from './CoursePlayer';
 import { SlideRenderer } from './SlideRenderer';
 import { SlideEditorForm } from './SlideEditorForm';
 import { AddLessonDialog } from './AddLessonDialog';
@@ -19,7 +22,6 @@ import type { CourseLesson, SlideType } from '@trn-platform/shared';
 export interface CourseEditorProps {
   courseId: number;
   onExit?: () => void;
-  onPreview?: () => void;
 }
 
 const STATUS_COLORS: Record<string, 'default' | 'success' | 'warning'> = {
@@ -58,7 +60,7 @@ function LessonPropertiesPanel({ lesson }: { lesson: CourseLesson }) {
   );
 }
 
-export function CourseEditor({ courseId, onExit, onPreview }: CourseEditorProps) {
+export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
   const {
     course, isLoading, error,
     selection, selectedLesson, selectedSlide,
@@ -69,6 +71,7 @@ export function CourseEditor({ courseId, onExit, onPreview }: CourseEditorProps)
 
   const [addLessonOpen, setAddLessonOpen] = useState(false);
   const [addSlideTarget, setAddSlideTarget] = useState<number | null>(null);
+  const [mode, setMode] = useState<'edit' | 'preview'>('edit');
 
   if (isLoading) {
     return (
@@ -143,83 +146,97 @@ export function CourseEditor({ courseId, onExit, onPreview }: CourseEditorProps)
         <Typography variant="body2" color="text.secondary">
           {course.lessons.length} lessons &middot; {course.lessons.reduce((s, l) => s + l.slides.length, 0)} slides
         </Typography>
-        {onPreview && (
+        <ButtonGroup size="small" variant="outlined">
           <Button
-            size="small"
-            variant="outlined"
+            startIcon={<EditIcon />}
+            variant={mode === 'edit' ? 'contained' : 'outlined'}
+            onClick={() => setMode('edit')}
+          >
+            Edit
+          </Button>
+          <Button
             startIcon={<PlayArrowIcon />}
-            onClick={onPreview}
+            variant={mode === 'preview' ? 'contained' : 'outlined'}
+            onClick={() => setMode('preview')}
           >
             Preview
           </Button>
-        )}
+        </ButtonGroup>
       </Stack>
 
-      {/* 3-panel layout */}
-      <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        {/* Left: Outline */}
-        <Box sx={{ width: 280, flexShrink: 0, borderRight: 1, borderColor: 'divider', overflow: 'hidden', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column' }}>
-          <CourseOutline
-            lessons={course.lessons}
-            selectedLessonId={selection?.lessonId}
-            selectedSlideId={selection?.slideId}
-            onSelectLesson={selectLesson}
-            onSelectSlide={selectSlide}
-            onAddLesson={() => setAddLessonOpen(true)}
-            onAddSlide={(lessonId) => setAddSlideTarget(lessonId)}
-            onDeleteLesson={handleDeleteLesson}
-            onDeleteSlide={handleDeleteSlide}
-          />
+      {/* Content area */}
+      {mode === 'preview' ? (
+        /* Full-width player preview */
+        <Box sx={{ flex: 1, overflow: 'hidden' }}>
+          <CoursePlayer courseId={courseId} onExit={() => setMode('edit')} />
         </Box>
-
-        {/* Center: Slide preview */}
-        <Box sx={{ flex: 1, overflow: 'auto', bgcolor: 'background.default' }}>
-          {selectedSlide ? (
-            <Box sx={{ maxWidth: 900, mx: 'auto', p: 3 }}>
-              <SlideRenderer slide={selectedSlide} />
-            </Box>
-          ) : selectedLesson ? (
-            <Box sx={{ p: 4, textAlign: 'center' }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                {selectedLesson.title}
-              </Typography>
-              {selectedLesson.description && (
-                <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-                  {selectedLesson.description}
-                </Typography>
-              )}
-              <Typography variant="body2" color="text.secondary">
-                Select a slide from the outline to preview it.
-              </Typography>
-            </Box>
-          ) : (
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-              <Typography variant="body1" color="text.secondary">
-                Select a lesson or slide from the outline.
-              </Typography>
-            </Box>
-          )}
-        </Box>
-
-        {/* Right: Editor / Properties */}
-        <Box sx={{ width: 360, flexShrink: 0, borderLeft: 1, borderColor: 'divider', overflow: 'hidden', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column' }}>
-          {selectedSlide && selection ? (
-            <SlideEditorForm
-              slide={selectedSlide}
-              onSave={(updates) => updateSlide(selectedSlide.slide_id, selection.lessonId, updates)}
-              isSaving={isSaving}
+      ) : (
+        /* 3-panel editor layout */
+        <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+          {/* Left: Outline */}
+          <Box sx={{ width: 280, flexShrink: 0, borderRight: 1, borderColor: 'divider', overflow: 'hidden', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column' }}>
+            <CourseOutline
+              lessons={course.lessons}
+              selectedLessonId={selection?.lessonId}
+              selectedSlideId={selection?.slideId}
+              onSelectLesson={selectLesson}
+              onSelectSlide={selectSlide}
+              onAddLesson={() => setAddLessonOpen(true)}
+              onAddSlide={(lessonId) => setAddSlideTarget(lessonId)}
+              onDeleteLesson={handleDeleteLesson}
+              onDeleteSlide={handleDeleteSlide}
             />
-          ) : selectedLesson ? (
-            <LessonPropertiesPanel lesson={selectedLesson} />
-          ) : (
-            <Box sx={{ p: 2 }}>
-              <Typography variant="body2" color="text.secondary">
-                Select a slide to edit its properties.
-              </Typography>
-            </Box>
-          )}
+          </Box>
+
+          {/* Center: Slide preview */}
+          <Box sx={{ flex: 1, overflow: 'auto', bgcolor: 'background.default' }}>
+            {selectedSlide ? (
+              <Box sx={{ maxWidth: 900, mx: 'auto', p: 3 }}>
+                <SlideRenderer slide={selectedSlide} />
+              </Box>
+            ) : selectedLesson ? (
+              <Box sx={{ p: 4, textAlign: 'center' }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                  {selectedLesson.title}
+                </Typography>
+                {selectedLesson.description && (
+                  <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+                    {selectedLesson.description}
+                  </Typography>
+                )}
+                <Typography variant="body2" color="text.secondary">
+                  Select a slide from the outline to preview it.
+                </Typography>
+              </Box>
+            ) : (
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                <Typography variant="body1" color="text.secondary">
+                  Select a lesson or slide from the outline.
+                </Typography>
+              </Box>
+            )}
+          </Box>
+
+          {/* Right: Editor / Properties */}
+          <Box sx={{ width: 360, flexShrink: 0, borderLeft: 1, borderColor: 'divider', overflow: 'hidden', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column' }}>
+            {selectedSlide && selection ? (
+              <SlideEditorForm
+                slide={selectedSlide}
+                onSave={(updates) => updateSlide(selectedSlide.slide_id, selection.lessonId, updates)}
+                isSaving={isSaving}
+              />
+            ) : selectedLesson ? (
+              <LessonPropertiesPanel lesson={selectedLesson} />
+            ) : (
+              <Box sx={{ p: 2 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Select a slide to edit its properties.
+                </Typography>
+              </Box>
+            )}
+          </Box>
         </Box>
-      </Box>
+      )}
 
       {/* Dialogs */}
       <AddLessonDialog
