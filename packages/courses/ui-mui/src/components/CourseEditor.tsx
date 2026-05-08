@@ -267,6 +267,7 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
                 context={chatContext}
                 systemPromptHint="course-authoring"
                 onResponse={handleChatResponse}
+                persistKey={`course-${courseId}`}
               />
             </Box>
           ) : (

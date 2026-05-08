@@ -23,6 +23,8 @@ export interface ChatPanelProps {
   systemPromptHint?: string;
   /** Called after each assistant response (useful for invalidating queries after AI creates content) */
   onResponse?: () => void;
+  /** If provided, chat history persists to localStorage under this key */
+  persistKey?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -33,9 +35,10 @@ export interface ChatPanelProps {
  * Full chat panel with message list, tool call display, and input.
  * Designed to be embedded as a tab in domain workbenches.
  */
-export function ChatPanel({ context, systemPromptHint, onResponse }: ChatPanelProps) {
+export function ChatPanel({ context, systemPromptHint, onResponse, persistKey }: ChatPanelProps) {
   const { messages, toolCalls, isLoading, error, send, reset } = useChatSession({
     context,
+    persistKey,
     systemPromptHint,
     onResponse,
   });
