@@ -10,20 +10,35 @@ import { ChatPanel } from '@trn-platform/chat-ui-mui';
 export default function NewCoursePage() {
   const navigate = useNavigate();
 
-  const handleToolCall = useCallback((tool: string, _input: Record<string, unknown>, result: string) => {
+  const handleToolCall = useCallback((tool: string, input: Record<string, unknown>, result: string) => {
+    // Look for create_course tool call
     if (tool !== 'create_course') return;
-    // Extract course_id from the create_course result
+
+    // Try to extract course_id from the result
+    let courseId: number | undefined;
     try {
       const parsed = JSON.parse(result);
-      const courseId = parsed.course_id;
-      if (typeof courseId === 'number') {
-        // Clear the new-course chat history since we're done here
-        try { localStorage.removeItem('chat-session:new-course'); } catch { /* ignore */ }
-        // Navigate to the editor with AI Author open
-        setTimeout(() => navigate(`/courses/edit/${courseId}`), 1500);
-      }
-    } catch { /* result wasn't JSON — ignore */ }
+      courseId = parsed.course_id;
+    } catch {
+      // Result might contain the course_id in a different structure
+      const match = result.match(/"course_id"\s*:\s*(\d+)/);
+      if (match) courseId = Number(match[1]);
+    }
+
+    if (typeof courseId === 'number' && courseId > 0) {
+      // Clear the new-course chat history since we're done here
+      try { localStorage.removeItem('chat-session:new-course'); } catch { /* ignore */ }
+      // Navigate to the editor
+      setTimeout(() => navigate(`/courses/edit/${courseId}`), 1500);
+    }
   }, [navigate]);
+
+  // Also check onResponse — scan all tool calls for create_course
+  const handleResponse = useCallback(() => {
+    // This fires after every response. The onToolCall above should handle it,
+    // but as a fallback, we could check localStorage for the last response.
+    // For now, onToolCall is the primary mechanism.
+  }, []);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -47,6 +62,7 @@ export default function NewCoursePage() {
           systemPromptHint="course-creation"
           persistKey="new-course"
           onToolCall={handleToolCall}
+          onResponse={handleResponse}
         />
       </Box>
     </Box>

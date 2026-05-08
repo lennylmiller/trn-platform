@@ -166,7 +166,7 @@ export function useChatSession(options?: {
         },
       );
     },
-    [state.messages, sendMutation, options?.context, options?.systemPromptHint],
+    [state.messages, sendMutation, options?.context, options?.systemPromptHint, options?.onToolCall, options?.onResponse],
   );
 
   const reset = useCallback(() => {
