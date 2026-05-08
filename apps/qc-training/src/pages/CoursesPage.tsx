@@ -20,47 +20,48 @@ function CourseCard({ course, showSeq }: { course: CourseListItem; showSeq?: boo
   const navigate = useNavigate();
   return (
     <Card variant="outlined">
-      <CardActionArea onClick={() => navigate(`/courses/play/${course.course_id}`)}>
-        <CardContent sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
-          {showSeq && course.series_seq != null && (
-            <Box sx={{
-              minWidth: 32, height: 32, borderRadius: '50%',
-              bgcolor: 'primary.main', color: 'primary.contrastText',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '0.85rem', fontWeight: 700, flexShrink: 0, mt: 0.25,
-            }}>
-              {course.series_seq}
-            </Box>
-          )}
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 700 }} noWrap>
-                {course.title}
-              </Typography>
-              <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0, ml: 1, alignItems: 'center' }}>
-                <IconButton
-                  size="small"
-                  onClick={(e) => { e.stopPropagation(); e.preventDefault(); navigate(`/courses/edit/${course.course_id}`); }}
-                  title="Edit course"
-                  sx={{ mr: 0.5 }}
-                >
-                  <EditIcon fontSize="small" />
-                </IconButton>
-                <Chip label={course.status} size="small" color={STATUS_COLORS[course.status] ?? 'default'} sx={{ textTransform: 'capitalize' }} />
-                {course.category && <Chip label={course.category} size="small" variant="outlined" />}
-              </Stack>
-            </Stack>
-            {course.description && (
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                {course.description}
-              </Typography>
+      <Stack direction="row" sx={{ alignItems: 'stretch' }}>
+        <CardActionArea onClick={() => navigate(`/courses/play/${course.course_id}`)} sx={{ flex: 1 }}>
+          <CardContent sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
+            {showSeq && course.series_seq != null && (
+              <Box sx={{
+                minWidth: 32, height: 32, borderRadius: '50%',
+                bgcolor: 'primary.main', color: 'primary.contrastText',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '0.85rem', fontWeight: 700, flexShrink: 0, mt: 0.25,
+              }}>
+                {course.series_seq}
+              </Box>
             )}
-            <Typography variant="caption" color="text.secondary">
-              {course.lesson_count} lessons &middot; {course.slide_count} slides
-            </Typography>
-          </Box>
-        </CardContent>
-      </CardActionArea>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 700 }} noWrap>
+                  {course.title}
+                </Typography>
+                <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0, ml: 1, alignItems: 'center' }}>
+                  <Chip label={course.status} size="small" color={STATUS_COLORS[course.status] ?? 'default'} sx={{ textTransform: 'capitalize' }} />
+                  {course.category && <Chip label={course.category} size="small" variant="outlined" />}
+                </Stack>
+              </Stack>
+              {course.description && (
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                  {course.description}
+                </Typography>
+              )}
+              <Typography variant="caption" color="text.secondary">
+                {course.lesson_count} lessons &middot; {course.slide_count} slides
+              </Typography>
+            </Box>
+          </CardContent>
+        </CardActionArea>
+        <IconButton
+          onClick={() => navigate(`/courses/edit/${course.course_id}`)}
+          title="Edit course"
+          sx={{ borderLeft: 1, borderColor: 'divider', borderRadius: 0, px: 1.5 }}
+        >
+          <EditIcon fontSize="small" />
+        </IconButton>
+      </Stack>
     </Card>
   );
 }
@@ -147,6 +148,7 @@ function TrackAccordion({ content, defaultExpanded }: { content: TrackContent; d
 }
 
 export default function CoursesPage() {
+  const navigate = useNavigate();
   const { data: courses, isLoading: coursesLoading, error: coursesError } = useCourses();
   const { data: seriesList, isLoading: seriesLoading } = useSeries();
   const { data: tracksList, isLoading: tracksLoading } = useTracks();
