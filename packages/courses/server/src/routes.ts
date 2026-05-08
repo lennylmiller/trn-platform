@@ -8,7 +8,7 @@ import {
 import {
   listTracks,
   listSeries,
-  listCourses, getCourse, createCourse, updateCourse, deleteCourse,
+  listCourses, getCourse, createCourse, updateCourse, deleteCourse, clearCourse,
   addLesson, updateLesson, deleteLesson,
   addSlide, updateSlide, deleteSlide,
 } from './queries';
@@ -64,6 +64,15 @@ coursesRouter.put('/:id', async (req: Request, res: Response, next: NextFunction
     const course = await updateCourse(id, updates);
     if (!course) { res.status(404).json({ message: 'Course not found' }); return; }
     res.json(course);
+  } catch (err) { next(err); }
+});
+
+coursesRouter.post('/:id/clear', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id = Number(req.params.id);
+    if (Number.isNaN(id)) { res.status(400).json({ message: 'Invalid course ID' }); return; }
+    await clearCourse(id);
+    res.json({ message: 'Course cleared', course_id: id });
   } catch (err) { next(err); }
 });
 

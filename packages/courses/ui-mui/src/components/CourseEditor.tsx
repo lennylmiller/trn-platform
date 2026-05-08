@@ -8,6 +8,7 @@ import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ClearAllIcon from '@mui/icons-material/ClearAll';
 import EditIcon from '@mui/icons-material/Edit';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
@@ -70,7 +71,7 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
     selection, selectedLesson, selectedSlide,
     selectLesson, selectSlide,
     updateSlide, addLesson, addSlide, deleteLesson, deleteSlide,
-    isSaving,
+    clearSelection, isSaving,
   } = useCourseEditor(courseId);
 
   const queryClient = useQueryClient();
@@ -83,6 +84,18 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
   const handleChatResponse = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: coursesKeys.detail(courseId) });
   }, [queryClient, courseId]);
+
+  const handleClearCourse = useCallback(async () => {
+    if (!window.confirm('Clear all lessons and slides from this course? This cannot be undone.')) return;
+    try {
+      const res = await fetch(`/api/v2/courses/${courseId}/clear`, { method: 'POST' });
+      if (!res.ok) throw new Error('Clear failed');
+      clearSelection();
+      void queryClient.invalidateQueries({ queryKey: coursesKeys.detail(courseId) });
+    } catch (err) {
+      console.error('Clear course failed:', err);
+    }
+  }, [courseId, queryClient, clearSelection]);
 
   if (isLoading) {
     return (
@@ -165,6 +178,16 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
           color={chatOpen ? 'secondary' : 'primary'}
         >
           AI Author
+        </Button>
+        <Button
+          size="small"
+          variant="outlined"
+          startIcon={<ClearAllIcon />}
+          onClick={handleClearCourse}
+          color="error"
+          disabled={course.lessons.length === 0}
+        >
+          Clear
         </Button>
         <ButtonGroup size="small" variant="outlined">
           <Button

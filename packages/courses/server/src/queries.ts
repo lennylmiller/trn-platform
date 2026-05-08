@@ -191,6 +191,15 @@ export async function deleteCourse(id: number): Promise<boolean> {
   return (result.rowsAffected[0] ?? 0) > 0;
 }
 
+export async function clearCourse(id: number): Promise<boolean> {
+  const pool = await getPool('qc_training');
+  await pool.request().input('id', id)
+    .query('DELETE FROM course_lesson WHERE course_id = @id');
+  await pool.request().input('id', id)
+    .query('UPDATE course SET updated_at = SYSUTCDATETIME() WHERE course_id = @id');
+  return true;
+}
+
 // ---------------------------------------------------------------------------
 // Lesson CRUD
 // ---------------------------------------------------------------------------
