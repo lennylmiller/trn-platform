@@ -108,6 +108,33 @@ Slide types and their key fields:
     },
   },
   {
+    name: 'build_course_content',
+    description: `Build an entire course's lessons and slides in ONE call. This replaces all existing lessons/slides. Use this instead of calling add_course_lesson and add_course_slide individually.
+
+The content parameter is a JSON string containing an array of lessons, each with a slides array:
+{
+  "lessons": [
+    {
+      "title": "Lesson Title",
+      "description": "What this lesson covers",
+      "slides": [
+        { "slide_type": "narrative", "title": "...", "content": "markdown..." },
+        { "slide_type": "live_demo", "title": "...", "content": "...", "sql_text": "SELECT ...", "sql_label": "Demo" },
+        { "slide_type": "quiz", "quiz_question": "...", "quiz_options": ["A","B","C","D"], "quiz_answer": 1, "quiz_explanation": "..." }
+      ]
+    }
+  ]
+}`,
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        courseId: { type: 'number', description: 'The course_id to build content for' },
+        content: { type: 'string', description: 'JSON string with { lessons: [{ title, description?, slides: [{ slide_type, title?, content?, ... }] }] }' },
+      },
+      required: ['courseId', 'content'],
+    },
+  },
+  {
     name: 'update_course',
     description: 'Update a course (title, description, category, status)',
     input_schema: {
@@ -176,6 +203,15 @@ export async function executeTool(
         `/api/v2/courses/${input.courseId}/lessons/${input.lessonId}/slides`,
         { method: 'POST', body: JSON.stringify(parsed) },
       );
+      return JSON.stringify(result, null, 2);
+    }
+
+    case 'build_course_content': {
+      const parsed = JSON.parse(input.content as string) as { lessons: unknown[] };
+      const result = await apiFetch<unknown>(`/api/v2/courses/${input.courseId}/build`, {
+        method: 'POST',
+        body: JSON.stringify({ lessons: parsed.lessons }),
+      });
       return JSON.stringify(result, null, 2);
     }
 

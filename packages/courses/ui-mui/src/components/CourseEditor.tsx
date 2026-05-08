@@ -9,6 +9,8 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ClearAllIcon from '@mui/icons-material/ClearAll';
+import DeleteIcon from '@mui/icons-material/Delete';
+import DownloadIcon from '@mui/icons-material/Download';
 import EditIcon from '@mui/icons-material/Edit';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
@@ -97,6 +99,35 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
     }
   }, [courseId, queryClient, clearSelection]);
 
+  const handleDeleteCourse = useCallback(async () => {
+    if (!window.confirm('Delete this entire course? This cannot be undone.')) return;
+    try {
+      const res = await fetch(`/api/v2/courses/${courseId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Delete failed');
+      void queryClient.invalidateQueries({ queryKey: ['courses'] });
+      onExit?.();
+    } catch (err) {
+      console.error('Delete course failed:', err);
+    }
+  }, [courseId, queryClient, onExit]);
+
+  const handleExportCourse = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/v2/courses/${courseId}/export`);
+      if (!res.ok) throw new Error('Export failed');
+      const data = await res.json();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `course-${courseId}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Export failed:', err);
+    }
+  }, [courseId]);
+
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -182,12 +213,29 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
         <Button
           size="small"
           variant="outlined"
+          startIcon={<DownloadIcon />}
+          onClick={handleExportCourse}
+        >
+          Export
+        </Button>
+        <Button
+          size="small"
+          variant="outlined"
           startIcon={<ClearAllIcon />}
           onClick={handleClearCourse}
           color="error"
           disabled={course.lessons.length === 0}
         >
           Clear
+        </Button>
+        <Button
+          size="small"
+          variant="outlined"
+          startIcon={<DeleteIcon />}
+          onClick={handleDeleteCourse}
+          color="error"
+        >
+          Delete
         </Button>
         <ButtonGroup size="small" variant="outlined">
           <Button

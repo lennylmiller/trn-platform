@@ -295,3 +295,117 @@ export async function deleteSlide(slideId: number): Promise<boolean> {
   const result = await pool.request().input('id', slideId).query('DELETE FROM course_slide WHERE slide_id = @id');
   return (result.rowsAffected[0] ?? 0) > 0;
 }
+
+// ---------------------------------------------------------------------------
+// Bulk Build — create all lessons + slides in one call
+// ---------------------------------------------------------------------------
+
+export interface BulkSlideInput {
+  slide_type: string;
+  title?: string | null;
+  content?: string | null;
+  image_url?: string | null;
+  sql_text?: string | null;
+  sql_label?: string | null;
+  verify_mode?: string | null;
+  expected_json?: unknown;
+  quiz_question?: string | null;
+  quiz_options?: string[] | null;
+  quiz_answer?: number | null;
+  quiz_explanation?: string | null;
+  hints?: string[] | null;
+  presenter_notes?: string | null;
+  seed_sql?: string | null;
+  seed_label?: string | null;
+}
+
+export interface BulkLessonInput {
+  title: string;
+  description?: string | null;
+  slides: BulkSlideInput[];
+}
+
+export async function buildCourseContent(
+  courseId: number,
+  lessons: BulkLessonInput[],
+): Promise<{ lessons: number; slides: number }> {
+  const pool = await getPool('qc_training');
+
+  // Clear existing content first
+  await pool.request().input('id', courseId)
+    .query('DELETE FROM course_lesson WHERE course_id = @id');
+
+  let lessonCount = 0;
+  let slideCount = 0;
+
+  for (let lessonIdx = 0; lessonIdx < lessons.length; lessonIdx++) {
+    const lesson = lessons[lessonIdx]!;
+    const lessonResult = await pool.request()
+      .input('courseId', courseId)
+      .input('seq', lessonIdx)
+      .input('title', lesson.title)
+      .input('description', lesson.description ?? null)
+      .query('INSERT INTO course_lesson (course_id, seq, title, description) OUTPUT INSERTED.lesson_id VALUES (@courseId, @seq, @title, @description)');
+    const lessonId = lessonResult.recordset[0].lesson_id as number;
+    lessonCount++;
+
+    for (let slideIdx = 0; slideIdx < lesson.slides.length; slideIdx++) {
+      const sl = lesson.slides[slideIdx]!;
+      await pool.request()
+        .input('lessonId', lessonId)
+        .input('seq', slideIdx)
+        .input('slide_type', sl.slide_type)
+        .input('title', sl.title ?? null)
+        .input('content', sl.content ?? null)
+        .input('image_url', sl.image_url ?? null)
+        .input('sql_text', sl.sql_text ?? null)
+        .input('sql_label', sl.sql_label ?? null)
+        .input('verify_mode', sl.verify_mode ?? null)
+        .input('expected_json', sl.expected_json != null ? JSON.stringify(sl.expected_json) : null)
+        .input('quiz_question', sl.quiz_question ?? null)
+        .input('quiz_options', sl.quiz_options ? JSON.stringify(sl.quiz_options) : null)
+        .input('quiz_answer', sl.quiz_answer ?? null)
+        .input('quiz_explanation', sl.quiz_explanation ?? null)
+        .input('hints', sl.hints ? JSON.stringify(sl.hints) : null)
+        .input('presenter_notes', sl.presenter_notes ?? null)
+        .input('seed_sql', sl.seed_sql ?? null)
+        .input('seed_label', sl.seed_label ?? null)
+        .query(`INSERT INTO course_slide (lesson_id, seq, slide_type, title, content, image_url, sql_text, sql_label, verify_mode, expected_json, quiz_question, quiz_options, quiz_answer, quiz_explanation, hints, presenter_notes, seed_sql, seed_label)
+                VALUES (@lessonId, @seq, @slide_type, @title, @content, @image_url, @sql_text, @sql_label, @verify_mode, @expected_json, @quiz_question, @quiz_options, @quiz_answer, @quiz_explanation, @hints, @presenter_notes, @seed_sql, @seed_label)`);
+      slideCount++;
+    }
+  }
+
+  await pool.request().input('id', courseId)
+    .query('UPDATE course SET updated_at = SYSUTCDATETIME() WHERE course_id = @id');
+
+  return { lessons: lessonCount, slides: slideCount };
+}
+
+// ---------------------------------------------------------------------------
+// Export — return full course as portable JSON (no IDs, same as fixture format)
+// ---------------------------------------------------------------------------
+
+export async function exportCourse(id: number): Promise<unknown> {
+  const course = await getCourse(id);
+  if (!course) return null;
+
+  return {
+    title: course.title,
+    description: course.description,
+    category: course.category,
+    status: course.status,
+    actor: course.actor,
+    lessons: course.lessons.map((l) => ({
+      title: l.title,
+      description: l.description,
+      slides: l.slides.map((sl) => {
+        const out: Record<string, unknown> = { slide_type: sl.slide_type };
+        for (const key of ['title', 'content', 'image_url', 'sql_text', 'sql_label', 'verify_mode', 'expected_json', 'quiz_question', 'quiz_options', 'quiz_answer', 'quiz_explanation', 'hints', 'presenter_notes', 'seed_sql', 'seed_label'] as const) {
+          if (sl[key] !== null && sl[key] !== undefined) out[key] = sl[key];
+        }
+        return out;
+      }),
+    })),
+  };
+}

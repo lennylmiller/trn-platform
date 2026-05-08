@@ -9,9 +9,11 @@ import {
   listTracks,
   listSeries,
   listCourses, getCourse, createCourse, updateCourse, deleteCourse, clearCourse,
+  buildCourseContent, exportCourse,
   addLesson, updateLesson, deleteLesson,
   addSlide, updateSlide, deleteSlide,
 } from './queries';
+import type { BulkLessonInput } from './queries';
 
 export const coursesRouter: RouterType = Router();
 
@@ -73,6 +75,40 @@ coursesRouter.post('/:id/clear', async (req: Request, res: Response, next: NextF
     if (Number.isNaN(id)) { res.status(400).json({ message: 'Invalid course ID' }); return; }
     await clearCourse(id);
     res.json({ message: 'Course cleared', course_id: id });
+  } catch (err) { next(err); }
+});
+
+coursesRouter.post('/:id/build', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id = Number(req.params.id);
+    if (Number.isNaN(id)) { res.status(400).json({ message: 'Invalid course ID' }); return; }
+    const lessons = req.body.lessons as BulkLessonInput[];
+    if (!Array.isArray(lessons)) { res.status(400).json({ message: 'lessons array required' }); return; }
+    const result = await buildCourseContent(id, lessons);
+    res.json({ message: 'Course content built', course_id: id, ...result });
+  } catch (err) { next(err); }
+});
+
+coursesRouter.get('/:id/export', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id = Number(req.params.id);
+    if (Number.isNaN(id)) { res.status(400).json({ message: 'Invalid course ID' }); return; }
+    const data = await exportCourse(id);
+    if (!data) { res.status(404).json({ message: 'Course not found' }); return; }
+    res.json(data);
+  } catch (err) { next(err); }
+});
+
+coursesRouter.post('/import', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { title, description, category, actor, lessons } = req.body;
+    if (!title) { res.status(400).json({ message: 'title required' }); return; }
+    const course = await createCourse({ title, description, category, actor });
+    if (Array.isArray(lessons) && lessons.length > 0) {
+      await buildCourseContent(course.course_id, lessons);
+    }
+    const full = await getCourse(course.course_id);
+    res.status(201).json(full);
   } catch (err) { next(err); }
 });
 
