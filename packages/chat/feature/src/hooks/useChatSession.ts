@@ -105,6 +105,7 @@ export function useChatSession(options?: {
   context?: Record<string, unknown>;
   systemPromptHint?: string;
   onResponse?: () => void;
+  onToolCall?: (tool: string, input: Record<string, unknown>, result: string) => void;
   persistKey?: string;
 }) {
   const [state, dispatch] = useReducer(chatReducer, initialState);
@@ -152,6 +153,11 @@ export function useChatSession(options?: {
               content: data.response,
               toolCalls: data.toolCalls,
             });
+            if (options?.onToolCall) {
+              for (const tc of data.toolCalls) {
+                options.onToolCall(tc.tool, tc.input, tc.result);
+              }
+            }
             options?.onResponse?.();
           },
           onError: (err) => {

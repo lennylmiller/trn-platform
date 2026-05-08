@@ -1,8 +1,9 @@
 import {
   Accordion, AccordionDetails, AccordionSummary,
-  Alert, Box, Card, CardActionArea, CardContent,
+  Alert, Box, Button, Card, CardActionArea, CardContent,
   Chip, CircularProgress, IconButton, Stack, Typography,
 } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useNavigate } from 'react-router-dom';
@@ -225,9 +226,19 @@ export default function CoursesPage() {
 
   return (
     <Box sx={{ p: 2 }}>
-      <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-        Courses
-      </Typography>
+      <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          Courses
+        </Typography>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          size="small"
+          onClick={() => navigate('/courses/new')}
+        >
+          Create Course
+        </Button>
+      </Stack>
       {isEmpty ? (
         <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
           No courses yet.

@@ -16,6 +16,7 @@ import StepWorkbenchPage from './pages/StepWorkbenchPage';
 import TrainingPlayerPage from './pages/TrainingPlayerPage';
 import CoursePlayerPage from './pages/CoursePlayerPage';
 import CourseEditorPage from './pages/CourseEditorPage';
+import NewCoursePage from './pages/NewCoursePage';
 import CoursesPage from './pages/CoursesPage';
 import CaptureDemoPage from './pages/CaptureDemoPage';
 import { installFeedbackActionTracking } from './capture';
@@ -148,6 +149,7 @@ export default function App() {
             <Route path="/compositions/play/:compositionId" element={<TrainingPlayerPage />} />
             <Route path="/courses/play/:courseId" element={<CoursePlayerPage />} />
             <Route path="/courses/edit/:courseId" element={<CourseEditorPage />} />
+            <Route path="/courses/new" element={<NewCoursePage />} />
             <Route path="/capture-demo" element={<CaptureDemoPage />} />
             <Route path="/workbench/:stepId" element={<StepWorkbenchPage />} />
             <Route path="*" element={<Shell onToggleTheme={toggleTheme} mode={mode} />} />
