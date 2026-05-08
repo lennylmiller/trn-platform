@@ -38,6 +38,15 @@ const config: StorybookConfig = {
       '@trn-platform/execution-data-access': path.resolve(__dirname, '../packages/execution/data-access/src'),
       '@trn-platform/execution-feature': path.resolve(__dirname, '../packages/execution/feature/src'),
       '@trn-platform/execution-ui-mui': path.resolve(__dirname, '../packages/execution/ui-mui/src'),
+      '@trn-platform/stories-data-access': path.resolve(__dirname, '../packages/stories/data-access/src'),
+      '@trn-platform/stories-feature': path.resolve(__dirname, '../packages/stories/feature/src'),
+      '@trn-platform/stories-ui-mui': path.resolve(__dirname, '../packages/stories/ui-mui/src'),
+      '@trn-platform/courses-data-access': path.resolve(__dirname, '../packages/courses/data-access/src'),
+      '@trn-platform/courses-feature': path.resolve(__dirname, '../packages/courses/feature/src'),
+      '@trn-platform/courses-ui-mui': path.resolve(__dirname, '../packages/courses/ui-mui/src'),
+      '@trn-platform/chat-data-access': path.resolve(__dirname, '../packages/chat/data-access/src'),
+      '@trn-platform/chat-feature': path.resolve(__dirname, '../packages/chat/feature/src'),
+      '@trn-platform/chat-ui-mui': path.resolve(__dirname, '../packages/chat/ui-mui/src'),
     };
     return config;
   },
