@@ -80,6 +80,7 @@ export async function listTracks(): Promise<CourseTrack[]> {
     title: r.title as string,
     description: (r.description as string) ?? null,
     seq: (r.seq as number) ?? 0,
+    metadata: parseJson(r.metadata as string) as Record<string, unknown> | null,
     created_at: (r.created_at as string) ?? null,
   }));
 }

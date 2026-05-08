@@ -25,6 +25,7 @@ export const CourseTrackSchema = z.object({
   title: z.string().min(1),
   description: z.string().nullable().optional(),
   seq: z.number(),
+  metadata: z.record(z.string(), z.unknown()).nullable().optional(),
   created_at: z.string().nullable().optional(),
 });
 export type CourseTrack = z.infer<typeof CourseTrackSchema>;

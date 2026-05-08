@@ -1,11 +1,15 @@
+import { useState, useEffect } from 'react';
 import {
   Accordion, AccordionDetails, AccordionSummary,
   Alert, Box, Button, Card, CardActionArea, CardContent,
-  Chip, CircularProgress, IconButton, Stack, Typography,
+  Chip, CircularProgress, Dialog, DialogContent, DialogTitle,
+  IconButton, List, ListItemButton, ListItemText,
+  Stack, Typography,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import { useNavigate } from 'react-router-dom';
 import { useCourses, useSeries, useTracks } from '@trn-platform/courses-data-access';
 import type { CourseListItem, CourseSeries, CourseTrack } from '@trn-platform/shared';
@@ -15,6 +19,8 @@ const STATUS_COLORS: Record<string, 'default' | 'success' | 'warning'> = {
   published: 'success',
   archived: 'default',
 };
+
+const STORAGE_KEY = 'courses-active-track';
 
 function CourseCard({ course, showSeq }: { course: CourseListItem; showSeq?: boolean }) {
   const navigate = useNavigate();
@@ -99,51 +105,50 @@ function SeriesAccordion({ series, courses, defaultExpanded }: {
   );
 }
 
-interface TrackContent {
-  track: CourseTrack;
-  seriesGroups: { series: CourseSeries; courses: CourseListItem[] }[];
-  standaloneCourses: CourseListItem[];
-}
-
-function TrackAccordion({ content, defaultExpanded }: { content: TrackContent; defaultExpanded?: boolean }) {
-  const totalCourses = content.seriesGroups.reduce((s, g) => s + g.courses.length, 0) + content.standaloneCourses.length;
+function TrackSelectorModal({ open, onClose, tracks, activeTrackId, onSelect }: {
+  open: boolean;
+  onClose: () => void;
+  tracks: CourseTrack[];
+  activeTrackId: number | null;
+  onSelect: (trackId: number | null) => void;
+}) {
   return (
-    <Accordion defaultExpanded={defaultExpanded} variant="outlined" disableGutters sx={{ '&:before': { display: 'none' } }}>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Box>
-          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              {content.track.title}
-            </Typography>
-            <Chip label={`${totalCourses} courses`} size="small" variant="outlined" />
-          </Stack>
-          {content.track.description && (
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              {content.track.description}
-            </Typography>
-          )}
-        </Box>
-      </AccordionSummary>
-      <AccordionDetails sx={{ pt: 0 }}>
-        <Stack spacing={1.5}>
-          {content.seriesGroups.map((sg, idx) => (
-            <SeriesAccordion
-              key={sg.series.series_id}
-              series={sg.series}
-              courses={sg.courses}
-              defaultExpanded={idx === 0}
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>Select Track</DialogTitle>
+      <DialogContent sx={{ p: 0 }}>
+        <List>
+          <ListItemButton
+            selected={activeTrackId === null}
+            onClick={() => { onSelect(null); onClose(); }}
+          >
+            <ListItemText
+              primary="All Courses"
+              secondary="Show all tracks and unassigned courses"
+              slotProps={{
+                primary: { sx: { fontWeight: activeTrackId === null ? 700 : 400 } },
+              }}
             />
+          </ListItemButton>
+          {tracks.map((track) => (
+            <ListItemButton
+              key={track.track_id}
+              selected={activeTrackId === track.track_id}
+              onClick={() => { onSelect(track.track_id); onClose(); }}
+            >
+              <ListItemText
+                primary={track.title}
+                secondary={track.description}
+                slotProps={{
+                  primary: { sx: { fontWeight: activeTrackId === track.track_id ? 700 : 400 } },
+                  secondary: { sx: { display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } },
+                }}
+              />
+              <Chip label={`seq ${track.seq}`} size="small" variant="outlined" sx={{ ml: 1 }} />
+            </ListItemButton>
           ))}
-          {content.standaloneCourses.length > 0 && (
-            <Stack spacing={1}>
-              {content.standaloneCourses.map((course) => (
-                <CourseCard key={course.course_id} course={course} />
-              ))}
-            </Stack>
-          )}
-        </Stack>
-      </AccordionDetails>
-    </Accordion>
+        </List>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -153,6 +158,21 @@ export default function CoursesPage() {
   const { data: seriesList, isLoading: seriesLoading } = useSeries();
   const { data: tracksList, isLoading: tracksLoading } = useTracks();
 
+  const [activeTrackId, setActiveTrackId] = useState<number | null>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? Number(saved) : null;
+    } catch { return null; }
+  });
+  const [selectorOpen, setSelectorOpen] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (activeTrackId !== null) localStorage.setItem(STORAGE_KEY, String(activeTrackId));
+      else localStorage.removeItem(STORAGE_KEY);
+    } catch { /* ignore */ }
+  }, [activeTrackId]);
+
   const isLoading = coursesLoading || seriesLoading || tracksLoading;
 
   if (isLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>;
@@ -161,6 +181,13 @@ export default function CoursesPage() {
   const allCourses = courses ?? [];
   const allSeries = seriesList ?? [];
   const allTracks = tracksList ?? [];
+
+  // Auto-select first track if none selected and tracks exist
+  const effectiveTrackId = activeTrackId !== null && allTracks.some((t) => t.track_id === activeTrackId)
+    ? activeTrackId
+    : allTracks.length > 0 ? allTracks[0]!.track_id : null;
+
+  const activeTrack = allTracks.find((t) => t.track_id === effectiveTrackId);
 
   // Build lookups
   const seriesById = new Map<number, CourseSeries>(allSeries.map((s) => [s.series_id, s]));
@@ -177,61 +204,47 @@ export default function CoursesPage() {
     }
   }
 
-  // Build track contents
-  const trackContents: TrackContent[] = [];
-  const usedSeriesIds = new Set<number>();
-  const usedCourseIds = new Set<number>();
+  // Filter by active track
+  let visibleSeriesGroups: { series: CourseSeries; courses: CourseListItem[] }[] = [];
+  let visibleStandalone: CourseListItem[] = [];
 
-  for (const track of allTracks) {
+  if (effectiveTrackId !== null) {
     // Series in this track
     const trackSeries = allSeries
-      .filter((s) => s.track_id === track.track_id)
+      .filter((s) => s.track_id === effectiveTrackId)
       .sort((a, b) => (a.track_seq ?? 0) - (b.track_seq ?? 0));
-
-    const seriesGroups: TrackContent['seriesGroups'] = [];
     for (const s of trackSeries) {
       const sc = coursesBySeries.get(s.series_id) ?? [];
-      if (sc.length > 0) {
-        seriesGroups.push({ series: s, courses: sc });
-        usedSeriesIds.add(s.series_id);
-        sc.forEach((c) => usedCourseIds.add(c.course_id));
-      }
+      if (sc.length > 0) visibleSeriesGroups.push({ series: s, courses: sc });
     }
-
-    // Standalone courses directly in this track (no series)
-    const standaloneCourses = coursesNoSeries
-      .filter((c) => c.track_id === track.track_id)
-      .sort((a, b) => (a.track_seq ?? 0) - (b.track_seq ?? 0));
-    standaloneCourses.forEach((c) => usedCourseIds.add(c.course_id));
-
-    if (seriesGroups.length > 0 || standaloneCourses.length > 0) {
-      trackContents.push({ track, seriesGroups, standaloneCourses });
+    // Standalone courses in this track
+    visibleStandalone = coursesNoSeries.filter((c) => c.track_id === effectiveTrackId);
+  } else {
+    // Show everything (all tracks mode)
+    for (const s of allSeries) {
+      const sc = coursesBySeries.get(s.series_id) ?? [];
+      if (sc.length > 0) visibleSeriesGroups.push({ series: s, courses: sc });
     }
+    visibleStandalone = coursesNoSeries;
   }
 
-  // Unassigned series (have courses but no track)
-  const unassignedSeriesGroups: { series: CourseSeries; courses: CourseListItem[] }[] = [];
-  for (const s of allSeries) {
-    if (usedSeriesIds.has(s.series_id)) continue;
-    const sc = coursesBySeries.get(s.series_id) ?? [];
-    if (sc.length > 0) {
-      unassignedSeriesGroups.push({ series: s, courses: sc });
-      sc.forEach((c) => usedCourseIds.add(c.course_id));
-    }
-  }
-
-  // Unassigned standalone courses (no series, no track)
-  const unassignedCourses = coursesNoSeries.filter((c) => !usedCourseIds.has(c.course_id));
-
-  const hasUnassigned = unassignedSeriesGroups.length > 0 || unassignedCourses.length > 0;
+  const totalVisible = visibleSeriesGroups.reduce((s, g) => s + g.courses.length, 0) + visibleStandalone.length;
   const isEmpty = allCourses.length === 0;
 
   return (
     <Box sx={{ p: 2 }}>
-      <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700 }}>
-          Courses
-        </Typography>
+      {/* Header: Track name (clickable) + Create Course */}
+      <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+        <Button
+          onClick={() => setSelectorOpen(true)}
+          endIcon={<UnfoldMoreIcon />}
+          sx={{ textTransform: 'none', px: 1, py: 0.5 }}
+        >
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+            {activeTrack ? activeTrack.title : 'All Courses'}
+          </Typography>
+          <Chip label={`${totalVisible} courses`} size="small" variant="outlined" sx={{ ml: 1.5 }} />
+        </Button>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
@@ -241,37 +254,42 @@ export default function CoursesPage() {
           Create Course
         </Button>
       </Stack>
+
+      {/* Track description */}
+      {activeTrack?.description && (
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, pl: 1 }}>
+          {activeTrack.description}
+        </Typography>
+      )}
+
+      {/* Course content */}
       {isEmpty ? (
         <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
           No courses yet.
         </Typography>
+      ) : totalVisible === 0 ? (
+        <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+          No courses in this track.
+        </Typography>
       ) : (
         <Stack spacing={2}>
-          {/* Track-grouped content */}
-          {trackContents.map((tc, idx) => (
-            <TrackAccordion key={tc.track.track_id} content={tc} defaultExpanded={idx === 0} />
-          ))}
-
-          {/* Unassigned series */}
-          {unassignedSeriesGroups.map((sg) => (
+          {visibleSeriesGroups.map((sg, idx) => (
             <SeriesAccordion
               key={sg.series.series_id}
               series={sg.series}
               courses={sg.courses}
-              defaultExpanded={trackContents.length === 0}
+              defaultExpanded={idx === 0}
             />
           ))}
-
-          {/* Unassigned standalone courses */}
-          {unassignedCourses.length > 0 && (
+          {visibleStandalone.length > 0 && (
             <Box>
-              {(trackContents.length > 0 || unassignedSeriesGroups.length > 0) && (
+              {visibleSeriesGroups.length > 0 && (
                 <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1, mt: 1 }}>
-                  Unassigned Courses
+                  Standalone Courses
                 </Typography>
               )}
               <Stack spacing={1}>
-                {unassignedCourses.map((course) => (
+                {visibleStandalone.map((course) => (
                   <CourseCard key={course.course_id} course={course} />
                 ))}
               </Stack>
@@ -279,6 +297,15 @@ export default function CoursesPage() {
           )}
         </Stack>
       )}
+
+      {/* Track selector modal */}
+      <TrackSelectorModal
+        open={selectorOpen}
+        onClose={() => setSelectorOpen(false)}
+        tracks={allTracks}
+        activeTrackId={effectiveTrackId}
+        onSelect={setActiveTrackId}
+      />
     </Box>
   );
 }
