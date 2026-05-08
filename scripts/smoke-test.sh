@@ -76,7 +76,16 @@ extract_json() {
 
 echo ""
 echo -e "${YELLOW}Health Check${NC}"
-check "API health" "200" GET "/health"
+# Health check is at /api/health, not under /api/v2
+TOTAL=$((TOTAL + 1))
+HEALTH_CODE=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:3001/api/health")
+if [ "$HEALTH_CODE" = "200" ]; then
+  PASS=$((PASS + 1))
+  echo -e "  ${GREEN}✓${NC} API health (200)"
+else
+  FAIL=$((FAIL + 1))
+  echo -e "  ${RED}✗${NC} API health — expected 200, got $HEALTH_CODE"
+fi
 
 # ---------------------------------------------------------------------------
 # Track CRUD
