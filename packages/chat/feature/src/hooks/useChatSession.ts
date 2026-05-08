@@ -69,6 +69,7 @@ function chatReducer(state: ChatSessionState, action: ChatAction): ChatSessionSt
 export function useChatSession(options?: {
   context?: Record<string, unknown>;
   systemPromptHint?: string;
+  onResponse?: () => void;
 }) {
   const [state, dispatch] = useReducer(chatReducer, initialState);
   const sendMutation = useSendMessage();
@@ -99,6 +100,7 @@ export function useChatSession(options?: {
               content: data.response,
               toolCalls: data.toolCalls,
             });
+            options?.onResponse?.();
           },
           onError: (err) => {
             dispatch({ type: 'SET_ERROR', error: err.message });

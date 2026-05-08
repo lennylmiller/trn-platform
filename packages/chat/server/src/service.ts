@@ -32,7 +32,7 @@ export interface ChatResult {
 // Service
 // ---------------------------------------------------------------------------
 
-const MAX_TOOL_ROUNDS = 5;
+const MAX_TOOL_ROUNDS = 15;
 
 let client: Anthropic | null = null;
 

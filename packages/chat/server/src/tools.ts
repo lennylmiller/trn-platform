@@ -1,9 +1,10 @@
 /**
  * Tool definitions and executors for the chat service.
- * Uses the same shared tool executors as the MCP server.
+ * Uses shared tool executors for schema/SQL, and API proxy for course CRUD.
  */
 import type Anthropic from '@anthropic-ai/sdk';
 import { exploreSchema, runSql, qcTrain } from '@trn-platform/shared/tools';
+import { apiFetch } from './api-client.js';
 
 // ---------------------------------------------------------------------------
 // Tool Definitions (Anthropic format)
@@ -45,6 +46,82 @@ export const CHAT_TOOLS: Anthropic.Tool[] = [
       required: ['command'],
     },
   },
+
+  // -------------------------------------------------------------------------
+  // Course CRUD tools
+  // -------------------------------------------------------------------------
+
+  {
+    name: 'get_course',
+    description: 'Get a course by ID with all lessons and slides. Always call this first to see existing structure before adding content.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        courseId: { type: 'number', description: 'The course_id to retrieve' },
+      },
+      required: ['courseId'],
+    },
+  },
+  {
+    name: 'list_courses',
+    description: 'List all training courses with lesson and slide counts',
+    input_schema: {
+      type: 'object' as const,
+      properties: {},
+      required: [],
+    },
+  },
+  {
+    name: 'add_course_lesson',
+    description: 'Add a lesson (chapter) to a course. Lessons contain slides.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        courseId: { type: 'number', description: 'The course_id' },
+        seq: { type: 'number', description: 'Order within the course (0-based)' },
+        title: { type: 'string', description: 'Lesson title' },
+        description: { type: 'string', description: 'Brief description of what this lesson covers' },
+      },
+      required: ['courseId', 'seq', 'title'],
+    },
+  },
+  {
+    name: 'add_course_slide',
+    description: `Add a slide to a course lesson. The slide JSON object must include: seq (0-based), slide_type, and type-specific fields.
+
+Slide types and their key fields:
+- narrative: title, content (markdown)
+- reference: title, content (markdown)
+- live_demo: title, content, sql_text, sql_label
+- sql_challenge: title, content (the prompt), sql_text (the answer), hints (string array)
+- quiz: quiz_question, quiz_options (string array), quiz_answer (0-based index), quiz_explanation
+- do_it_in_qc: title, content, sql_text, sql_label, verify_mode ("auto"|"show"), expected_json, seed_sql, seed_label
+- screenshot_task: title, content`,
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        courseId: { type: 'number', description: 'The course_id' },
+        lessonId: { type: 'number', description: 'The lesson_id to add the slide to' },
+        slide: { type: 'string', description: 'JSON object with slide fields: {seq, slide_type, title?, content?, sql_text?, sql_label?, quiz_question?, quiz_options?, quiz_answer?, quiz_explanation?, hints?, presenter_notes?}' },
+      },
+      required: ['courseId', 'lessonId', 'slide'],
+    },
+  },
+  {
+    name: 'update_course',
+    description: 'Update a course (title, description, category, status)',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        courseId: { type: 'number', description: 'The course_id to update' },
+        title: { type: 'string', description: 'New title' },
+        description: { type: 'string', description: 'New description' },
+        category: { type: 'string', description: 'Category (e.g., implementation, operations, walkthrough, database)' },
+        status: { type: 'string', description: 'Status: draft, published, or archived' },
+      },
+      required: ['courseId'],
+    },
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -72,6 +149,47 @@ export async function executeTool(
 
     case 'qc_train':
       return qcTrain(input.command as string);
+
+    // ----- Course CRUD -----
+
+    case 'get_course': {
+      const course = await apiFetch<unknown>(`/api/v2/courses/${input.courseId}`);
+      return JSON.stringify(course, null, 2);
+    }
+
+    case 'list_courses': {
+      const courses = await apiFetch<unknown[]>('/api/v2/courses');
+      return JSON.stringify(courses, null, 2);
+    }
+
+    case 'add_course_lesson': {
+      const lesson = await apiFetch<unknown>(`/api/v2/courses/${input.courseId}/lessons`, {
+        method: 'POST',
+        body: JSON.stringify({ seq: input.seq, title: input.title, description: input.description ?? null }),
+      });
+      return JSON.stringify(lesson, null, 2);
+    }
+
+    case 'add_course_slide': {
+      const parsed = JSON.parse(input.slide as string) as Record<string, unknown>;
+      const result = await apiFetch<unknown>(
+        `/api/v2/courses/${input.courseId}/lessons/${input.lessonId}/slides`,
+        { method: 'POST', body: JSON.stringify(parsed) },
+      );
+      return JSON.stringify(result, null, 2);
+    }
+
+    case 'update_course': {
+      const updates: Record<string, unknown> = {};
+      for (const key of ['title', 'description', 'category', 'status']) {
+        if (input[key] !== undefined) updates[key] = input[key];
+      }
+      const course = await apiFetch<unknown>(`/api/v2/courses/${input.courseId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates),
+      });
+      return JSON.stringify(course, null, 2);
+    }
 
     default:
       throw new Error(`Unknown tool: ${name}`);

@@ -21,6 +21,8 @@ export interface ChatPanelProps {
   context?: Record<string, unknown>;
   /** Optional hint appended to the system prompt */
   systemPromptHint?: string;
+  /** Called after each assistant response (useful for invalidating queries after AI creates content) */
+  onResponse?: () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -31,10 +33,11 @@ export interface ChatPanelProps {
  * Full chat panel with message list, tool call display, and input.
  * Designed to be embedded as a tab in domain workbenches.
  */
-export function ChatPanel({ context, systemPromptHint }: ChatPanelProps) {
+export function ChatPanel({ context, systemPromptHint, onResponse }: ChatPanelProps) {
   const { messages, toolCalls, isLoading, error, send, reset } = useChatSession({
     context,
     systemPromptHint,
+    onResponse,
   });
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -88,7 +91,9 @@ export function ChatPanel({ context, systemPromptHint }: ChatPanelProps) {
             variant="body2"
             sx={{ color: 'text.secondary', fontStyle: 'italic', textAlign: 'center', mt: 4 }}
           >
-            Ask me to help write SQL, explore the schema, create steps, or run qc-train commands.
+            {systemPromptHint?.startsWith('course-authoring')
+              ? 'Describe what you want to teach and I\'ll build the lessons and slides.'
+              : 'Ask me to help write SQL, explore the schema, create steps, or run qc-train commands.'}
           </Typography>
         )}
 
@@ -133,7 +138,9 @@ export function ChatPanel({ context, systemPromptHint }: ChatPanelProps) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Ask about the schema, write SQL, create steps..."
+          placeholder={systemPromptHint?.startsWith('course-authoring')
+            ? 'Describe what to teach...'
+            : 'Ask about the schema, write SQL, create steps...'}
           multiline
           maxRows={4}
           fullWidth

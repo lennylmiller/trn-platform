@@ -641,6 +641,9 @@ importers:
 
   packages/courses/ui-mui:
     dependencies:
+      '@trn-platform/chat-ui-mui':
+        specifier: workspace:*
+        version: link:../../chat/ui-mui
       '@trn-platform/compositions-ui-mui':
         specifier: workspace:*
         version: link:../../compositions/ui-mui

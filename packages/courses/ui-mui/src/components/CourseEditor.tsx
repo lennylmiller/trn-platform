@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
@@ -10,7 +10,11 @@ import Typography from '@mui/material/Typography';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import SmartToyIcon from '@mui/icons-material/SmartToy';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCourseEditor } from '@trn-platform/courses-feature';
+import { coursesKeys } from '@trn-platform/courses-data-access';
+import { ChatPanel } from '@trn-platform/chat-ui-mui';
 import { CourseOutline } from './CourseOutline';
 import { CoursePlayer } from './CoursePlayer';
 import { SlideRenderer } from './SlideRenderer';
@@ -69,9 +73,16 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
     isSaving,
   } = useCourseEditor(courseId);
 
+  const queryClient = useQueryClient();
   const [addLessonOpen, setAddLessonOpen] = useState(false);
   const [addSlideTarget, setAddSlideTarget] = useState<number | null>(null);
   const [mode, setMode] = useState<'edit' | 'preview'>('edit');
+  const [chatOpen, setChatOpen] = useState(false);
+
+  const chatContext = useMemo(() => ({ courseId }), [courseId]);
+  const handleChatResponse = useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: coursesKeys.detail(courseId) });
+  }, [queryClient, courseId]);
 
   if (isLoading) {
     return (
@@ -146,6 +157,15 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
         <Typography variant="body2" color="text.secondary">
           {course.lessons.length} lessons &middot; {course.lessons.reduce((s, l) => s + l.slides.length, 0)} slides
         </Typography>
+        <Button
+          size="small"
+          variant={chatOpen ? 'contained' : 'outlined'}
+          startIcon={<SmartToyIcon />}
+          onClick={() => { setChatOpen((v) => !v); if (mode === 'preview') setMode('edit'); }}
+          color={chatOpen ? 'secondary' : 'primary'}
+        >
+          AI Author
+        </Button>
         <ButtonGroup size="small" variant="outlined">
           <Button
             startIcon={<EditIcon />}
@@ -217,24 +237,34 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
             )}
           </Box>
 
-          {/* Right: Editor / Properties */}
-          <Box sx={{ width: 360, flexShrink: 0, borderLeft: 1, borderColor: 'divider', overflow: 'hidden', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column' }}>
-            {selectedSlide && selection ? (
-              <SlideEditorForm
-                slide={selectedSlide}
-                onSave={(updates) => updateSlide(selectedSlide.slide_id, selection.lessonId, updates)}
-                isSaving={isSaving}
+          {/* Right: Editor / Properties OR Chat */}
+          {chatOpen ? (
+            <Box sx={{ width: 380, flexShrink: 0, borderLeft: 1, borderColor: 'divider', overflow: 'hidden', bgcolor: 'background.paper' }}>
+              <ChatPanel
+                context={chatContext}
+                systemPromptHint="course-authoring"
+                onResponse={handleChatResponse}
               />
-            ) : selectedLesson ? (
-              <LessonPropertiesPanel lesson={selectedLesson} />
-            ) : (
-              <Box sx={{ p: 2 }}>
-                <Typography variant="body2" color="text.secondary">
-                  Select a slide to edit its properties.
-                </Typography>
-              </Box>
-            )}
-          </Box>
+            </Box>
+          ) : (
+            <Box sx={{ width: 360, flexShrink: 0, borderLeft: 1, borderColor: 'divider', overflow: 'hidden', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column' }}>
+              {selectedSlide && selection ? (
+                <SlideEditorForm
+                  slide={selectedSlide}
+                  onSave={(updates) => updateSlide(selectedSlide.slide_id, selection.lessonId, updates)}
+                  isSaving={isSaving}
+                />
+              ) : selectedLesson ? (
+                <LessonPropertiesPanel lesson={selectedLesson} />
+              ) : (
+                <Box sx={{ p: 2 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Select a slide to edit its properties.
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+          )}
         </Box>
       )}
 
