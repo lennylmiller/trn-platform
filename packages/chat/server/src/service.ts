@@ -2,7 +2,7 @@
  * Chat service — orchestrates Claude API conversations with tool execution.
  *
  * Implements the agentic loop: send messages → if tool_use → execute → continue.
- * All tool execution happens server-side. Max 5 tool rounds.
+ * All tool execution happens server-side.
  */
 import Anthropic from '@anthropic-ai/sdk';
 import { CHAT_TOOLS, executeTool } from './tools.js';
@@ -32,7 +32,7 @@ export interface ChatResult {
 // Service
 // ---------------------------------------------------------------------------
 
-const MAX_TOOL_ROUNDS = 15;
+const MAX_TOOL_ROUNDS = 25;
 
 let client: Anthropic | null = null;
 
@@ -58,6 +58,7 @@ export async function chat(
   const anthropic = getClient();
   const model = process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-4-20250514';
   const toolCalls: ToolCallRecord[] = [];
+  let accumulatedText = '';
 
   // Build system prompt with context
   let hint = systemPromptHint ?? '';
@@ -81,21 +82,29 @@ export async function chat(
       messages: apiMessages,
     });
 
+    // Extract any text from this response
+    const textBlocks = response.content.filter(
+      (b): b is Anthropic.TextBlock => b.type === 'text',
+    );
+    if (textBlocks.length > 0) {
+      accumulatedText += textBlocks.map((b) => b.text).join('\n');
+    }
+
     // Check for tool use
     const toolUseBlocks = response.content.filter(
       (b): b is Anthropic.ToolUseBlock => b.type === 'tool_use',
     );
 
-    if (toolUseBlocks.length === 0 || response.stop_reason === 'end_turn') {
-      // Final response — extract text
-      const textBlocks = response.content.filter(
-        (b): b is Anthropic.TextBlock => b.type === 'text',
-      );
-      const responseText = textBlocks.map((b) => b.text).join('\n');
-      return { response: responseText, toolCalls };
+    // If no tool calls, we're done
+    if (toolUseBlocks.length === 0) {
+      return { response: accumulatedText, toolCalls };
     }
 
-    // Execute tools and continue
+    // If stop_reason is end_turn, Claude is done — but we still execute any pending tools
+    // and return the accumulated text
+    const isFinalRound = response.stop_reason === 'end_turn';
+
+    // Execute tools
     apiMessages.push({ role: 'assistant', content: response.content });
 
     const toolResults: Anthropic.ToolResultBlockParam[] = [];
@@ -123,12 +132,17 @@ export async function chat(
       });
     }
 
+    // If Claude said end_turn, return now with the accumulated text
+    if (isFinalRound) {
+      return { response: accumulatedText, toolCalls };
+    }
+
     apiMessages.push({ role: 'user', content: toolResults });
   }
 
-  // Exceeded max rounds — return what we have
+  // Exceeded max rounds — return accumulated text instead of generic message
   return {
-    response: 'I reached the maximum number of tool calls. Here is what I found so far.',
+    response: accumulatedText || 'I used all available tool calls for this turn. Please send another message to continue.',
     toolCalls,
   };
 }
