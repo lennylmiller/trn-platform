@@ -1,17 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Accordion, AccordionDetails, AccordionSummary,
   Alert, Box, Button, Card, CardActionArea, CardContent,
-  Chip, CircularProgress, Dialog, DialogContent, DialogTitle,
-  IconButton, List, ListItemButton, ListItemText,
-  Stack, Typography,
+  Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle,
+  Divider, IconButton, List, ListItemButton, ListItemText,
+  Stack, TextField, Typography,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import SettingsIcon from '@mui/icons-material/Settings';
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import { useNavigate } from 'react-router-dom';
-import { useCourses, useSeries, useTracks } from '@trn-platform/courses-data-access';
+import { useQueryClient } from '@tanstack/react-query';
+import { useCourses, useSeries, useTracks, tracksKeys } from '@trn-platform/courses-data-access';
 import type { CourseListItem, CourseSeries, CourseTrack } from '@trn-platform/shared';
 
 const STATUS_COLORS: Record<string, 'default' | 'success' | 'warning'> = {
@@ -21,6 +24,10 @@ const STATUS_COLORS: Record<string, 'default' | 'success' | 'warning'> = {
 };
 
 const STORAGE_KEY = 'courses-active-track';
+
+// ---------------------------------------------------------------------------
+// Course Card
+// ---------------------------------------------------------------------------
 
 function CourseCard({ course, showSeq }: { course: CourseListItem; showSeq?: boolean }) {
   const navigate = useNavigate();
@@ -72,6 +79,10 @@ function CourseCard({ course, showSeq }: { course: CourseListItem; showSeq?: boo
   );
 }
 
+// ---------------------------------------------------------------------------
+// Series Accordion
+// ---------------------------------------------------------------------------
+
 function SeriesAccordion({ series, courses, defaultExpanded }: {
   series: CourseSeries;
   courses: CourseListItem[];
@@ -105,6 +116,122 @@ function SeriesAccordion({ series, courses, defaultExpanded }: {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Track Settings Dialog
+// ---------------------------------------------------------------------------
+
+function TrackSettingsDialog({ open, onClose, track }: {
+  open: boolean;
+  onClose: () => void;
+  track: CourseTrack;
+}) {
+  const queryClient = useQueryClient();
+  const [title, setTitle] = useState(track.title);
+  const [description, setDescription] = useState(track.description ?? '');
+  const [seq, setSeq] = useState(track.seq);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setTitle(track.title);
+    setDescription(track.description ?? '');
+    setSeq(track.seq);
+  }, [track]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await fetch(`/api/v2/courses/tracks/${track.track_id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, description: description || null, seq }),
+      });
+      void queryClient.invalidateQueries({ queryKey: tracksKeys.lists() });
+      onClose();
+    } finally { setSaving(false); }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm(`Delete track "${track.title}"? Courses and series will be unlinked but not deleted.`)) return;
+    try {
+      await fetch(`/api/v2/courses/tracks/${track.track_id}`, { method: 'DELETE' });
+      void queryClient.invalidateQueries({ queryKey: tracksKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: ['courses'] });
+      onClose();
+    } catch (err) {
+      console.error('Delete track failed:', err);
+    }
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
+      <DialogTitle>Track Settings</DialogTitle>
+      <DialogContent>
+        <Stack spacing={2} sx={{ mt: 1 }}>
+          <TextField label="Title" size="small" fullWidth value={title} onChange={(e) => setTitle(e.target.value)} />
+          <TextField label="Description" size="small" fullWidth multiline minRows={2} value={description} onChange={(e) => setDescription(e.target.value)} />
+          <TextField label="Sort Order" size="small" type="number" value={seq} onChange={(e) => setSeq(Number(e.target.value))} />
+        </Stack>
+      </DialogContent>
+      <DialogActions sx={{ justifyContent: 'space-between', px: 3, pb: 2 }}>
+        <Button color="error" startIcon={<DeleteIcon />} onClick={handleDelete}>Delete Track</Button>
+        <Stack direction="row" spacing={1}>
+          <Button onClick={onClose}>Cancel</Button>
+          <Button variant="contained" onClick={handleSave} disabled={!title.trim() || saving}>
+            {saving ? 'Saving...' : 'Save'}
+          </Button>
+        </Stack>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Add Track Dialog
+// ---------------------------------------------------------------------------
+
+function AddTrackDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+
+  const handleAdd = async () => {
+    if (!title.trim()) return;
+    try {
+      await fetch('/api/v2/courses/tracks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: title.trim(), description: description.trim() || null }),
+      });
+      void queryClient.invalidateQueries({ queryKey: tracksKeys.lists() });
+      setTitle('');
+      setDescription('');
+      onClose();
+    } catch (err) {
+      console.error('Create track failed:', err);
+    }
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
+      <DialogTitle>Add New Track</DialogTitle>
+      <DialogContent>
+        <Stack spacing={2} sx={{ mt: 1 }}>
+          <TextField label="Track Title" size="small" fullWidth value={title} onChange={(e) => setTitle(e.target.value)} autoFocus />
+          <TextField label="Description (optional)" size="small" fullWidth multiline minRows={2} value={description} onChange={(e) => setDescription(e.target.value)} />
+        </Stack>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button variant="contained" onClick={handleAdd} disabled={!title.trim()}>Add</Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Track Selector Modal
+// ---------------------------------------------------------------------------
+
 function TrackSelectorModal({ open, onClose, tracks, activeTrackId, onSelect }: {
   open: boolean;
   onClose: () => void;
@@ -112,45 +239,77 @@ function TrackSelectorModal({ open, onClose, tracks, activeTrackId, onSelect }: 
   activeTrackId: number | null;
   onSelect: (trackId: number | null) => void;
 }) {
+  const [settingsTrack, setSettingsTrack] = useState<CourseTrack | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Select Track</DialogTitle>
-      <DialogContent sx={{ p: 0 }}>
-        <List>
-          <ListItemButton
-            selected={activeTrackId === null}
-            onClick={() => { onSelect(null); onClose(); }}
-          >
-            <ListItemText
-              primary="All Courses"
-              secondary="Show all tracks and unassigned courses"
-              slotProps={{
-                primary: { sx: { fontWeight: activeTrackId === null ? 700 : 400 } },
-              }}
-            />
-          </ListItemButton>
-          {tracks.map((track) => (
+    <>
+      <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>Select Track</Typography>
+            <Button size="small" startIcon={<AddIcon />} onClick={() => setAddOpen(true)}>
+              Add Track
+            </Button>
+          </Stack>
+        </DialogTitle>
+        <DialogContent sx={{ p: 0 }}>
+          <List>
             <ListItemButton
-              key={track.track_id}
-              selected={activeTrackId === track.track_id}
-              onClick={() => { onSelect(track.track_id); onClose(); }}
+              selected={activeTrackId === null}
+              onClick={() => { onSelect(null); onClose(); }}
             >
               <ListItemText
-                primary={track.title}
-                secondary={track.description}
-                slotProps={{
-                  primary: { sx: { fontWeight: activeTrackId === track.track_id ? 700 : 400 } },
-                  secondary: { sx: { display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } },
-                }}
+                primary="All Courses"
+                secondary="Show all tracks and unassigned courses"
+                slotProps={{ primary: { sx: { fontWeight: activeTrackId === null ? 700 : 400 } } }}
               />
-              <Chip label={`seq ${track.seq}`} size="small" variant="outlined" sx={{ ml: 1 }} />
             </ListItemButton>
-          ))}
-        </List>
-      </DialogContent>
-    </Dialog>
+            <Divider />
+            {tracks.map((track) => (
+              <ListItemButton
+                key={track.track_id}
+                selected={activeTrackId === track.track_id}
+                onClick={() => { onSelect(track.track_id); }}
+              >
+                <ListItemText
+                  primary={track.title}
+                  secondary={track.description}
+                  slotProps={{
+                    primary: { sx: { fontWeight: activeTrackId === track.track_id ? 700 : 400 } },
+                    secondary: { sx: { display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } },
+                  }}
+                />
+                <IconButton
+                  size="small"
+                  onClick={(e) => { e.stopPropagation(); setSettingsTrack(track); }}
+                  title="Track settings"
+                  sx={{ ml: 1 }}
+                >
+                  <SettingsIcon fontSize="small" />
+                </IconButton>
+              </ListItemButton>
+            ))}
+          </List>
+        </DialogContent>
+      </Dialog>
+
+      {settingsTrack && (
+        <TrackSettingsDialog
+          open={!!settingsTrack}
+          onClose={() => setSettingsTrack(null)}
+          track={settingsTrack}
+        />
+      )}
+
+      <AddTrackDialog open={addOpen} onClose={() => setAddOpen(false)} />
+    </>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Main Page
+// ---------------------------------------------------------------------------
 
 export default function CoursesPage() {
   const navigate = useNavigate();
@@ -173,6 +332,10 @@ export default function CoursesPage() {
     } catch { /* ignore */ }
   }, [activeTrackId]);
 
+  const handleSelectTrack = useCallback((trackId: number | null) => {
+    setActiveTrackId(trackId);
+  }, []);
+
   const isLoading = coursesLoading || seriesLoading || tracksLoading;
 
   if (isLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>;
@@ -182,15 +345,12 @@ export default function CoursesPage() {
   const allSeries = seriesList ?? [];
   const allTracks = tracksList ?? [];
 
-  // Auto-select first track if none selected and tracks exist
+  // Auto-select first track if saved track no longer exists
   const effectiveTrackId = activeTrackId !== null && allTracks.some((t) => t.track_id === activeTrackId)
     ? activeTrackId
     : allTracks.length > 0 ? allTracks[0]!.track_id : null;
 
   const activeTrack = allTracks.find((t) => t.track_id === effectiveTrackId);
-
-  // Build lookups
-  const seriesById = new Map<number, CourseSeries>(allSeries.map((s) => [s.series_id, s]));
 
   // Group courses by series
   const coursesBySeries = new Map<number, CourseListItem[]>();
@@ -209,7 +369,6 @@ export default function CoursesPage() {
   let visibleStandalone: CourseListItem[] = [];
 
   if (effectiveTrackId !== null) {
-    // Series in this track
     const trackSeries = allSeries
       .filter((s) => s.track_id === effectiveTrackId)
       .sort((a, b) => (a.track_seq ?? 0) - (b.track_seq ?? 0));
@@ -217,10 +376,8 @@ export default function CoursesPage() {
       const sc = coursesBySeries.get(s.series_id) ?? [];
       if (sc.length > 0) visibleSeriesGroups.push({ series: s, courses: sc });
     }
-    // Standalone courses in this track
     visibleStandalone = coursesNoSeries.filter((c) => c.track_id === effectiveTrackId);
   } else {
-    // Show everything (all tracks mode)
     for (const s of allSeries) {
       const sc = coursesBySeries.get(s.series_id) ?? [];
       if (sc.length > 0) visibleSeriesGroups.push({ series: s, courses: sc });
@@ -233,7 +390,7 @@ export default function CoursesPage() {
 
   return (
     <Box sx={{ p: 2 }}>
-      {/* Header: Track name (clickable) + Create Course */}
+      {/* Header */}
       <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
         <Button
           onClick={() => setSelectorOpen(true)}
@@ -255,7 +412,6 @@ export default function CoursesPage() {
         </Button>
       </Stack>
 
-      {/* Track description */}
       {activeTrack?.description && (
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2, pl: 1 }}>
           {activeTrack.description}
@@ -304,7 +460,7 @@ export default function CoursesPage() {
         onClose={() => setSelectorOpen(false)}
         tracks={allTracks}
         activeTrackId={effectiveTrackId}
-        onSelect={setActiveTrackId}
+        onSelect={handleSelectTrack}
       />
     </Box>
   );

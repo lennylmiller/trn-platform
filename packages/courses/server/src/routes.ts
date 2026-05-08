@@ -6,7 +6,7 @@ import {
   SlideCreateSchema, SlideUpdateSchema,
 } from '@trn-platform/shared/schemas';
 import {
-  listTracks,
+  listTracks, createTrack, updateTrack, deleteTrack,
   listSeries,
   listCourses, getCourse, createCourse, updateCourse, deleteCourse, clearCourse,
   buildCourseContent, exportCourse,
@@ -23,6 +23,33 @@ export const coursesRouter: RouterType = Router();
 
 coursesRouter.get('/tracks', async (_req: Request, res: Response, next: NextFunction) => {
   try { res.json(await listTracks()); } catch (err) { next(err); }
+});
+
+coursesRouter.post('/tracks', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { title, description, seq } = req.body;
+    if (!title) { res.status(400).json({ message: 'title required' }); return; }
+    res.status(201).json(await createTrack({ title, description, seq }));
+  } catch (err) { next(err); }
+});
+
+coursesRouter.put('/tracks/:trackId', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const trackId = Number(req.params.trackId);
+    if (Number.isNaN(trackId)) { res.status(400).json({ message: 'Invalid track ID' }); return; }
+    const track = await updateTrack(trackId, req.body);
+    if (!track) { res.status(404).json({ message: 'Track not found' }); return; }
+    res.json(track);
+  } catch (err) { next(err); }
+});
+
+coursesRouter.delete('/tracks/:trackId', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const trackId = Number(req.params.trackId);
+    if (Number.isNaN(trackId)) { res.status(400).json({ message: 'Invalid track ID' }); return; }
+    if (!(await deleteTrack(trackId))) { res.status(404).json({ message: 'Track not found' }); return; }
+    res.status(204).end();
+  } catch (err) { next(err); }
 });
 
 // ---------------------------------------------------------------------------

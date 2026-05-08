@@ -85,6 +85,41 @@ export async function listTracks(): Promise<CourseTrack[]> {
   }));
 }
 
+export async function createTrack(input: { title: string; description?: string | null; seq?: number }): Promise<CourseTrack> {
+  const pool = await getPool('qc_training');
+  const result = await pool.request()
+    .input('title', input.title)
+    .input('description', input.description ?? null)
+    .input('seq', input.seq ?? 0)
+    .query('INSERT INTO course_track (title, description, seq) OUTPUT INSERTED.* VALUES (@title, @description, @seq)');
+  const r = result.recordset[0];
+  return { track_id: r.track_id as number, title: r.title as string, description: (r.description as string) ?? null, seq: (r.seq as number) ?? 0, metadata: null, created_at: (r.created_at as string) ?? null };
+}
+
+export async function updateTrack(id: number, updates: { title?: string; description?: string | null; seq?: number; metadata?: Record<string, unknown> | null }): Promise<CourseTrack | null> {
+  const pool = await getPool('qc_training');
+  const setClauses: string[] = [];
+  const request = pool.request().input('id', id);
+  if (updates.title !== undefined) { setClauses.push('title = @title'); request.input('title', updates.title); }
+  if (updates.description !== undefined) { setClauses.push('description = @description'); request.input('description', updates.description ?? null); }
+  if (updates.seq !== undefined) { setClauses.push('seq = @seq'); request.input('seq', updates.seq); }
+  if (updates.metadata !== undefined) { setClauses.push('metadata = @metadata'); request.input('metadata', updates.metadata ? JSON.stringify(updates.metadata) : null); }
+  if (setClauses.length === 0) return null;
+  const result = await request.query(`UPDATE course_track SET ${setClauses.join(', ')} OUTPUT INSERTED.* WHERE track_id = @id`);
+  if (!result.recordset[0]) return null;
+  const r = result.recordset[0];
+  return { track_id: r.track_id as number, title: r.title as string, description: (r.description as string) ?? null, seq: (r.seq as number) ?? 0, metadata: parseJson(r.metadata as string) as Record<string, unknown> | null, created_at: (r.created_at as string) ?? null };
+}
+
+export async function deleteTrack(id: number): Promise<boolean> {
+  const pool = await getPool('qc_training');
+  // Unlink series and courses from this track before deleting
+  await pool.request().input('id', id).query('UPDATE course_series SET track_id = NULL, track_seq = NULL WHERE track_id = @id');
+  await pool.request().input('id', id).query('UPDATE course SET track_id = NULL, track_seq = NULL WHERE track_id = @id');
+  const result = await pool.request().input('id', id).query('DELETE FROM course_track WHERE track_id = @id');
+  return (result.rowsAffected[0] ?? 0) > 0;
+}
+
 // ---------------------------------------------------------------------------
 // Series
 // ---------------------------------------------------------------------------
