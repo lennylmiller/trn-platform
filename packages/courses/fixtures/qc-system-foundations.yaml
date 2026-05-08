@@ -1,3 +1,7 @@
+track:
+  title: New User Onboarding
+  description: Foundation courses for new QC users — database orientation, system setup, and the complete insurance lifecycle.
+  seq: 1
 title: QC System Foundations
 description: >-
   Orientation to the Quantum Choice database — its 4 databases, naming conventions, system tables, golden data, finding

@@ -1,3 +1,7 @@
+track:
+  title: New User Onboarding
+  description: Foundation courses for new QC users — database orientation, system setup, and the complete insurance lifecycle.
+  seq: 1
 title: QC Core Insurance Walkthrough
 description: >-
   From Insurance Card to Payment — A Visual Guide to the qc_core Database. Follow the Garcia Family through the

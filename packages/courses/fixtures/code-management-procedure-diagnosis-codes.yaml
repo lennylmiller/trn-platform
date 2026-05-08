@@ -1,3 +1,7 @@
+track:
+  title: New User Onboarding
+  description: Foundation courses for new QC users — database orientation, system setup, and the complete insurance lifecycle.
+  seq: 1
 title: Code Management — Procedure & Diagnosis Codes
 description: >-
   Load the medical code sets that adjudication needs: CPT procedure codes (99201, 73560), ICD-10 diagnosis codes, and

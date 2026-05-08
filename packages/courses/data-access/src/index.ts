@@ -1,7 +1,8 @@
-export { coursesKeys, seriesKeys } from './keys';
+export { coursesKeys, seriesKeys, tracksKeys } from './keys';
 export { useCourses } from './queries/useCourses';
 export { useCourse } from './queries/useCourse';
 export { useSeries } from './queries/useSeries';
+export { useTracks } from './queries/useTracks';
 export { useCreateCourse } from './mutations/useCreateCourse';
 export { useAddLesson } from './mutations/useAddLesson';
 export type { AddLessonVars } from './mutations/useAddLesson';

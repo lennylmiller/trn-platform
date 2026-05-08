@@ -2,7 +2,7 @@ import type {
   Course, CourseCreate, CourseUpdate, CourseDetail,
   CourseLesson, LessonCreate, LessonUpdate,
   CourseSlide, SlideCreate, SlideUpdate,
-  CourseListItem, CourseLessonDetail, CourseSeries,
+  CourseListItem, CourseLessonDetail, CourseSeries, CourseTrack,
 } from '@trn-platform/shared/schemas';
 import { getPool } from '@trn-platform/shared/db';
 
@@ -26,6 +26,8 @@ function mapCourse(row: Record<string, unknown>): Course {
     series_id: (row.series_id as number) ?? null,
     series_seq: (row.series_seq as number) ?? null,
     actor: (row.actor as string) ?? null,
+    track_id: (row.track_id as number) ?? null,
+    track_seq: (row.track_seq as number) ?? null,
     created_at: (row.created_at as string) ?? null,
     updated_at: (row.updated_at as string) ?? null,
   };
@@ -67,6 +69,22 @@ function mapSlide(row: Record<string, unknown>): CourseSlide {
 }
 
 // ---------------------------------------------------------------------------
+// Tracks
+// ---------------------------------------------------------------------------
+
+export async function listTracks(): Promise<CourseTrack[]> {
+  const pool = await getPool('qc_training');
+  const result = await pool.request().query('SELECT * FROM course_track ORDER BY seq, title');
+  return result.recordset.map((r: Record<string, unknown>) => ({
+    track_id: r.track_id as number,
+    title: r.title as string,
+    description: (r.description as string) ?? null,
+    seq: (r.seq as number) ?? 0,
+    created_at: (r.created_at as string) ?? null,
+  }));
+}
+
+// ---------------------------------------------------------------------------
 // Series
 // ---------------------------------------------------------------------------
 
@@ -77,6 +95,8 @@ export async function listSeries(): Promise<CourseSeries[]> {
     series_id: r.series_id as number,
     title: r.title as string,
     description: (r.description as string) ?? null,
+    track_id: (r.track_id as number) ?? null,
+    track_seq: (r.track_seq as number) ?? null,
     created_at: (r.created_at as string) ?? null,
   }));
 }

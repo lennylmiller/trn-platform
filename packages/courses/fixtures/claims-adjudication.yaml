@@ -1,3 +1,7 @@
+track:
+  title: New User Onboarding
+  description: Foundation courses for new QC users — database orientation, system setup, and the complete insurance lifecycle.
+  seq: 1
 title: Claims & Adjudication
 description: >-
   Process Maria''s claim end-to-end: create TRAIN-CLM-001 with two procedure lines (office visit + knee X-ray), walk

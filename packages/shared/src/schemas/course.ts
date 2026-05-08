@@ -17,6 +17,26 @@ export const CourseStatusSchema = z.enum(['draft', 'published', 'archived']);
 export type CourseStatus = z.infer<typeof CourseStatusSchema>;
 
 // ============================================================================
+// TRACKS
+// ============================================================================
+
+export const CourseTrackSchema = z.object({
+  track_id: z.number(),
+  title: z.string().min(1),
+  description: z.string().nullable().optional(),
+  seq: z.number(),
+  created_at: z.string().nullable().optional(),
+});
+export type CourseTrack = z.infer<typeof CourseTrackSchema>;
+
+export const CourseTrackCreateSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().nullable().optional(),
+  seq: z.number().optional(),
+});
+export type CourseTrackCreate = z.infer<typeof CourseTrackCreateSchema>;
+
+// ============================================================================
 // SERIES
 // ============================================================================
 
@@ -24,6 +44,8 @@ export const CourseSeriesSchema = z.object({
   series_id: z.number(),
   title: z.string().min(1),
   description: z.string().nullable().optional(),
+  track_id: z.number().nullable().optional(),
+  track_seq: z.number().nullable().optional(),
   created_at: z.string().nullable().optional(),
 });
 export type CourseSeries = z.infer<typeof CourseSeriesSchema>;
@@ -48,6 +70,8 @@ export const CourseSchema = z.object({
   series_id: z.number().nullable().optional(),
   series_seq: z.number().nullable().optional(),
   actor: z.string().nullable().optional(),
+  track_id: z.number().nullable().optional(),
+  track_seq: z.number().nullable().optional(),
   created_at: z.string().nullable().optional(),
   updated_at: z.string().nullable().optional(),
 });
@@ -176,3 +200,4 @@ export type SlideUpdate = z.infer<typeof SlideUpdateSchema>;
 
 export const CoursesResponseSchema = z.array(CourseListItemSchema);
 export const SeriesResponseSchema = z.array(CourseSeriesSchema);
+export const TracksResponseSchema = z.array(CourseTrackSchema);

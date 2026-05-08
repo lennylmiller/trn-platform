@@ -1,3 +1,7 @@
+track:
+  title: New User Onboarding
+  description: Foundation courses for new QC users — database orientation, system setup, and the complete insurance lifecycle.
+  seq: 1
 title: Member Enrollment
 description: >-
   Enroll the Garcia family: create Maria, Carlos, and Sofia as members, build the family_eligibility household, assign

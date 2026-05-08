@@ -1,3 +1,7 @@
+track:
+  title: New User Onboarding
+  description: Foundation courses for new QC users — database orientation, system setup, and the complete insurance lifecycle.
+  seq: 1
 title: Payments & Accounting
 description: >-
   Complete the lifecycle: batch approved claims into payment run TRAIN-PAYRUN-001, create AP transactions, link payments

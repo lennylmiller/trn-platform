@@ -31,6 +31,7 @@ interface LoadResult {
   lessons: number;
   slides: number;
   series: number;
+  tracks: number;
   dependencies: number;
 }
 
@@ -45,7 +46,27 @@ function readFixtures(dir: string): { filename: string; fixture: FixtureCourse }
   });
 }
 
-async function upsertSeries(pool: any, title: string, description: string | null | undefined): Promise<number> {
+async function upsertTrack(pool: any, title: string, description: string | null | undefined, seq: number): Promise<number> {
+  const existing = await pool.request()
+    .input('title', title)
+    .query('SELECT track_id FROM course_track WHERE title = @title');
+  if (existing.recordset[0]) {
+    await pool.request()
+      .input('id', existing.recordset[0].track_id)
+      .input('description', description ?? null)
+      .input('seq', seq)
+      .query('UPDATE course_track SET description = @description, seq = @seq WHERE track_id = @id');
+    return existing.recordset[0].track_id as number;
+  }
+  const inserted = await pool.request()
+    .input('title', title)
+    .input('description', description ?? null)
+    .input('seq', seq)
+    .query('INSERT INTO course_track (title, description, seq) OUTPUT INSERTED.track_id VALUES (@title, @description, @seq)');
+  return inserted.recordset[0].track_id as number;
+}
+
+async function upsertSeries(pool: any, title: string, description: string | null | undefined, trackId: number | null, trackSeq: number | null): Promise<number> {
   const existing = await pool.request()
     .input('title', title)
     .query('SELECT series_id FROM course_series WHERE title = @title');
@@ -53,13 +74,17 @@ async function upsertSeries(pool: any, title: string, description: string | null
     await pool.request()
       .input('id', existing.recordset[0].series_id)
       .input('description', description ?? null)
-      .query('UPDATE course_series SET description = @description WHERE series_id = @id');
+      .input('track_id', trackId)
+      .input('track_seq', trackSeq)
+      .query('UPDATE course_series SET description = @description, track_id = @track_id, track_seq = @track_seq WHERE series_id = @id');
     return existing.recordset[0].series_id as number;
   }
   const inserted = await pool.request()
     .input('title', title)
     .input('description', description ?? null)
-    .query('INSERT INTO course_series (title, description) OUTPUT INSERTED.series_id VALUES (@title, @description)');
+    .input('track_id', trackId)
+    .input('track_seq', trackSeq)
+    .query('INSERT INTO course_series (title, description, track_id, track_seq) OUTPUT INSERTED.series_id VALUES (@title, @description, @track_id, @track_seq)');
   return inserted.recordset[0].series_id as number;
 }
 
@@ -67,6 +92,7 @@ async function upsertCourseRow(
   pool: any,
   fixture: FixtureCourse,
   seriesId: number | null,
+  trackId: number | null,
 ): Promise<number> {
   const existing = await pool.request()
     .input('title', fixture.title)
@@ -85,10 +111,12 @@ async function upsertCourseRow(
       .input('actor', fixture.actor ?? null)
       .input('series_id', seriesId)
       .input('series_seq', seriesSeq)
+      .input('track_id', trackId)
       .query(`UPDATE course SET
         description = @description, category = @category, status = @status,
         cover_image_url = @cover_image_url, actor = @actor,
         series_id = @series_id, series_seq = @series_seq,
+        track_id = @track_id,
         updated_at = SYSUTCDATETIME()
         WHERE course_id = @id`);
     return id;
@@ -103,10 +131,11 @@ async function upsertCourseRow(
     .input('actor', fixture.actor ?? null)
     .input('series_id', seriesId)
     .input('series_seq', seriesSeq)
+    .input('track_id', trackId)
     .query(`INSERT INTO course
-      (title, description, category, status, cover_image_url, actor, series_id, series_seq)
+      (title, description, category, status, cover_image_url, actor, series_id, series_seq, track_id)
       OUTPUT INSERTED.course_id
-      VALUES (@title, @description, @category, @status, @cover_image_url, @actor, @series_id, @series_seq)`);
+      VALUES (@title, @description, @category, @status, @cover_image_url, @actor, @series_id, @series_seq, @track_id)`);
   return inserted.recordset[0].course_id as number;
 }
 
@@ -198,31 +227,45 @@ export async function loadFixturesFromDir(dir: string): Promise<LoadResult> {
   const fixtures = readFixtures(dir);
   if (fixtures.length === 0) {
     console.warn(`No fixtures found in ${dir}`);
-    return { courses: 0, lessons: 0, slides: 0, series: 0, dependencies: 0 };
+    return { courses: 0, lessons: 0, slides: 0, series: 0, tracks: 0, dependencies: 0 };
   }
 
   const pool = await getPool('qc_training');
-  const result: LoadResult = { courses: 0, lessons: 0, slides: 0, series: 0, dependencies: 0 };
+  const result: LoadResult = { courses: 0, lessons: 0, slides: 0, series: 0, tracks: 0, dependencies: 0 };
 
-  // Pass 1 — series + courses + lessons + slides.
-  // We track course_id per title for the prerequisite second pass.
+  // Pass 1 — tracks + series + courses + lessons + slides.
+  const trackIdByTitle = new Map<string, number>();
   const seriesIdByTitle = new Map<string, number>();
   const courseIdByTitle = new Map<string, number>();
 
   for (const { filename, fixture } of fixtures) {
+    // Resolve track (from fixture.track or inherited from series in future)
+    let trackId: number | null = null;
+    if (fixture.track) {
+      const cached = trackIdByTitle.get(fixture.track.title);
+      if (cached != null) {
+        trackId = cached;
+      } else {
+        trackId = await upsertTrack(pool, fixture.track.title, fixture.track.description, fixture.track.seq ?? 0);
+        trackIdByTitle.set(fixture.track.title, trackId);
+        result.tracks += 1;
+      }
+    }
+
+    // Resolve series
     let seriesId: number | null = null;
     if (fixture.series) {
       const cached = seriesIdByTitle.get(fixture.series.title);
       if (cached != null) {
         seriesId = cached;
       } else {
-        seriesId = await upsertSeries(pool, fixture.series.title, fixture.series.description);
+        seriesId = await upsertSeries(pool, fixture.series.title, fixture.series.description, trackId, null);
         seriesIdByTitle.set(fixture.series.title, seriesId);
         result.series += 1;
       }
     }
 
-    const courseId = await upsertCourseRow(pool, fixture, seriesId);
+    const courseId = await upsertCourseRow(pool, fixture, seriesId, trackId);
     courseIdByTitle.set(fixture.title, courseId);
     result.courses += 1;
 
@@ -261,7 +304,7 @@ async function main() {
   try {
     const result = await loadFixturesFromDir(dir);
     console.log(
-      `Done. courses=${result.courses} lessons=${result.lessons} slides=${result.slides} series=${result.series} deps=${result.dependencies}`,
+      `Done. tracks=${result.tracks} courses=${result.courses} lessons=${result.lessons} slides=${result.slides} series=${result.series} deps=${result.dependencies}`,
     );
   } finally {
     await closePool();

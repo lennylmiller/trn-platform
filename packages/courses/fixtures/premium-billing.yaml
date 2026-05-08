@@ -1,3 +1,7 @@
+track:
+  title: New User Onboarding
+  description: Foundation courses for new QC users — database orientation, system setup, and the complete insurance lifecycle.
+  seq: 1
 title: Premium Billing
 description: >-
   Set up how Acme Manufacturing gets billed for coverage: premium setup, billing type (group vs enrollment), premium

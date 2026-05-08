@@ -6,8 +6,8 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useNavigate } from 'react-router-dom';
-import { useCourses, useSeries } from '@trn-platform/courses-data-access';
-import type { CourseListItem, CourseSeries } from '@trn-platform/shared';
+import { useCourses, useSeries, useTracks } from '@trn-platform/courses-data-access';
+import type { CourseListItem, CourseSeries, CourseTrack } from '@trn-platform/shared';
 
 const STATUS_COLORS: Record<string, 'default' | 'success' | 'warning'> = {
   draft: 'warning',
@@ -74,7 +74,7 @@ function SeriesAccordion({ series, courses, defaultExpanded }: {
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <Box>
           <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
               {series.title}
             </Typography>
             <Chip label={`${courses.length} courses`} size="small" variant="outlined" />
@@ -97,38 +97,131 @@ function SeriesAccordion({ series, courses, defaultExpanded }: {
   );
 }
 
+interface TrackContent {
+  track: CourseTrack;
+  seriesGroups: { series: CourseSeries; courses: CourseListItem[] }[];
+  standaloneCourses: CourseListItem[];
+}
+
+function TrackAccordion({ content, defaultExpanded }: { content: TrackContent; defaultExpanded?: boolean }) {
+  const totalCourses = content.seriesGroups.reduce((s, g) => s + g.courses.length, 0) + content.standaloneCourses.length;
+  return (
+    <Accordion defaultExpanded={defaultExpanded} variant="outlined" disableGutters sx={{ '&:before': { display: 'none' } }}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Box>
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+              {content.track.title}
+            </Typography>
+            <Chip label={`${totalCourses} courses`} size="small" variant="outlined" />
+          </Stack>
+          {content.track.description && (
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              {content.track.description}
+            </Typography>
+          )}
+        </Box>
+      </AccordionSummary>
+      <AccordionDetails sx={{ pt: 0 }}>
+        <Stack spacing={1.5}>
+          {content.seriesGroups.map((sg, idx) => (
+            <SeriesAccordion
+              key={sg.series.series_id}
+              series={sg.series}
+              courses={sg.courses}
+              defaultExpanded={idx === 0}
+            />
+          ))}
+          {content.standaloneCourses.length > 0 && (
+            <Stack spacing={1}>
+              {content.standaloneCourses.map((course) => (
+                <CourseCard key={course.course_id} course={course} />
+              ))}
+            </Stack>
+          )}
+        </Stack>
+      </AccordionDetails>
+    </Accordion>
+  );
+}
+
 export default function CoursesPage() {
   const { data: courses, isLoading: coursesLoading, error: coursesError } = useCourses();
   const { data: seriesList, isLoading: seriesLoading } = useSeries();
+  const { data: tracksList, isLoading: tracksLoading } = useTracks();
 
-  const isLoading = coursesLoading || seriesLoading;
+  const isLoading = coursesLoading || seriesLoading || tracksLoading;
 
   if (isLoading) return <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>;
   if (coursesError) return <Alert severity="error" sx={{ m: 2 }}>Failed to load courses: {coursesError.message}</Alert>;
 
+  const allCourses = courses ?? [];
+  const allSeries = seriesList ?? [];
+  const allTracks = tracksList ?? [];
+
+  // Build lookups
+  const seriesById = new Map<number, CourseSeries>(allSeries.map((s) => [s.series_id, s]));
+
   // Group courses by series
-  const seriesMap = new Map<number, CourseListItem[]>();
-  const standalone: CourseListItem[] = [];
-  (courses ?? []).forEach((c) => {
+  const coursesBySeries = new Map<number, CourseListItem[]>();
+  const coursesNoSeries: CourseListItem[] = [];
+  for (const c of allCourses) {
     if (c.series_id) {
-      if (!seriesMap.has(c.series_id)) seriesMap.set(c.series_id, []);
-      seriesMap.get(c.series_id)!.push(c);
+      if (!coursesBySeries.has(c.series_id)) coursesBySeries.set(c.series_id, []);
+      coursesBySeries.get(c.series_id)!.push(c);
     } else {
-      standalone.push(c);
+      coursesNoSeries.push(c);
     }
-  });
+  }
 
-  // Build lookup for series metadata
-  const seriesById = new Map<number, CourseSeries>(
-    (seriesList ?? []).map((s: CourseSeries) => [s.series_id, s] as const),
-  );
+  // Build track contents
+  const trackContents: TrackContent[] = [];
+  const usedSeriesIds = new Set<number>();
+  const usedCourseIds = new Set<number>();
 
-  // Ordered series IDs (preserve the order from the seriesList response)
-  const orderedSeriesIds: number[] = (seriesList ?? [])
-    .filter((s: CourseSeries) => seriesMap.has(s.series_id))
-    .map((s: CourseSeries) => s.series_id);
+  for (const track of allTracks) {
+    // Series in this track
+    const trackSeries = allSeries
+      .filter((s) => s.track_id === track.track_id)
+      .sort((a, b) => (a.track_seq ?? 0) - (b.track_seq ?? 0));
 
-  const isEmpty = (courses ?? []).length === 0;
+    const seriesGroups: TrackContent['seriesGroups'] = [];
+    for (const s of trackSeries) {
+      const sc = coursesBySeries.get(s.series_id) ?? [];
+      if (sc.length > 0) {
+        seriesGroups.push({ series: s, courses: sc });
+        usedSeriesIds.add(s.series_id);
+        sc.forEach((c) => usedCourseIds.add(c.course_id));
+      }
+    }
+
+    // Standalone courses directly in this track (no series)
+    const standaloneCourses = coursesNoSeries
+      .filter((c) => c.track_id === track.track_id)
+      .sort((a, b) => (a.track_seq ?? 0) - (b.track_seq ?? 0));
+    standaloneCourses.forEach((c) => usedCourseIds.add(c.course_id));
+
+    if (seriesGroups.length > 0 || standaloneCourses.length > 0) {
+      trackContents.push({ track, seriesGroups, standaloneCourses });
+    }
+  }
+
+  // Unassigned series (have courses but no track)
+  const unassignedSeriesGroups: { series: CourseSeries; courses: CourseListItem[] }[] = [];
+  for (const s of allSeries) {
+    if (usedSeriesIds.has(s.series_id)) continue;
+    const sc = coursesBySeries.get(s.series_id) ?? [];
+    if (sc.length > 0) {
+      unassignedSeriesGroups.push({ series: s, courses: sc });
+      sc.forEach((c) => usedCourseIds.add(c.course_id));
+    }
+  }
+
+  // Unassigned standalone courses (no series, no track)
+  const unassignedCourses = coursesNoSeries.filter((c) => !usedCourseIds.has(c.course_id));
+
+  const hasUnassigned = unassignedSeriesGroups.length > 0 || unassignedCourses.length > 0;
+  const isEmpty = allCourses.length === 0;
 
   return (
     <Box sx={{ p: 2 }}>
@@ -141,29 +234,31 @@ export default function CoursesPage() {
         </Typography>
       ) : (
         <Stack spacing={2}>
-          {orderedSeriesIds.map((seriesId: number, idx: number) => {
-            const series = seriesById.get(seriesId);
-            const grouped = seriesMap.get(seriesId) ?? [];
-            if (!series || grouped.length === 0) return null;
-            return (
-              <SeriesAccordion
-                key={seriesId}
-                series={series}
-                courses={grouped}
-                defaultExpanded={idx === 0}
-              />
-            );
-          })}
+          {/* Track-grouped content */}
+          {trackContents.map((tc, idx) => (
+            <TrackAccordion key={tc.track.track_id} content={tc} defaultExpanded={idx === 0} />
+          ))}
 
-          {standalone.length > 0 && (
+          {/* Unassigned series */}
+          {unassignedSeriesGroups.map((sg) => (
+            <SeriesAccordion
+              key={sg.series.series_id}
+              series={sg.series}
+              courses={sg.courses}
+              defaultExpanded={trackContents.length === 0}
+            />
+          ))}
+
+          {/* Unassigned standalone courses */}
+          {unassignedCourses.length > 0 && (
             <Box>
-              {orderedSeriesIds.length > 0 && (
+              {(trackContents.length > 0 || unassignedSeriesGroups.length > 0) && (
                 <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1, mt: 1 }}>
-                  Standalone Courses
+                  Unassigned Courses
                 </Typography>
               )}
               <Stack spacing={1}>
-                {standalone.map((course) => (
+                {unassignedCourses.map((course) => (
                   <CourseCard key={course.course_id} course={course} />
                 ))}
               </Stack>

@@ -28,12 +28,21 @@ interface CourseRow {
   actor: string | null;
   series_id: number | null;
   series_seq: number | null;
+  track_id: number | null;
 }
 
 interface SeriesRow {
   series_id: number;
   title: string;
   description: string | null;
+  track_id: number | null;
+}
+
+interface TrackRow {
+  track_id: number;
+  title: string;
+  description: string | null;
+  seq: number;
 }
 
 interface LessonRow {
@@ -86,6 +95,7 @@ function pruneFixture(course: FixtureCourse): unknown {
   if (course.status && course.status !== 'draft') out.status = course.status;
   if (course.cover_image_url) out.cover_image_url = course.cover_image_url;
   if (course.actor) out.actor = course.actor;
+  if (course.track) out.track = course.track;
   if (course.series) out.series = course.series;
   if (course.prerequisites && course.prerequisites.length > 0) out.prerequisites = course.prerequisites;
   out.lessons = course.lessons.map((l) => {
@@ -120,12 +130,16 @@ async function main() {
   const pool = await getPool('qc_training');
 
   try {
+    const trackRows: TrackRow[] = (await pool.request()
+      .query('SELECT track_id, title, description, seq FROM course_track')).recordset;
+    const trackById = new Map(trackRows.map((t) => [t.track_id, t]));
+
     const seriesRows: SeriesRow[] = (await pool.request()
-      .query('SELECT series_id, title, description FROM course_series')).recordset;
+      .query('SELECT series_id, title, description, track_id FROM course_series')).recordset;
     const seriesById = new Map(seriesRows.map((s) => [s.series_id, s]));
 
     const courseRows: CourseRow[] = (await pool.request()
-      .query('SELECT course_id, title, description, category, status, cover_image_url, actor, series_id, series_seq FROM course ORDER BY course_id')).recordset;
+      .query('SELECT course_id, title, description, category, status, cover_image_url, actor, series_id, series_seq, track_id FROM course ORDER BY course_id')).recordset;
 
     const lessonRows: LessonRow[] = (await pool.request()
       .query('SELECT lesson_id, course_id, seq, title, description FROM course_lesson ORDER BY course_id, seq')).recordset;
@@ -184,6 +198,16 @@ async function main() {
         .map((d) => courseTitleById.get(d.depends_on_course_id))
         .filter((t): t is string => typeof t === 'string');
 
+      // Resolve track — from course directly, or from its series
+      const trackSourceId = course.track_id ?? (course.series_id != null ? seriesById.get(course.series_id!)?.track_id : null) ?? null;
+      const track = trackSourceId != null
+        ? (() => {
+            const t = trackById.get(trackSourceId);
+            if (!t) return null;
+            return { title: t.title, description: t.description, seq: t.seq };
+          })()
+        : null;
+
       const fixture: FixtureCourse = FixtureCourseSchema.parse({
         title: course.title,
         description: course.description,
@@ -191,6 +215,7 @@ async function main() {
         status: course.status,
         cover_image_url: course.cover_image_url,
         actor: course.actor,
+        track,
         series,
         prerequisites,
         lessons,

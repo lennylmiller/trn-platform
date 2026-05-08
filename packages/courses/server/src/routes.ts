@@ -6,6 +6,7 @@ import {
   SlideCreateSchema, SlideUpdateSchema,
 } from '@trn-platform/shared/schemas';
 import {
+  listTracks,
   listSeries,
   listCourses, getCourse, createCourse, updateCourse, deleteCourse,
   addLesson, updateLesson, deleteLesson,
@@ -13,6 +14,14 @@ import {
 } from './queries';
 
 export const coursesRouter: RouterType = Router();
+
+// ---------------------------------------------------------------------------
+// Tracks
+// ---------------------------------------------------------------------------
+
+coursesRouter.get('/tracks', async (_req: Request, res: Response, next: NextFunction) => {
+  try { res.json(await listTracks()); } catch (err) { next(err); }
+});
 
 // ---------------------------------------------------------------------------
 // Series

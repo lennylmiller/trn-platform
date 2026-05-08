@@ -40,6 +40,13 @@ export const FixtureLessonSchema = z.object({
 });
 export type FixtureLesson = z.infer<typeof FixtureLessonSchema>;
 
+export const FixtureTrackRefSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().nullable().optional(),
+  seq: z.number().int().nonnegative().optional(),
+});
+export type FixtureTrackRef = z.infer<typeof FixtureTrackRefSchema>;
+
 export const FixtureSeriesRefSchema = z.object({
   title: z.string().min(1),
   description: z.string().nullable().optional(),
@@ -54,6 +61,7 @@ export const FixtureCourseSchema = z.object({
   status: CourseStatusSchema.default('draft'),
   cover_image_url: z.string().nullable().optional(),
   actor: z.string().nullable().optional(),
+  track: FixtureTrackRefSchema.nullable().optional(),
   series: FixtureSeriesRefSchema.nullable().optional(),
   prerequisites: z.array(z.string().min(1)).default([]),
   lessons: z.array(FixtureLessonSchema).default([]),

@@ -1,3 +1,7 @@
+track:
+  title: New User Onboarding
+  description: Foundation courses for new QC users — database orientation, system setup, and the complete insurance lifecycle.
+  seq: 1
 title: Provider Network Setup
 description: >-
   Build the provider network: create Dr. Rodriguez (PCP, Vicare IPA) and Dr. Park (specialist), set up provider

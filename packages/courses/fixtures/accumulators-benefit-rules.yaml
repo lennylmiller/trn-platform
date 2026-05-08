@@ -1,3 +1,7 @@
+track:
+  title: New User Onboarding
+  description: Foundation courses for new QC users — database orientation, system setup, and the complete insurance lifecycle.
+  seq: 1
 title: Accumulators & Benefit Rules
 description: >-
   Configure the cost-sharing rules for HMO Gold: accumulator frameworks for deductibles and OOP maximums, copay amounts
