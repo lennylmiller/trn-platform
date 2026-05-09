@@ -2,6 +2,7 @@
  * System prompt builder for the chat service.
  * Accepts optional domain-specific context hints.
  */
+import { getRelevantSchemas, formatSchemaContext } from './schema-cache.js';
 
 const BASE_PROMPT = `You are an AI assistant for the QC Training platform. You help users author training steps, flows, and compositions that operate against SQL Server databases.
 
@@ -198,6 +199,20 @@ You are a course architect. Your job is to understand what the author wants to t
 - **Advanced** — Deep dives for experienced users
 `;
 
+/**
+ * Extract course metadata from the context JSON appended to the hint.
+ * The hint looks like: "course-authoring\n\nUser's current context: {\"courseId\":15,\"title\":\"...\",\"description\":\"...\"}"
+ */
+function extractCourseContext(remainder: string): { title?: string; description?: string; category?: string; courseId?: number } {
+  const match = remainder.match(/User's current context:\s*(\{[\s\S]*\})/);
+  if (!match?.[1]) return {};
+  try {
+    return JSON.parse(match[1]);
+  } catch {
+    return {};
+  }
+}
+
 export function buildSystemPrompt(hint?: string): string {
   if (!hint) return BASE_PROMPT;
 
@@ -213,8 +228,25 @@ export function buildSystemPrompt(hint?: string): string {
   if (hint.startsWith('course-authoring')) {
     let prompt = BASE_PROMPT + COURSE_AUTHORING_HINT;
     const remainder = hint.slice('course-authoring'.length).trim();
+
+    // Extract course info from context and inject relevant schema
+    const ctx = extractCourseContext(remainder);
+    if (ctx.title) {
+      prompt += `\n## Course You Are Authoring\n\n`;
+      prompt += `- **Course ID:** ${ctx.courseId}\n`;
+      prompt += `- **Title:** ${ctx.title}\n`;
+      if (ctx.description) prompt += `- **Description:** ${ctx.description}\n`;
+      if (ctx.category) prompt += `- **Category:** ${ctx.category}\n`;
+      prompt += `\nYou already know this course's metadata. Do NOT call get_course.\n`;
+
+      // Inject relevant schema based on title/description
+      const schemas = getRelevantSchemas(ctx.title, ctx.description, ctx.category);
+      prompt += `\n${formatSchemaContext(schemas)}\n`;
+      prompt += `Use the table info above for your SQL in live_demo and sql_challenge slides. No need to call explore_schema for these tables.\n`;
+    }
+
     if (remainder) {
-      prompt += `\n## Current Context\n\n${remainder}`;
+      prompt += `\n## Raw Context\n\n${remainder}`;
     }
     return prompt;
   }

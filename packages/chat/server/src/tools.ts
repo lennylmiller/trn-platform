@@ -168,8 +168,14 @@ export async function executeTool(
       });
 
     case 'run_sql': {
+      const sql = (input.sql as string).trim();
+      // Read-only guard: only allow SELECT and WITH (CTE) queries
+      const firstWord = sql.split(/\s/)[0]?.toUpperCase() ?? '';
+      if (!['SELECT', 'WITH'].includes(firstWord)) {
+        return `Error: The chat service only allows SELECT queries for safety. You tried to run a ${firstWord} statement. Use the course CRUD tools to modify data.`;
+      }
       const result = await runSql(
-        input.sql as string,
+        sql,
         (input.database as string) ?? 'qc_core',
       );
       return JSON.stringify(result, null, 2);
