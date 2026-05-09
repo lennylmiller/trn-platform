@@ -137,6 +137,16 @@ export async function listSeries(): Promise<CourseSeries[]> {
   }));
 }
 
+export async function createSeries(input: { title: string; description?: string | null }): Promise<CourseSeries> {
+  const pool = await getPool('qc_training');
+  const result = await pool.request()
+    .input('title', input.title)
+    .input('description', input.description ?? null)
+    .query('INSERT INTO course_series (title, description) OUTPUT INSERTED.* VALUES (@title, @description)');
+  const r = result.recordset[0];
+  return { series_id: r.series_id as number, title: r.title as string, description: (r.description as string) ?? null, track_id: null, track_seq: null, created_at: (r.created_at as string) ?? null };
+}
+
 // ---------------------------------------------------------------------------
 // Course CRUD
 // ---------------------------------------------------------------------------

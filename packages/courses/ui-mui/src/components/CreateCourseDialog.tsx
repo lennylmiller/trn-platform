@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import Box from '@mui/material/Box';
+import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete';
 import Button from '@mui/material/Button';
 import Collapse from '@mui/material/Collapse';
 import Dialog from '@mui/material/Dialog';
@@ -9,7 +9,6 @@ import DialogTitle from '@mui/material/DialogTitle';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
 import SettingsIcon from '@mui/icons-material/Settings';
 import type { CourseTrack, CourseSeries } from '@trn-platform/shared';
 
@@ -29,6 +28,14 @@ const CATEGORIES = [
   { value: 'troubleshooting', label: 'Troubleshooting' },
 ];
 
+interface SeriesOption {
+  series_id?: number;
+  title: string;
+  inputValue?: string; // For "Create ..." option
+}
+
+const seriesFilter = createFilterOptions<SeriesOption>();
+
 export function CreateCourseDialog({ open, onClose, onCreated, tracks, series }: CreateCourseDialogProps) {
   const [title, setTitle] = useState('');
   const [trackId, setTrackId] = useState<number | ''>('');
@@ -36,7 +43,7 @@ export function CreateCourseDialog({ open, onClose, onCreated, tracks, series }:
   const [showMore, setShowMore] = useState(false);
   const [description, setDescription] = useState('');
   const [actor, setActor] = useState('');
-  const [seriesId, setSeriesId] = useState<number | ''>('');
+  const [selectedSeries, setSelectedSeries] = useState<SeriesOption | null>(null);
   const [creating, setCreating] = useState(false);
 
   const handleClose = () => {
@@ -45,7 +52,7 @@ export function CreateCourseDialog({ open, onClose, onCreated, tracks, series }:
     setCategory('');
     setDescription('');
     setActor('');
-    setSeriesId('');
+    setSelectedSeries(null);
     setShowMore(false);
     onClose();
   };
@@ -54,13 +61,31 @@ export function CreateCourseDialog({ open, onClose, onCreated, tracks, series }:
     if (!title.trim() || trackId === '') return;
     setCreating(true);
     try {
+      // If user typed a new series name, create it first
+      let seriesId: number | null = null;
+      if (selectedSeries) {
+        if (selectedSeries.series_id) {
+          seriesId = selectedSeries.series_id;
+        } else {
+          // Create new series
+          const seriesRes = await fetch('/api/v2/courses/series', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: selectedSeries.inputValue ?? selectedSeries.title }),
+          });
+          if (!seriesRes.ok) throw new Error('Create series failed');
+          const newSeries = await seriesRes.json();
+          seriesId = newSeries.series_id;
+        }
+      }
+
       const body: Record<string, unknown> = {
         title: title.trim(),
         track_id: trackId,
         category: category || null,
         description: description.trim() || null,
         actor: actor.trim() || null,
-        series_id: seriesId || null,
+        series_id: seriesId,
       };
       const res = await fetch('/api/v2/courses', {
         method: 'POST',
@@ -77,6 +102,11 @@ export function CreateCourseDialog({ open, onClose, onCreated, tracks, series }:
       setCreating(false);
     }
   };
+
+  const seriesOptions: SeriesOption[] = series.map((s) => ({
+    series_id: s.series_id,
+    title: s.title,
+  }));
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
@@ -156,20 +186,54 @@ export function CreateCourseDialog({ open, onClose, onCreated, tracks, series }:
                 helperText="Who does the learner role-play as?"
               />
 
-              <TextField
-                select
-                label="Series"
-                size="small"
-                fullWidth
-                value={seriesId}
-                onChange={(e) => setSeriesId(e.target.value ? Number(e.target.value) : '')}
-                helperText="Optional — assign to an ordered course series"
-              >
-                <MenuItem value="">None (standalone)</MenuItem>
-                {series.map((s) => (
-                  <MenuItem key={s.series_id} value={s.series_id}>{s.title}</MenuItem>
-                ))}
-              </TextField>
+              <Autocomplete
+                value={selectedSeries}
+                onChange={(_event, newValue) => {
+                  if (typeof newValue === 'string') {
+                    setSelectedSeries({ title: newValue, inputValue: newValue });
+                  } else if (newValue && newValue.inputValue) {
+                    setSelectedSeries({ title: newValue.inputValue, inputValue: newValue.inputValue });
+                  } else {
+                    setSelectedSeries(newValue);
+                  }
+                }}
+                filterOptions={(options, params) => {
+                  const filtered = seriesFilter(options, params);
+                  const { inputValue } = params;
+                  const exists = options.some((o) => o.title.toLowerCase() === inputValue.toLowerCase());
+                  if (inputValue !== '' && !exists) {
+                    filtered.push({
+                      inputValue,
+                      title: `Create "${inputValue}"`,
+                    });
+                  }
+                  return filtered;
+                }}
+                selectOnFocus
+                clearOnBlur
+                handleHomeEndKeys
+                freeSolo
+                options={seriesOptions}
+                getOptionLabel={(option) => {
+                  if (typeof option === 'string') return option;
+                  if (option.inputValue) return option.inputValue;
+                  return option.title;
+                }}
+                renderOption={({ key, ...props }, option) => (
+                  <li key={key} {...props}>
+                    {option.inputValue ? <em>{option.title}</em> : option.title}
+                  </li>
+                )}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Series"
+                    size="small"
+                    helperText="Type to search or create a new series"
+                    placeholder="None (standalone)"
+                  />
+                )}
+              />
             </Stack>
           </Collapse>
         </Stack>

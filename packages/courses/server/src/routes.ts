@@ -7,7 +7,7 @@ import {
 } from '@trn-platform/shared/schemas';
 import {
   listTracks, createTrack, updateTrack, deleteTrack,
-  listSeries,
+  listSeries, createSeries,
   listCourses, getCourse, createCourse, updateCourse, deleteCourse, clearCourse,
   buildCourseContent, exportCourse,
   addLesson, updateLesson, deleteLesson,
@@ -58,6 +58,14 @@ coursesRouter.delete('/tracks/:trackId', async (req: Request, res: Response, nex
 
 coursesRouter.get('/series', async (_req: Request, res: Response, next: NextFunction) => {
   try { res.json(await listSeries()); } catch (err) { next(err); }
+});
+
+coursesRouter.post('/series', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { title, description } = req.body;
+    if (!title) { res.status(400).json({ message: 'title required' }); return; }
+    res.status(201).json(await createSeries({ title, description }));
+  } catch (err) { next(err); }
 });
 
 // ---------------------------------------------------------------------------
