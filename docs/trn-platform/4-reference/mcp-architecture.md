@@ -309,6 +309,40 @@ package "capture-mcp (planned)" <<planned>> {
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+## Guardrails & Intelligence
+
+The Chat Service has guardrails that the MCP server does not:
+
+| Guardrail | Chat Service | MCP Server |
+|---|---|---|
+| **SQL read-only** | SELECT/WITH only — INSERT/UPDATE/DELETE rejected | Full SQL access (developer trust) |
+| **Schema cache** | Auto-injects relevant table info based on course keywords | No schema injection |
+| **Course context** | Course title/description/category pre-loaded in prompt | Not applicable |
+| **JSON validation** | build_course_content validates JSON before API call | No validation layer |
+| **Intent detection** | "build" keyword → immediate action, no exploration | No intent detection |
+| **Course templates** | Pre-built lesson structures for common topics | No templates |
+
+**Why the difference:** The Chat Service serves end-users (course authors) who need guardrails. The MCP server serves developers (via Claude Code) who need full access.
+
+### Schema Cache Flow
+
+```
+Course title: "Claims & Adjudication"
+    ↓
+schema-cache.ts: keyword match "claim" + "adjudicat"
+    ↓
+Injects CLAIMS_SCHEMA snapshot into system prompt:
+  - claim (PK, key columns, joins)
+  - claim_procedure (guards: is_system_generated=0, charge>0)
+  - adjudication_result_amount (all amount columns)
+  - adjudication_status (golden_key values)
+  - Training data: TRAIN-CLM-001 details
+    ↓
+AI sees table structures WITHOUT calling explore_schema
+```
+
+**File:** `packages/chat/server/src/schema-cache.ts` — 6 domain snapshots, keyword matching, markdown formatting.
+
 ## Key Takeaways
 
 1. **The qc-training app does NOT use MCP directly.** It uses the Chat Service via HTTP (`POST /api/v2/chat`), which wraps Claude API with an agentic tool loop.
@@ -317,8 +351,12 @@ package "capture-mcp (planned)" <<planned>> {
 
 3. **Both Chat and MCP share the same 3 core tools** (explore_schema, run_sql, qc_train) via shared executors in `packages/shared/src/tools/`.
 
-4. **Both Chat and MCP proxy CRUD through Express.** Neither talks to SQL Server directly for course/step/flow operations — they call the Express API at localhost:3001.
+4. **Chat has guardrails, MCP does not.** SQL read-only, schema cache, JSON validation, intent detection — these only apply to the browser-facing Chat Service. The MCP server trusts the developer.
 
-5. **capture-mcp and hooksai are planned** but not yet integrated. They will add screenshot processing capabilities accessible from both the app (via chat tools) and automation (via hooksai file watchers).
+5. **Both Chat and MCP proxy CRUD through Express.** Neither talks to SQL Server directly for course/step/flow operations — they call the Express API at localhost:3001.
 
-6. **Express is the central hub.** Every data mutation goes through it, regardless of whether the caller is the browser, the chat service, or the MCP server.
+6. **Schema intelligence is automatic.** When a course title mentions "adjudication", the Chat Service auto-loads the Claims schema. No tool calls needed.
+
+7. **capture-mcp and hooksai are planned** but not yet integrated. They will add screenshot processing capabilities accessible from both the app (via chat tools) and automation (via hooksai file watchers).
+
+8. **Express is the central hub.** Every data mutation goes through it, regardless of whether the caller is the browser, the chat service, or the MCP server.

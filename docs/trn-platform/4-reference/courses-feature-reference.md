@@ -255,9 +255,11 @@ Upsert semantics: course matched by title (UPDATE if exists, INSERT if new). Les
 
 ---
 
-## 7. MCP Server Tools (for AI-assisted authoring)
+## 7. AI & MCP Tools
 
-Available via `packages/mcp-server/` (`trn-mcp`):
+### MCP Server Tools (for Claude Code / developer use)
+
+Available via `packages/mcp-server/` (`trn-mcp`), 30 tools total. Course-related:
 
 | Tool | Description |
 |---|---|
@@ -268,7 +270,47 @@ Available via `packages/mcp-server/` (`trn-mcp`):
 | `add_course_lesson` | Add a lesson to a course |
 | `add_course_slide` | Add a slide to a lesson (pass slide as JSON string) |
 
-These tools proxy to the Express API at localhost:3001.
+These proxy to the Express API at localhost:3001. Full SQL access (no read-only guard).
+
+### Chat Service Tools (for browser-based AI authoring)
+
+Available via `packages/chat/server/src/tools.ts`, 11 tools. Used by the embedded ChatPanel in the CourseEditor.
+
+| Tool | Description |
+|---|---|
+| `explore_schema` | Describe a specific table (must provide table name) |
+| `run_sql` | Execute SELECT queries only (read-only guard) |
+| `qc_train` | Run qc-train.sh commands |
+| `list_courses` | List all courses |
+| `get_course` | Get course detail (usually not needed — context is pre-loaded) |
+| `build_course_content` | **Bulk create** all lessons + slides in ONE call |
+| `add_course_lesson` | Add single lesson |
+| `add_course_slide` | Add single slide |
+| `update_course` | Update course metadata |
+
+### Guardrails (Chat Service only)
+
+| Guardrail | What It Does | File |
+|---|---|---|
+| SQL read-only | Only SELECT/WITH allowed; INSERT/UPDATE/DELETE rejected | `tools.ts` |
+| Schema cache | Auto-injects relevant table info based on course title keywords | `schema-cache.ts` |
+| Course context | Course title/description/category pre-loaded in system prompt | `system-prompt.ts` |
+| JSON validation | build_course_content validates JSON before API call | `tools.ts` |
+| Intent detection | "build" keyword → immediate action, no exploration | `system-prompt.ts` |
+| Course templates | Pre-built lesson structures for claims, providers, enrollment | `system-prompt.ts` |
+
+### Schema Cache Domains
+
+| Domain | Keywords | Tables Included |
+|---|---|---|
+| Claims & Adjudication | claim, adjudicat | claim, claim_procedure, adjudication_result_amount, adjudication_status |
+| Member Enrollment | enroll, eligib, member | family_eligibility chain, member, member_name |
+| Benefit Administration | benefit, contract, plan, client | client → group → contract → plan → framework |
+| Provider Network | provider, network, ipa, pcp | provider, provider_name, provider_identifier |
+| Referrals | referral, authoriz | referral, referral_provider, referral_status |
+| Payments | payment, accounting, payrun | claim_payment_run, accounting_transaction_ap |
+
+File: `packages/chat/server/src/schema-cache.ts`
 
 ---
 
@@ -294,22 +336,25 @@ Key types exported:
 
 ---
 
-## 9. Known Gaps & In-Progress Work
+## 9. What's Built vs What's Remaining
 
-### Content gaps
-- **8 of 10 implementation courses are empty** (courses 5-12: Code Management through Payments & Accounting). Titles, descriptions, and series ordering exist but no lessons or slides.
-- No courses have `status: published` — all are `draft`.
-- No `cover_image_url` set on any course.
+### Built (Experiments 1-7)
+- Course editor: 3-panel layout, slide editing, add/delete, preview toggle
+- Course tracks: audience/purpose grouping with selector modal, CRUD
+- AI authoring: embedded ChatPanel with course CRUD tools, bulk build
+- Create course: modal with track/series selection (inline series creation)
+- Export/import: JSON round-trip, delete course, clear course
+- Schema cache: auto-injected table info for 6 QC domains
+- SQL read-only guard: chat service only allows SELECT
+- Chat persistence: localStorage, survives refresh
+- Automated tests: 28 server integration tests + smoke test script
 
-### Feature gaps
-- **No slide reordering UI** — lessons and slides can be reordered via API (update `seq`) but no drag-and-drop in the player.
-- **No course editing UI** — content is authored via YAML fixtures or MCP tools, not through the web app.
-- **No SQL execution in player** — `live_demo` and `sql_challenge` slides display SQL text but don't execute it against qc_core. The `do_it_in_qc` slide type has `verify_mode` + `expected_json` infrastructure but execution may not be wired up in the UI yet.
-- **No prerequisite enforcement** — `course_dependency` table exists but no UI or API enforces completion order.
-- **No completion tracking** — no `course_completion` or progress tables observed.
-- **Seed SQL UI** — slides with `seed_sql` have the data but no "Seed Data" button visible in the player.
-
-### Architecture notes
-- The `useAddSection.ts` file was deleted (replaced by `useAddLesson.ts`) — the section->lesson rename is complete.
-- Fixture schema still has one stale comment referencing "section_id" in `fixture-schema.ts` line 8.
-- The `weekly-qcap-sync.yaml` fixture is untracked (new file not yet committed).
+### Remaining Gaps
+- **No slide reordering UI** — no drag-and-drop in the outline
+- **No SQL execution in player** — `live_demo` and `sql_challenge` display SQL but don't run it
+- **No prerequisite enforcement** — `course_dependency` table exists but not enforced
+- **No completion tracking** — no progress tables
+- **No cover images** — no `cover_image_url` set on any course
+- **capture-mcp integration** — planned but not wired in
+- **hooksai integration** — planned but not wired in
+- **PDF document ingestion** — planned (Experiment 9)
