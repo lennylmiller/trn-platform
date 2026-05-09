@@ -1,15 +1,3 @@
-
-## Submitted
-
-Create the Borgia Family and ensure you add _TRAIN_ when naming things to make sure it's easy to find
-
-Create a Claims Adjudication Course
-
-Build out this course. It should teach a new QC user how claim adjudication works — from submitting a claim through to the adjudication result amounts.  
-
-
-## You'll get something along the lines of
-
 Build out this course on Claims Adjudication using the Borgia-TRAIN training family. Create comprehensive training data for the Borgia family members with realistic healthcare scenarios.
 
 **Course: Claims Adjudication Fundamentals**
