@@ -10,6 +10,9 @@ export type { CourseOutlineProps } from './components/CourseOutline';
 export { SlideEditorForm } from './components/SlideEditorForm';
 export type { SlideEditorFormProps } from './components/SlideEditorForm';
 
+export { CreateCourseDialog } from './components/CreateCourseDialog';
+export type { CreateCourseDialogProps } from './components/CreateCourseDialog';
+
 export { AddLessonDialog } from './components/AddLessonDialog';
 export type { AddLessonDialogProps } from './components/AddLessonDialog';
 

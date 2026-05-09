@@ -14,7 +14,8 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { useCourses, useSeries, useTracks, tracksKeys } from '@trn-platform/courses-data-access';
+import { useCourses, useSeries, useTracks, tracksKeys, coursesKeys } from '@trn-platform/courses-data-access';
+import { CreateCourseDialog } from '@trn-platform/courses-ui-mui';
 import type { CourseListItem, CourseSeries, CourseTrack } from '@trn-platform/shared';
 
 const STATUS_COLORS: Record<string, 'default' | 'success' | 'warning'> = {
@@ -324,6 +325,7 @@ export default function CoursesPage() {
     } catch { return null; }
   });
   const [selectorOpen, setSelectorOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -406,7 +408,7 @@ export default function CoursesPage() {
           variant="contained"
           startIcon={<AddIcon />}
           size="small"
-          onClick={() => navigate('/courses/new')}
+          onClick={() => setCreateOpen(true)}
         >
           Create Course
         </Button>
@@ -461,6 +463,18 @@ export default function CoursesPage() {
         tracks={allTracks}
         activeTrackId={effectiveTrackId}
         onSelect={handleSelectTrack}
+      />
+
+      {/* Create course modal */}
+      <CreateCourseDialog
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={(courseId) => {
+          void queryClient.invalidateQueries({ queryKey: coursesKeys.lists() });
+          navigate(`/courses/edit/${courseId}`);
+        }}
+        tracks={allTracks}
+        series={allSeries}
       />
     </Box>
   );

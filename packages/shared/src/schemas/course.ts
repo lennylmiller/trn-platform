@@ -146,6 +146,7 @@ export const CourseCreateSchema = z.object({
   actor: z.string().nullable().optional(),
   series_id: z.number().nullable().optional(),
   series_seq: z.number().nullable().optional(),
+  track_id: z.number().nullable().optional(),
 });
 export type CourseCreate = z.infer<typeof CourseCreateSchema>;
 
@@ -156,6 +157,7 @@ export const CourseUpdateSchema = z.object({
   actor: z.string().nullable().optional(),
   series_id: z.number().nullable().optional(),
   series_seq: z.number().nullable().optional(),
+  track_id: z.number().nullable().optional(),
   status: CourseStatusSchema.optional(),
   cover_image_url: z.string().nullable().optional(),
 }).partial();

@@ -145,6 +145,7 @@ The content parameter is a JSON string containing an array of lessons, each with
         description: { type: 'string', description: 'New description' },
         category: { type: 'string', description: 'Category (e.g., implementation, operations, walkthrough, database)' },
         status: { type: 'string', description: 'Status: draft, published, or archived' },
+        track_id: { type: 'number', description: 'Track ID to assign the course to' },
       },
       required: ['courseId'],
     },
@@ -217,7 +218,7 @@ export async function executeTool(
 
     case 'update_course': {
       const updates: Record<string, unknown> = {};
-      for (const key of ['title', 'description', 'category', 'status']) {
+      for (const key of ['title', 'description', 'category', 'status', 'track_id']) {
         if (input[key] !== undefined) updates[key] = input[key];
       }
       const course = await apiFetch<unknown>(`/api/v2/courses/${input.courseId}`, {

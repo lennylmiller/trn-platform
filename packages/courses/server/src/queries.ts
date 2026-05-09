@@ -199,7 +199,8 @@ export async function createCourse(input: CourseCreate): Promise<Course> {
     .input('actor', input.actor ?? null)
     .input('series_id', input.series_id ?? null)
     .input('series_seq', input.series_seq ?? null)
-    .query('INSERT INTO course (title, description, category, actor, series_id, series_seq) OUTPUT INSERTED.* VALUES (@title, @description, @category, @actor, @series_id, @series_seq)');
+    .input('track_id', input.track_id ?? null)
+    .query('INSERT INTO course (title, description, category, actor, series_id, series_seq, track_id) OUTPUT INSERTED.* VALUES (@title, @description, @category, @actor, @series_id, @series_seq, @track_id)');
   return mapCourse(result.recordset[0]);
 }
 
@@ -213,6 +214,7 @@ export async function updateCourse(id: number, updates: CourseUpdate): Promise<C
   if (updates.category !== undefined) { setClauses.push('category = @category'); request.input('category', updates.category ?? null); }
   if (updates.status !== undefined) { setClauses.push('status = @status'); request.input('status', updates.status); }
   if (updates.cover_image_url !== undefined) { setClauses.push('cover_image_url = @cover_image_url'); request.input('cover_image_url', updates.cover_image_url ?? null); }
+  if (updates.track_id !== undefined) { setClauses.push('track_id = @track_id'); request.input('track_id', updates.track_id ?? null); }
 
   if (setClauses.length === 0) return getCourse(id) as Promise<Course | null>;
   setClauses.push('updated_at = SYSUTCDATETIME()');
