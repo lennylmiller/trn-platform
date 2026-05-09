@@ -3,7 +3,7 @@ import type { Request, Response, NextFunction } from 'express';
 import {
   CourseCreateSchema, CourseUpdateSchema,
   LessonCreateSchema, LessonUpdateSchema,
-  BlockCreateSchema, BlockUpdateSchema,
+  CourseBlockCreateSchema, CourseBlockUpdateSchema,
 } from '@trn-platform/shared/schemas';
 import {
   listTracks, createTrack, updateTrack, deleteTrack,
@@ -197,7 +197,7 @@ coursesRouter.post('/:id/lessons/:lessonId/slides', async (req: Request, res: Re
   try {
     const lessonId = Number(req.params.lessonId);
     if (Number.isNaN(lessonId)) { res.status(400).json({ message: 'Invalid lesson ID' }); return; }
-    const input = BlockCreateSchema.parse(req.body);
+    const input = CourseBlockCreateSchema.parse(req.body);
     res.status(201).json(await addBlock(lessonId, input));
   } catch (err) { next(err); }
 });
@@ -206,7 +206,7 @@ coursesRouter.put('/:id/lessons/:lessonId/slides/:slId', async (req: Request, re
   try {
     const slId = Number(req.params.slId);
     if (Number.isNaN(slId)) { res.status(400).json({ message: 'Invalid slide ID' }); return; }
-    const updates = BlockUpdateSchema.parse(req.body);
+    const updates = CourseBlockUpdateSchema.parse(req.body);
     const slide = await updateBlock(slId, updates);
     if (!slide) { res.status(404).json({ message: 'Slide not found' }); return; }
     res.json(slide);

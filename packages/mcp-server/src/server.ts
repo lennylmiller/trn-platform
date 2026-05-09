@@ -439,12 +439,12 @@ export function createServer(): McpServer {
   );
 
   server.tool(
-    'add_course_slide',
-    'Add a slide to a course lesson. slide_type determines which fields are used.',
+    'add_course_block',
+    'Add a slide to a course lesson. block_type determines which fields are used.',
     {
       courseId: z.number().describe('The course_id'),
       lessonId: z.number().describe('The lesson_id'),
-      slide: z.string().describe('JSON object with slide fields: {seq, slide_type, title?, content?, sql_text?, sql_label?, verify_mode?, expected_json?, quiz_question?, quiz_options?, quiz_answer?, quiz_explanation?, hints?, presenter_notes?, image_url?}'),
+      slide: z.string().describe('JSON object with slide fields: {seq, block_type, title?, content?, sql_text?, sql_label?, verify_mode?, expected_json?, quiz_question?, quiz_options?, quiz_answer?, quiz_explanation?, hints?, presenter_notes?, image_url?}'),
     },
     async ({ courseId, lessonId, slide }) => {
       const parsed = JSON.parse(slide) as Record<string, unknown>;
@@ -484,7 +484,7 @@ export function createServer(): McpServer {
     'Build an entire course\'s lessons and slides in ONE call. Replaces all existing content. Pass a JSON string with the full structure.',
     {
       courseId: z.number().describe('The course_id to build content for'),
-      content: z.string().describe('JSON string: { "lessons": [{ "title": "...", "description": "...", "slides": [{ "slide_type": "narrative", "title": "...", "content": "..." }, ...] }] }'),
+      content: z.string().describe('JSON string: { "lessons": [{ "title": "...", "description": "...", "slides": [{ "block_type": "narrative", "title": "...", "content": "..." }, ...] }] }'),
     },
     async ({ courseId, content }) => {
       let parsed: { lessons: unknown[] };

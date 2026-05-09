@@ -21,7 +21,7 @@ export function useCoursePlayer(courseId: number | undefined) {
     if (!course?.lessons) return [];
     const result: FlatBlock[] = [];
     course.lessons.forEach((lesson, lessonIdx) => {
-      lesson.slides.forEach((slide) => {
+      lesson.blocks.forEach((slide) => {
         result.push({
           slide,
           lessonTitle: lesson.title,
@@ -58,8 +58,8 @@ export function useCoursePlayer(courseId: number | undefined) {
     const breaks: { title: string; startIndex: number; count: number }[] = [];
     let idx = 0;
     for (const lesson of course.lessons) {
-      breaks.push({ title: lesson.title, startIndex: idx, count: lesson.slides.length });
-      idx += lesson.slides.length;
+      breaks.push({ title: lesson.title, startIndex: idx, count: lesson.blocks.length });
+      idx += lesson.blocks.length;
     }
     return breaks;
   }, [course?.lessons]);

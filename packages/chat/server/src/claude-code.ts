@@ -11,7 +11,7 @@ const execFile = promisify(execFileCb);
 
 const PLAN_SYSTEM_PROMPT = `You are a course planning assistant for the QC Training platform. The user will give you a rough idea for a training course about the QC healthcare database system.
 
-Your job is to take their rough idea and produce a refined, structured prompt that can be sent to an AI course builder. The course builder understands these slide types:
+Your job is to take their rough idea and produce a refined, structured prompt that can be sent to an AI course builder. The course builder understands these block types:
 - narrative: rich markdown content teaching a concept
 - live_demo: SQL query with a label that runs against qc_core
 - quiz: multiple choice with 4 options, 0-based answer index, and explanation
@@ -35,7 +35,7 @@ Key database areas:
 Output ONLY the refined prompt — no preamble, no explanation. The prompt should:
 1. Start with "Build out this course..."
 2. Specify the training family name with _TRAIN_ suffix
-3. List each lesson with title, which tables it covers, and slide types
+3. List each lesson with title, which tables it covers, and block types
 4. Specify the rhythm: narrative → live_demo → quiz per lesson
 5. Include specific SQL examples or table references
 6. Be detailed enough that the course builder can create all content in one tool call`;

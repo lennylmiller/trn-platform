@@ -7,8 +7,8 @@ export type { CourseEditorProps } from './components/CourseEditor';
 export { CourseOutline } from './components/CourseOutline';
 export type { CourseOutlineProps } from './components/CourseOutline';
 
-export { SlideEditorForm } from './components/SlideEditorForm';
-export type { SlideEditorFormProps } from './components/SlideEditorForm';
+export { BlockEditorForm } from './components/BlockEditorForm';
+export type { BlockEditorFormProps } from './components/BlockEditorForm';
 
 export { CreateCourseDialog } from './components/CreateCourseDialog';
 export type { CreateCourseDialogProps } from './components/CreateCourseDialog';
@@ -16,16 +16,16 @@ export type { CreateCourseDialogProps } from './components/CreateCourseDialog';
 export { AddLessonDialog } from './components/AddLessonDialog';
 export type { AddLessonDialogProps } from './components/AddLessonDialog';
 
-export { AddSlideDialog } from './components/AddSlideDialog';
-export type { AddSlideDialogProps } from './components/AddSlideDialog';
+export { AddBlockDialog } from './components/AddBlockDialog';
+export type { AddBlockDialogProps } from './components/AddBlockDialog';
 
-export { SlideRenderer } from './components/SlideRenderer';
-export type { SlideRendererProps } from './components/SlideRenderer';
+export { BlockRenderer } from './components/BlockRenderer';
+export type { BlockRendererProps } from './components/BlockRenderer';
 
-export { NarrativeSlide } from './components/slides/NarrativeSlide';
-export { ReferenceSlide } from './components/slides/ReferenceSlide';
-export { LiveDemoSlide } from './components/slides/LiveDemoSlide';
-export { SqlChallengeSlide } from './components/slides/SqlChallengeSlide';
-export { QuizSlide } from './components/slides/QuizSlide';
-export { DoItInQcSlide } from './components/slides/DoItInQcSlide';
-export { ScreenshotTaskSlide } from './components/slides/ScreenshotTaskSlide';
+export { NarrativeBlock } from './components/slides/NarrativeBlock';
+export { ReferenceBlock } from './components/slides/ReferenceBlock';
+export { LiveDemoBlock } from './components/slides/LiveDemoBlock';
+export { SqlChallengeBlock } from './components/slides/SqlChallengeBlock';
+export { QuizBlock } from './components/slides/QuizBlock';
+export { DoItInQcBlock } from './components/slides/DoItInQcBlock';
+export { ScreenshotTaskBlock } from './components/slides/ScreenshotTaskBlock';

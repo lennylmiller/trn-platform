@@ -63,7 +63,7 @@ function CourseCard({ course, showSeq }: { course: CourseListItem; showSeq?: boo
                 </Typography>
               )}
               <Typography variant="caption" color="text.secondary">
-                {course.lesson_count} lessons &middot; {course.slide_count} slides
+                {course.lesson_count} lessons &middot; {course.block_count} slides
               </Typography>
             </Box>
           </CardContent>

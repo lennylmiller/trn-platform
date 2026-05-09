@@ -20,11 +20,11 @@ import { coursesKeys } from '@trn-platform/courses-data-access';
 import { ChatPanel } from '@trn-platform/chat-ui-mui';
 import { CourseOutline } from './CourseOutline';
 import { CoursePlayer } from './CoursePlayer';
-import { SlideRenderer } from './SlideRenderer';
-import { SlideEditorForm } from './SlideEditorForm';
+import { BlockRenderer } from './BlockRenderer';
+import { BlockEditorForm } from './BlockEditorForm';
 import { AddLessonDialog } from './AddLessonDialog';
-import { AddSlideDialog } from './AddSlideDialog';
-import type { CourseLesson, SlideType } from '@trn-platform/shared';
+import { AddBlockDialog } from './AddBlockDialog';
+import type { CourseLesson, BlockType } from '@trn-platform/shared';
 
 export interface CourseEditorProps {
   courseId: number;
@@ -70,15 +70,15 @@ function LessonPropertiesPanel({ lesson }: { lesson: CourseLesson }) {
 export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
   const {
     course, isLoading, error,
-    selection, selectedLesson, selectedSlide,
-    selectLesson, selectSlide,
-    updateSlide, addLesson, addSlide, deleteLesson, deleteSlide,
+    selection, selectedLesson, selectedBlock,
+    selectLesson, selectBlock,
+    updateBlock, addLesson, addBlock, deleteLesson, deleteBlock,
     clearSelection, isSaving,
   } = useCourseEditor(courseId);
 
   const queryClient = useQueryClient();
   const [addLessonOpen, setAddLessonOpen] = useState(false);
-  const [addSlideTarget, setAddSlideTarget] = useState<number | null>(null);
+  const [addBlockTarget, setAddSlideTarget] = useState<number | null>(null);
   const [mode, setMode] = useState<'edit' | 'preview'>('edit');
   // Auto-open AI Author for empty courses (fresh from Create Course)
   const [chatOpen, setChatOpen] = useState(false);
@@ -161,16 +161,16 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
     addLesson(title);
   };
 
-  const handleAddSlide = (slideType: SlideType, title: string) => {
-    if (addSlideTarget === null) return;
-    const lesson = course.lessons.find((l) => l.lesson_id === addSlideTarget);
-    const seq = lesson?.slides.length ?? 0;
-    addSlide(addSlideTarget, { seq, slide_type: slideType, title });
+  const handleAddSlide = (slideType: BlockType, title: string) => {
+    if (addBlockTarget === null) return;
+    const lesson = course.lessons.find((l) => l.lesson_id === addBlockTarget);
+    const seq = lesson?.blocks.length ?? 0;
+    addBlock(addBlockTarget, { seq, block_type: slideType, title });
   };
 
   const handleDeleteLesson = (lessonId: number) => {
     const lesson = course.lessons.find((l) => l.lesson_id === lessonId);
-    const slideCount = lesson?.slides.length ?? 0;
+    const slideCount = lesson?.blocks.length ?? 0;
     const msg = slideCount > 0
       ? `Delete "${lesson?.title}" and its ${slideCount} slides?`
       : `Delete "${lesson?.title}"?`;
@@ -180,9 +180,9 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
   const handleDeleteSlide = (lessonId: number, slideId: number) => {
     const slide = course.lessons
       .find((l) => l.lesson_id === lessonId)
-      ?.slides.find((s) => s.slide_id === slideId);
+      ?.blocks.find((s) => s.slide_id === slideId);
     if (window.confirm(`Delete slide "${slide?.title ?? 'Untitled'}"?`)) {
-      deleteSlide(lessonId, slideId);
+      deleteBlock(lessonId, slideId);
     }
   };
 
@@ -212,7 +212,7 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
           <Chip label={course.category} size="small" variant="outlined" />
         )}
         <Typography variant="body2" color="text.secondary">
-          {course.lessons.length} lessons &middot; {course.lessons.reduce((s, l) => s + l.slides.length, 0)} slides
+          {course.lessons.length} lessons &middot; {course.lessons.reduce((s, l) => s + l.blocks.length, 0)} slides
         </Typography>
         <Button
           size="small"
@@ -282,21 +282,21 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
             <CourseOutline
               lessons={course.lessons}
               selectedLessonId={selection?.lessonId}
-              selectedSlideId={selection?.slideId}
+              selectedBlockId={selection?.slideId}
               onSelectLesson={selectLesson}
-              onSelectSlide={selectSlide}
+              onSelectSlide={selectBlock}
               onAddLesson={() => setAddLessonOpen(true)}
-              onAddSlide={(lessonId) => setAddSlideTarget(lessonId)}
+              onAddBlock={(lessonId) => setAddSlideTarget(lessonId)}
               onDeleteLesson={handleDeleteLesson}
-              onDeleteSlide={handleDeleteSlide}
+              onDeleteBlock={handleDeleteSlide}
             />
           </Box>
 
           {/* Center: Slide preview */}
           <Box sx={{ flex: 1, overflow: 'auto', bgcolor: 'background.default' }}>
-            {selectedSlide ? (
+            {selectedBlock ? (
               <Box sx={{ maxWidth: 900, mx: 'auto', p: 3 }}>
-                <SlideRenderer slide={selectedSlide} />
+                <BlockRenderer slide={selectedBlock} />
               </Box>
             ) : selectedLesson ? (
               <Box sx={{ p: 4, textAlign: 'center' }}>
@@ -333,10 +333,10 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
             </Box>
           ) : (
             <Box sx={{ width: 360, flexShrink: 0, borderLeft: 1, borderColor: 'divider', overflow: 'hidden', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column' }}>
-              {selectedSlide && selection ? (
-                <SlideEditorForm
-                  slide={selectedSlide}
-                  onSave={(updates) => updateSlide(selectedSlide.slide_id, selection.lessonId, updates)}
+              {selectedBlock && selection ? (
+                <BlockEditorForm
+                  slide={selectedBlock}
+                  onSave={(updates) => updateBlock(selectedBlock.slide_id, selection.lessonId, updates)}
                   isSaving={isSaving}
                 />
               ) : selectedLesson ? (
@@ -359,8 +359,8 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
         onClose={() => setAddLessonOpen(false)}
         onAdd={handleAddLesson}
       />
-      <AddSlideDialog
-        open={addSlideTarget !== null}
+      <AddBlockDialog
+        open={addBlockTarget !== null}
         onClose={() => setAddSlideTarget(null)}
         onAdd={handleAddSlide}
       />

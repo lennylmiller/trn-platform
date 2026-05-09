@@ -1,9 +1,9 @@
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import type { CourseSlide } from '@trn-platform/shared';
+import type { CourseBlock } from '@trn-platform/shared';
 import { RunnableSqlBlock, MarkdownBlock } from '@trn-platform/compositions-ui-mui';
 
-export function LiveDemoSlide({ slide }: { slide: CourseSlide }) {
+export function LiveDemoBlock({ slide }: { slide: CourseBlock }) {
   return (
     <Box>
       {slide.title && (

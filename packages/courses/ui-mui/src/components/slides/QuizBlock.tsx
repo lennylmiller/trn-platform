@@ -6,9 +6,9 @@ import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Typography from '@mui/material/Typography';
-import type { CourseSlide } from '@trn-platform/shared';
+import type { CourseBlock } from '@trn-platform/shared';
 
-export function QuizSlide({ slide }: { slide: CourseSlide }) {
+export function QuizBlock({ slide }: { slide: CourseBlock }) {
   const [selected, setSelected] = useState<number | null>(null);
   const [submitted, setSubmitted] = useState(false);
 

@@ -14,18 +14,18 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
-import type { CourseLessonDetail, CourseSlide } from '@trn-platform/shared';
+import type { CourseLessonDetail, CourseBlock } from '@trn-platform/shared';
 
 export interface CourseOutlineProps {
   lessons: CourseLessonDetail[];
   selectedLessonId?: number;
-  selectedSlideId?: number;
+  selectedBlockId?: number;
   onSelectLesson: (lessonId: number) => void;
   onSelectSlide: (lessonId: number, slideId: number) => void;
   onAddLesson?: () => void;
-  onAddSlide?: (lessonId: number) => void;
+  onAddBlock?: (lessonId: number) => void;
   onDeleteLesson?: (lessonId: number) => void;
-  onDeleteSlide?: (lessonId: number, slideId: number) => void;
+  onDeleteBlock?: (lessonId: number, slideId: number) => void;
 }
 
 const SLIDE_TYPE_COLORS: Record<string, 'primary' | 'secondary' | 'success' | 'warning' | 'info' | 'error' | 'default'> = {
@@ -54,7 +54,7 @@ function SlideRow({
   onClick,
   onDelete,
 }: {
-  slide: CourseSlide;
+  slide: CourseBlock;
   selected: boolean;
   onClick: () => void;
   onDelete?: () => void;
@@ -66,9 +66,9 @@ function SlideRow({
       sx={{ pl: 5, py: 0.5, '&:hover .delete-btn': { opacity: 1 } }}
     >
       <Chip
-        label={SLIDE_TYPE_SHORT[slide.slide_type] ?? slide.slide_type}
+        label={SLIDE_TYPE_SHORT[slide.block_type] ?? slide.block_type}
         size="small"
-        color={SLIDE_TYPE_COLORS[slide.slide_type] ?? 'default'}
+        color={SLIDE_TYPE_COLORS[slide.block_type] ?? 'default'}
         sx={{ mr: 1.5, minWidth: 44, fontSize: '0.7rem' }}
       />
       <ListItemText
@@ -92,24 +92,24 @@ function SlideRow({
 function LessonGroup({
   lesson,
   selectedLessonId,
-  selectedSlideId,
+  selectedBlockId,
   onSelectLesson,
   onSelectSlide,
-  onAddSlide,
+  onAddBlock,
   onDeleteLesson,
-  onDeleteSlide,
+  onDeleteBlock,
 }: {
   lesson: CourseLessonDetail;
   selectedLessonId?: number;
-  selectedSlideId?: number;
+  selectedBlockId?: number;
   onSelectLesson: (lessonId: number) => void;
   onSelectSlide: (lessonId: number, slideId: number) => void;
-  onAddSlide?: (lessonId: number) => void;
+  onAddBlock?: (lessonId: number) => void;
   onDeleteLesson?: (lessonId: number) => void;
-  onDeleteSlide?: (lessonId: number, slideId: number) => void;
+  onDeleteBlock?: (lessonId: number, slideId: number) => void;
 }) {
   const isLessonSelected = selectedLessonId === lesson.lesson_id;
-  const [open, setOpen] = useState(isLessonSelected || lesson.slides.length > 0);
+  const [open, setOpen] = useState(isLessonSelected || lesson.blocks.length > 0);
 
   const handleClick = () => {
     setOpen((v) => !v);
@@ -119,7 +119,7 @@ function LessonGroup({
   return (
     <>
       <ListItemButton
-        selected={isLessonSelected && !selectedSlideId}
+        selected={isLessonSelected && !selectedBlockId}
         onClick={handleClick}
         sx={{ py: 0.75, '&:hover .delete-btn': { opacity: 1 } }}
       >
@@ -128,7 +128,7 @@ function LessonGroup({
         </ListItemIcon>
         <ListItemText
           primary={lesson.title}
-          secondary={`${lesson.slides.length} slides`}
+          secondary={`${lesson.blocks.length} slides`}
           slotProps={{
             primary: { variant: 'body2', sx: { fontWeight: 600 }, noWrap: true },
             secondary: { variant: 'caption' },
@@ -144,22 +144,22 @@ function LessonGroup({
             <DeleteIcon sx={{ fontSize: 16 }} />
           </IconButton>
         )}
-        {lesson.slides.length > 0 && (open ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />)}
+        {lesson.blocks.length > 0 && (open ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />)}
       </ListItemButton>
       <Collapse in={open} timeout="auto" unmountOnExit>
         <List component="div" disablePadding>
-          {lesson.slides.map((slide) => (
+          {lesson.blocks.map((slide) => (
             <SlideRow
               key={slide.slide_id}
               slide={slide}
-              selected={selectedSlideId === slide.slide_id}
+              selected={selectedBlockId === slide.slide_id}
               onClick={() => onSelectSlide(lesson.lesson_id, slide.slide_id)}
-              onDelete={onDeleteSlide ? () => onDeleteSlide(lesson.lesson_id, slide.slide_id) : undefined}
+              onDelete={onDeleteBlock ? () => onDeleteBlock(lesson.lesson_id, slide.slide_id) : undefined}
             />
           ))}
-          {onAddSlide && (
+          {onAddBlock && (
             <ListItemButton
-              onClick={(e) => { e.stopPropagation(); onAddSlide(lesson.lesson_id); }}
+              onClick={(e) => { e.stopPropagation(); onAddBlock(lesson.lesson_id); }}
               sx={{ pl: 5, py: 0.5, color: 'text.secondary' }}
             >
               <AddIcon sx={{ fontSize: 16, mr: 1 }} />
@@ -175,13 +175,13 @@ function LessonGroup({
 export function CourseOutline({
   lessons,
   selectedLessonId,
-  selectedSlideId,
+  selectedBlockId,
   onSelectLesson,
   onSelectSlide,
   onAddLesson,
-  onAddSlide,
+  onAddBlock,
   onDeleteLesson,
-  onDeleteSlide,
+  onDeleteBlock,
 }: CourseOutlineProps) {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -198,12 +198,12 @@ export function CourseOutline({
             key={lesson.lesson_id}
             lesson={lesson}
             selectedLessonId={selectedLessonId}
-            selectedSlideId={selectedSlideId}
+            selectedBlockId={selectedBlockId}
             onSelectLesson={onSelectLesson}
             onSelectSlide={onSelectSlide}
-            onAddSlide={onAddSlide}
+            onAddBlock={onAddBlock}
             onDeleteLesson={onDeleteLesson}
-            onDeleteSlide={onDeleteSlide}
+            onDeleteBlock={onDeleteBlock}
           />
         ))}
       </List>

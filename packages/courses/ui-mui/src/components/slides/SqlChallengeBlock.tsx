@@ -6,10 +6,10 @@ import Collapse from '@mui/material/Collapse';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
-import type { CourseSlide } from '@trn-platform/shared';
+import type { CourseBlock } from '@trn-platform/shared';
 import { RunnableSqlBlock, MarkdownBlock } from '@trn-platform/compositions-ui-mui';
 
-export function SqlChallengeSlide({ slide }: { slide: CourseSlide }) {
+export function SqlChallengeBlock({ slide }: { slide: CourseBlock }) {
   const [hintsRevealed, setHintsRevealed] = useState(0);
   const [showSolution, setShowSolution] = useState(false);
   const hints = slide.hints ?? [];

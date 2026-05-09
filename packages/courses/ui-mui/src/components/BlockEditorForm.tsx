@@ -11,15 +11,15 @@ import Typography from '@mui/material/Typography';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
-import type { CourseSlide, SlideUpdate, SlideType, VerifyMode } from '@trn-platform/shared';
+import type { CourseBlock, BlockUpdate, BlockType, VerifyMode } from '@trn-platform/shared';
 
-export interface SlideEditorFormProps {
-  slide: CourseSlide;
-  onSave: (updates: SlideUpdate) => void;
+export interface BlockEditorFormProps {
+  slide: CourseBlock;
+  onSave: (updates: BlockUpdate) => void;
   isSaving?: boolean;
 }
 
-const SLIDE_TYPES: { value: SlideType; label: string }[] = [
+const SLIDE_TYPES: { value: BlockType; label: string }[] = [
   { value: 'narrative', label: 'Narrative' },
   { value: 'reference', label: 'Reference' },
   { value: 'live_demo', label: 'Live Demo' },
@@ -35,11 +35,11 @@ const VERIFY_MODES: { value: VerifyMode; label: string }[] = [
 ];
 
 /**
- * Editable form for a single slide. Fields shown depend on slide_type.
+ * Editable form for a single slide. Fields shown depend on block_type.
  * Tracks local draft state and saves on explicit button click.
  */
-export function SlideEditorForm({ slide, onSave, isSaving }: SlideEditorFormProps) {
-  const [draft, setDraft] = useState<SlideUpdate>({});
+export function BlockEditorForm({ slide, onSave, isSaving }: BlockEditorFormProps) {
+  const [draft, setDraft] = useState<BlockUpdate>({});
   const slideIdRef = useRef(slide.slide_id);
 
   // Reset draft when switching slides
@@ -53,12 +53,12 @@ export function SlideEditorForm({ slide, onSave, isSaving }: SlideEditorFormProp
   const isDirty = Object.keys(draft).length > 0;
 
   // Merge draft with original slide for display
-  const val = useCallback(<K extends keyof CourseSlide>(field: K): CourseSlide[K] => {
-    if (field in draft) return (draft as Record<string, unknown>)[field] as CourseSlide[K];
+  const val = useCallback(<K extends keyof CourseBlock>(field: K): CourseBlock[K] => {
+    if (field in draft) return (draft as Record<string, unknown>)[field] as CourseBlock[K];
     return slide[field];
   }, [draft, slide]);
 
-  const set = useCallback(<K extends keyof SlideUpdate>(field: K, value: SlideUpdate[K]) => {
+  const set = useCallback(<K extends keyof BlockUpdate>(field: K, value: BlockUpdate[K]) => {
     setDraft((d) => ({ ...d, [field]: value }));
   }, []);
 
@@ -68,7 +68,7 @@ export function SlideEditorForm({ slide, onSave, isSaving }: SlideEditorFormProp
     setDraft({});
   };
 
-  const slideType = (val('slide_type') ?? slide.slide_type) as SlideType;
+  const slideType = (val('block_type') ?? block.block_type) as BlockType;
 
   const hasSQL = ['live_demo', 'sql_challenge', 'do_it_in_qc'].includes(slideType);
   const hasQuiz = slideType === 'quiz';
@@ -102,7 +102,7 @@ export function SlideEditorForm({ slide, onSave, isSaving }: SlideEditorFormProp
             label="Slide Type"
             size="small"
             value={slideType}
-            onChange={(e) => set('slide_type', e.target.value as SlideType)}
+            onChange={(e) => set('block_type', e.target.value as BlockType)}
           >
             {SLIDE_TYPES.map((t) => (
               <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>

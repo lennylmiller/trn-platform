@@ -16,7 +16,7 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import NotesIcon from '@mui/icons-material/Notes';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useCoursePlayer } from '@trn-platform/courses-feature';
-import { SlideRenderer } from './SlideRenderer';
+import { BlockRenderer } from './BlockRenderer';
 
 export interface CoursePlayerProps {
   courseId: number;
@@ -35,14 +35,14 @@ const SLIDE_TYPE_LABELS: Record<string, string> = {
 
 export function CoursePlayer({ courseId, onExit }: CoursePlayerProps) {
   const {
-    course, isLoading, current, currentIndex, totalSlides,
+    course, isLoading, current, currentIndex, totalBlocks,
     isFirst, isLast, next, prev,
   } = useCoursePlayer(courseId);
 
   const [showNotes, setShowNotes] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const progress = totalSlides > 0 ? ((currentIndex + 1) / totalSlides) * 100 : 0;
+  const progress = totalBlocks > 0 ? ((currentIndex + 1) / totalBlocks) * 100 : 0;
 
   // Keyboard
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -93,11 +93,11 @@ export function CoursePlayer({ courseId, onExit }: CoursePlayerProps) {
         {current && (
           <>
             <Chip label={current.lessonTitle} size="small" variant="outlined" sx={{ mr: 1 }} />
-            <Chip label={SLIDE_TYPE_LABELS[current.slide.slide_type] ?? current.slide.slide_type} size="small" color="primary" sx={{ mr: 1 }} />
+            <Chip label={SLIDE_TYPE_LABELS[current.block.block_type] ?? current.block.block_type} size="small" color="primary" sx={{ mr: 1 }} />
           </>
         )}
         <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }}>
-          {currentIndex + 1} / {totalSlides}
+          {currentIndex + 1} / {totalBlocks}
         </Typography>
         <IconButton size="small" onClick={() => setShowNotes(v => !v)} title="Notes (N)">
           <NotesIcon fontSize="small" />
@@ -121,7 +121,7 @@ export function CoursePlayer({ courseId, onExit }: CoursePlayerProps) {
             style={{ maxWidth: 900, margin: '0 auto', padding: '32px 24px' }}
           >
             {current ? (
-              <SlideRenderer slide={current.slide} />
+              <BlockRenderer slide={current.slide} />
             ) : (
               <Typography color="text.secondary" sx={{ textAlign: 'center', py: 8 }}>
                 This course has no slides yet.
@@ -149,7 +149,7 @@ export function CoursePlayer({ courseId, onExit }: CoursePlayerProps) {
       <Stack direction="row" sx={{ justifyContent: 'center', alignItems: 'center', gap: 2, py: 1.5, borderTop: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
         <Button startIcon={<NavigateBeforeIcon />} onClick={prev} disabled={isFirst}>Prev</Button>
         <Stack direction="row" spacing={0.5}>
-          {Array.from({ length: Math.min(totalSlides, 20) }, (_, i) => (
+          {Array.from({ length: Math.min(totalBlocks, 20) }, (_, i) => (
             <Box key={i} sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: i === currentIndex ? 'primary.main' : 'divider', transition: 'background-color 0.2s' }} />
           ))}
         </Stack>

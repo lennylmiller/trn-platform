@@ -58,8 +58,8 @@ const LESSON_ROW = {
   title: 'Test Lesson', description: 'Lesson desc',
 };
 
-const SLIDE_ROW = {
-  slide_id: 100, lesson_id: 10, seq: 0, slide_type: 'narrative',
+const BLOCK_ROW = {
+  block_id: 100, lesson_id: 10, seq: 0, block_type: 'narrative',
   title: 'Test Slide', content: '# Hello', image_url: null,
   sql_text: null, sql_label: null, verify_mode: null,
   expected_json: null, quiz_question: null, quiz_options: null,
@@ -166,7 +166,7 @@ describe('Courses API', () => {
   describe('GET /courses', () => {
     it('returns course list with counts', async () => {
       mockPool._mockQuery.mockResolvedValueOnce({
-        recordset: [{ ...COURSE_ROW, lesson_count: 3, slide_count: 10 }],
+        recordset: [{ ...COURSE_ROW, lesson_count: 3, block_count: 10 }],
       });
       const res = await request(app).get('/api/v2/courses');
       expect(res.status).toBe(200);
@@ -179,7 +179,7 @@ describe('Courses API', () => {
       mockPool._mockQuery
         .mockResolvedValueOnce({ recordset: [COURSE_ROW] }) // course
         .mockResolvedValueOnce({ recordset: [LESSON_ROW] }) // lessons
-        .mockResolvedValueOnce({ recordset: [SLIDE_ROW] }); // slides
+        .mockResolvedValueOnce({ recordset: [BLOCK_ROW] }); // slides
       const res = await request(app).get('/api/v2/courses/1');
       expect(res.status).toBe(200);
       expect(res.body.title).toBe('Test Course');
@@ -281,17 +281,17 @@ describe('Courses API', () => {
 
   describe('POST /courses/:id/lessons/:lessonId/slides', () => {
     it('adds a slide', async () => {
-      mockPool._mockQuery.mockResolvedValueOnce({ recordset: [SLIDE_ROW] });
+      mockPool._mockQuery.mockResolvedValueOnce({ recordset: [BLOCK_ROW] });
       const res = await request(app)
         .post('/api/v2/courses/1/lessons/10/slides')
-        .send({ seq: 0, slide_type: 'narrative', title: 'New Slide' });
+        .send({ seq: 0, block_type: 'narrative', title: 'New Slide' });
       expect(res.status).toBe(201);
     });
   });
 
   describe('PUT /courses/:id/lessons/:lessonId/slides/:slId', () => {
     it('updates a slide', async () => {
-      mockPool._mockQuery.mockResolvedValueOnce({ recordset: [{ ...SLIDE_ROW, title: 'Updated' }] });
+      mockPool._mockQuery.mockResolvedValueOnce({ recordset: [{ ...BLOCK_ROW, title: 'Updated' }] });
       const res = await request(app)
         .put('/api/v2/courses/1/lessons/10/slides/100')
         .send({ title: 'Updated' });
@@ -324,7 +324,7 @@ describe('Courses API', () => {
         .send({
           lessons: [{
             title: 'Built Lesson',
-            slides: [{ slide_type: 'narrative', title: 'Built Slide', content: 'Hello' }],
+            slides: [{ block_type: 'narrative', title: 'Built Slide', content: 'Hello' }],
           }],
         });
       expect(res.status).toBe(200);
@@ -364,7 +364,7 @@ describe('Courses API', () => {
       mockPool._mockQuery
         .mockResolvedValueOnce({ recordset: [COURSE_ROW] }) // course
         .mockResolvedValueOnce({ recordset: [LESSON_ROW] }) // lessons
-        .mockResolvedValueOnce({ recordset: [SLIDE_ROW] }); // slides
+        .mockResolvedValueOnce({ recordset: [BLOCK_ROW] }); // slides
       const res = await request(app).get('/api/v2/courses/1/export');
       expect(res.status).toBe(200);
       expect(res.body.title).toBe('Test Course');
@@ -395,7 +395,7 @@ describe('Courses API', () => {
         .mockResolvedValueOnce({ rowsAffected: [1] }) // update timestamp
         .mockResolvedValueOnce({ recordset: [COURSE_ROW] }) // getCourse
         .mockResolvedValueOnce({ recordset: [LESSON_ROW] }) // lessons
-        .mockResolvedValueOnce({ recordset: [SLIDE_ROW] }); // slides
+        .mockResolvedValueOnce({ recordset: [BLOCK_ROW] }); // slides
       const res = await request(app)
         .post('/api/v2/courses/import')
         .send({
@@ -403,7 +403,7 @@ describe('Courses API', () => {
           description: 'From export',
           lessons: [{
             title: 'Lesson 1',
-            slides: [{ slide_type: 'narrative', title: 'Slide 1', content: 'Hello' }],
+            slides: [{ block_type: 'narrative', title: 'Slide 1', content: 'Hello' }],
           }],
         });
       expect(res.status).toBe(201);

@@ -22,7 +22,7 @@ const ALLOWED_TOOLS = new Set([
   'get_course',
   'create_course',
   'add_course_lesson',
-  'add_course_slide',
+  'add_course_block',
   'build_course_content',
   'update_course',
 ]);

@@ -1,7 +1,7 @@
 import type {
   Course, CourseCreate, CourseUpdate, CourseDetail,
   CourseLesson, LessonCreate, LessonUpdate,
-  CourseBlock, BlockCreate, BlockUpdate,
+  CourseBlock, CourseBlockCreate, CourseBlockUpdate,
   CourseListItem, CourseLessonDetail, CourseSeries, CourseTrack,
 } from '@trn-platform/shared/schemas';
 import { getPool } from '@trn-platform/shared/db';
@@ -287,7 +287,7 @@ export async function deleteLesson(lessonId: number): Promise<boolean> {
 // Slide CRUD
 // ---------------------------------------------------------------------------
 
-export async function addBlock(lessonId: number, input: BlockCreate): Promise<CourseBlock> {
+export async function addBlock(lessonId: number, input: CourseBlockCreate): Promise<CourseBlock> {
   const pool = await getPool('qc_training');
   const result = await pool.request()
     .input('lessonId', lessonId)
@@ -314,7 +314,7 @@ export async function addBlock(lessonId: number, input: BlockCreate): Promise<Co
   return mapBlock(result.recordset[0]);
 }
 
-export async function updateBlock(slideId: number, updates: BlockUpdate): Promise<CourseBlock | null> {
+export async function updateBlock(slideId: number, updates: CourseBlockUpdate): Promise<CourseBlock | null> {
   const pool = await getPool('qc_training');
   const setClauses: string[] = [];
   const request = pool.request().input('id', slideId);
@@ -447,7 +447,7 @@ export async function exportCourse(id: number): Promise<unknown> {
     lessons: course.lessons.map((l) => ({
       title: l.title,
       description: l.description,
-      slides: l.slides.map((sl) => {
+      blocks: l.blocks.map((sl) => {
         const out: Record<string, unknown> = { block_type: sl.block_type };
         for (const key of ['title', 'content', 'image_url', 'sql_text', 'sql_label', 'verify_mode', 'expected_json', 'quiz_question', 'quiz_options', 'quiz_answer', 'quiz_explanation', 'hints', 'presenter_notes', 'seed_sql', 'seed_label'] as const) {
           if (sl[key] !== null && sl[key] !== undefined) out[key] = sl[key];
