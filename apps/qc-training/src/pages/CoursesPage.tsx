@@ -314,6 +314,7 @@ function TrackSelectorModal({ open, onClose, tracks, activeTrackId, onSelect }: 
 
 export default function CoursesPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: courses, isLoading: coursesLoading, error: coursesError } = useCourses();
   const { data: seriesList, isLoading: seriesLoading } = useSeries();
   const { data: tracksList, isLoading: tracksLoading } = useTracks();
