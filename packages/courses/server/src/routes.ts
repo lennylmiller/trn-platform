@@ -4,6 +4,7 @@ import {
   CourseCreateSchema, CourseUpdateSchema,
   LessonCreateSchema, LessonUpdateSchema,
   CourseBlockCreateSchema, CourseBlockUpdateSchema,
+  CourseDraftCreateSchema, CourseDraftUpdateSchema,
 } from '@trn-platform/shared/schemas';
 import {
   listTracks, createTrack, updateTrack, deleteTrack,
@@ -12,6 +13,7 @@ import {
   buildCourseContent, exportCourse,
   addLesson, updateLesson, deleteLesson,
   addBlock, updateBlock, deleteBlock,
+  listDrafts, getDraft, createDraft, updateDraft, deleteDraft,
 } from './queries';
 import type { BulkLessonInput } from './queries';
 
@@ -152,6 +154,57 @@ coursesRouter.delete('/:id', async (req: Request, res: Response, next: NextFunct
     const id = Number(req.params.id);
     if (Number.isNaN(id)) { res.status(400).json({ message: 'Invalid course ID' }); return; }
     if (!(await deleteCourse(id))) { res.status(404).json({ message: 'Course not found' }); return; }
+    res.status(204).end();
+  } catch (err) { next(err); }
+});
+
+// ---------------------------------------------------------------------------
+// Draft CRUD
+// ---------------------------------------------------------------------------
+
+coursesRouter.get('/:id/drafts', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const courseId = Number(req.params.id);
+    if (Number.isNaN(courseId)) { res.status(400).json({ message: 'Invalid course ID' }); return; }
+    res.json(await listDrafts(courseId));
+  } catch (err) { next(err); }
+});
+
+coursesRouter.get('/:id/drafts/:draftId', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const draftId = Number(req.params.draftId);
+    if (Number.isNaN(draftId)) { res.status(400).json({ message: 'Invalid draft ID' }); return; }
+    const draft = await getDraft(draftId);
+    if (!draft) { res.status(404).json({ message: 'Draft not found' }); return; }
+    res.json(draft);
+  } catch (err) { next(err); }
+});
+
+coursesRouter.post('/:id/drafts', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const courseId = Number(req.params.id);
+    if (Number.isNaN(courseId)) { res.status(400).json({ message: 'Invalid course ID' }); return; }
+    const input = CourseDraftCreateSchema.parse(req.body);
+    res.status(201).json(await createDraft(courseId, input));
+  } catch (err) { next(err); }
+});
+
+coursesRouter.put('/:id/drafts/:draftId', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const draftId = Number(req.params.draftId);
+    if (Number.isNaN(draftId)) { res.status(400).json({ message: 'Invalid draft ID' }); return; }
+    const updates = CourseDraftUpdateSchema.parse(req.body);
+    const draft = await updateDraft(draftId, updates);
+    if (!draft) { res.status(404).json({ message: 'Draft not found' }); return; }
+    res.json(draft);
+  } catch (err) { next(err); }
+});
+
+coursesRouter.delete('/:id/drafts/:draftId', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const draftId = Number(req.params.draftId);
+    if (Number.isNaN(draftId)) { res.status(400).json({ message: 'Invalid draft ID' }); return; }
+    if (!(await deleteDraft(draftId))) { res.status(404).json({ message: 'Draft not found' }); return; }
     res.status(204).end();
   } catch (err) { next(err); }
 });

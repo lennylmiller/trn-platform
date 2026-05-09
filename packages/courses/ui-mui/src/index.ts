@@ -13,6 +13,9 @@ export type { BlockEditorFormProps } from './components/BlockEditorForm';
 export { CreateCourseDialog } from './components/CreateCourseDialog';
 export type { CreateCourseDialogProps } from './components/CreateCourseDialog';
 
+export { DraftPanel } from './components/DraftPanel';
+export type { DraftPanelProps } from './components/DraftPanel';
+
 export { AddLessonDialog } from './components/AddLessonDialog';
 export type { AddLessonDialogProps } from './components/AddLessonDialog';
 

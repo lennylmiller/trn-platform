@@ -13,6 +13,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
 import EditIcon from '@mui/icons-material/Edit';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import DescriptionIcon from '@mui/icons-material/Description';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCourseEditor } from '@trn-platform/courses-feature';
@@ -23,8 +24,9 @@ import { CoursePlayer } from './CoursePlayer';
 import { BlockRenderer } from './BlockRenderer';
 import { BlockEditorForm } from './BlockEditorForm';
 import { AddLessonDialog } from './AddLessonDialog';
+import { DraftPanel } from './DraftPanel';
 import { AddBlockDialog } from './AddBlockDialog';
-import type { CourseLesson, BlockType } from '@trn-platform/shared';
+import type { CourseLesson, CourseBlockType } from '@trn-platform/shared';
 
 export interface CourseEditorProps {
   courseId: number;
@@ -81,12 +83,13 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
   const [addBlockTarget, setAddSlideTarget] = useState<number | null>(null);
   const [mode, setMode] = useState<'edit' | 'preview'>('edit');
   // Auto-open AI Author for empty courses (fresh from Create Course)
-  const [chatOpen, setChatOpen] = useState(false);
+  const [rightPanel, setRightPanel] = useState<'editor' | 'chat' | 'drafts'>('editor');
   const [chatSize, setChatSize] = useState<'default' | 'wide' | 'full'>('default');
+  const chatOpen = rightPanel === 'chat';
   const hasAutoOpened = useRef(false);
   useEffect(() => {
     if (!hasAutoOpened.current && course && course.lessons.length === 0) {
-      setChatOpen(true);
+      setRightPanel('chat');
       hasAutoOpened.current = true;
     }
   }, [course]);
@@ -162,7 +165,7 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
     addLesson(title);
   };
 
-  const handleAddSlide = (slideType: BlockType, title: string) => {
+  const handleAddSlide = (slideType: CourseBlockType, title: string) => {
     if (addBlockTarget === null) return;
     const lesson = course.lessons.find((l) => l.lesson_id === addBlockTarget);
     const seq = lesson?.blocks.length ?? 0;
@@ -215,15 +218,30 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
         <Typography variant="body2" color="text.secondary">
           {course.lessons.length} lessons &middot; {course.lessons.reduce((s, l) => s + l.blocks.length, 0)} slides
         </Typography>
-        <Button
-          size="small"
-          variant={chatOpen ? 'contained' : 'outlined'}
-          startIcon={<SmartToyIcon />}
-          onClick={() => { setChatOpen((v) => !v); if (mode === 'preview') setMode('edit'); }}
-          color={chatOpen ? 'secondary' : 'primary'}
-        >
-          AI Author
-        </Button>
+        <ButtonGroup size="small" variant="outlined">
+          <Button
+            startIcon={<EditIcon />}
+            variant={rightPanel === 'editor' ? 'contained' : 'outlined'}
+            onClick={() => { setRightPanel('editor'); setChatSize('default'); if (mode === 'preview') setMode('edit'); }}
+          >
+            Editor
+          </Button>
+          <Button
+            startIcon={<SmartToyIcon />}
+            variant={rightPanel === 'chat' ? 'contained' : 'outlined'}
+            onClick={() => { setRightPanel('chat'); if (mode === 'preview') setMode('edit'); }}
+            color={rightPanel === 'chat' ? 'secondary' : 'primary'}
+          >
+            AI
+          </Button>
+          <Button
+            startIcon={<DescriptionIcon />}
+            variant={rightPanel === 'drafts' ? 'contained' : 'outlined'}
+            onClick={() => { setRightPanel('drafts'); setChatSize('default'); if (mode === 'preview') setMode('edit'); }}
+          >
+            Drafts
+          </Button>
+        </ButtonGroup>
         <Button
           size="small"
           variant="outlined"
@@ -322,8 +340,8 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
             )}
           </Box>
 
-          {/* Right: Editor / Properties OR Chat */}
-          {chatOpen ? (
+          {/* Right panel: Editor / Chat / Drafts */}
+          {rightPanel === 'chat' ? (
             <Box sx={{
               width: chatSize === 'full' ? undefined : chatSize === 'wide' ? 600 : 380,
               flex: chatSize === 'full' ? 1 : undefined,
@@ -340,7 +358,17 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
                 persistKey={`course-${courseId}`}
                 size={chatSize}
                 onResize={setChatSize}
-                onCollapse={() => { setChatOpen(false); setChatSize('default'); }}
+                onCollapse={() => { setRightPanel('editor'); setChatSize('default'); }}
+              />
+            </Box>
+          ) : rightPanel === 'drafts' ? (
+            <Box sx={{ width: 420, flexShrink: 0, borderLeft: 1, borderColor: 'divider', overflow: 'hidden', bgcolor: 'background.paper' }}>
+              <DraftPanel
+                courseId={courseId}
+                onPromote={(content) => {
+                  // Switch to chat and pre-fill with the draft content for build
+                  setRightPanel('chat');
+                }}
               />
             </Box>
           ) : (

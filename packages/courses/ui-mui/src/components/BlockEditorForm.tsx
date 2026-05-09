@@ -11,15 +11,15 @@ import Typography from '@mui/material/Typography';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
-import type { CourseBlock, BlockUpdate, BlockType, VerifyMode } from '@trn-platform/shared';
+import type { CourseBlock, CourseBlockUpdate, CourseBlockType, VerifyMode } from '@trn-platform/shared';
 
 export interface BlockEditorFormProps {
   slide: CourseBlock;
-  onSave: (updates: BlockUpdate) => void;
+  onSave: (updates: CourseBlockUpdate) => void;
   isSaving?: boolean;
 }
 
-const SLIDE_TYPES: { value: BlockType; label: string }[] = [
+const SLIDE_TYPES: { value: CourseBlockType; label: string }[] = [
   { value: 'narrative', label: 'Narrative' },
   { value: 'reference', label: 'Reference' },
   { value: 'live_demo', label: 'Live Demo' },
@@ -39,16 +39,16 @@ const VERIFY_MODES: { value: VerifyMode; label: string }[] = [
  * Tracks local draft state and saves on explicit button click.
  */
 export function BlockEditorForm({ slide, onSave, isSaving }: BlockEditorFormProps) {
-  const [draft, setDraft] = useState<BlockUpdate>({});
-  const slideIdRef = useRef(slide.slide_id);
+  const [draft, setDraft] = useState<CourseBlockUpdate>({});
+  const slideIdRef = useRef(slide.block_id);
 
   // Reset draft when switching slides
   useEffect(() => {
-    if (slide.slide_id !== slideIdRef.current) {
+    if (slide.block_id !== slideIdRef.current) {
       setDraft({});
-      slideIdRef.current = slide.slide_id;
+      slideIdRef.current = slide.block_id;
     }
-  }, [slide.slide_id]);
+  }, [slide.block_id]);
 
   const isDirty = Object.keys(draft).length > 0;
 
@@ -58,7 +58,7 @@ export function BlockEditorForm({ slide, onSave, isSaving }: BlockEditorFormProp
     return slide[field];
   }, [draft, slide]);
 
-  const set = useCallback(<K extends keyof BlockUpdate>(field: K, value: BlockUpdate[K]) => {
+  const set = useCallback(<K extends keyof CourseBlockUpdate>(field: K, value: CourseBlockUpdate[K]) => {
     setDraft((d) => ({ ...d, [field]: value }));
   }, []);
 
@@ -68,7 +68,7 @@ export function BlockEditorForm({ slide, onSave, isSaving }: BlockEditorFormProp
     setDraft({});
   };
 
-  const slideType = (val('block_type') ?? block.block_type) as BlockType;
+  const slideType = (val('block_type') ?? slide.block_type) as CourseBlockType;
 
   const hasSQL = ['live_demo', 'sql_challenge', 'do_it_in_qc'].includes(slideType);
   const hasQuiz = slideType === 'quiz';
@@ -102,7 +102,7 @@ export function BlockEditorForm({ slide, onSave, isSaving }: BlockEditorFormProp
             label="Slide Type"
             size="small"
             value={slideType}
-            onChange={(e) => set('block_type', e.target.value as BlockType)}
+            onChange={(e) => set('block_type', e.target.value as CourseBlockType)}
           >
             {SLIDE_TYPES.map((t) => (
               <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>

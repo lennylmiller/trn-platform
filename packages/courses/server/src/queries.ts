@@ -3,6 +3,7 @@ import type {
   CourseLesson, LessonCreate, LessonUpdate,
   CourseBlock, CourseBlockCreate, CourseBlockUpdate,
   CourseListItem, CourseLessonDetail, CourseSeries, CourseTrack,
+  CourseDraft, CourseDraftCreate, CourseDraftUpdate,
 } from '@trn-platform/shared/schemas';
 import { getPool } from '@trn-platform/shared/db';
 
@@ -458,4 +459,67 @@ export async function exportCourse(id: number): Promise<unknown> {
       }),
     })),
   };
+}
+
+// ---------------------------------------------------------------------------
+// Draft CRUD
+// ---------------------------------------------------------------------------
+
+function mapDraft(row: Record<string, unknown>): CourseDraft {
+  return {
+    draft_id: row.draft_id as number,
+    course_id: row.course_id as number,
+    title: row.title as string,
+    content: row.content as string,
+    source: (row.source as string) ?? null,
+    status: (row.status as string) ?? 'draft',
+    created_at: (row.created_at as string) ?? null,
+    updated_at: (row.updated_at as string) ?? null,
+  };
+}
+
+export async function listDrafts(courseId: number): Promise<CourseDraft[]> {
+  const pool = await getPool('qc_training');
+  const result = await pool.request()
+    .input('courseId', courseId)
+    .query('SELECT * FROM course_draft WHERE course_id = @courseId ORDER BY created_at DESC');
+  return result.recordset.map(mapDraft);
+}
+
+export async function getDraft(draftId: number): Promise<CourseDraft | null> {
+  const pool = await getPool('qc_training');
+  const result = await pool.request()
+    .input('id', draftId)
+    .query('SELECT * FROM course_draft WHERE draft_id = @id');
+  return result.recordset[0] ? mapDraft(result.recordset[0]) : null;
+}
+
+export async function createDraft(courseId: number, input: CourseDraftCreate): Promise<CourseDraft> {
+  const pool = await getPool('qc_training');
+  const result = await pool.request()
+    .input('courseId', courseId)
+    .input('title', input.title)
+    .input('content', input.content)
+    .input('source', input.source ?? null)
+    .query('INSERT INTO course_draft (course_id, title, content, source) OUTPUT INSERTED.* VALUES (@courseId, @title, @content, @source)');
+  return mapDraft(result.recordset[0]);
+}
+
+export async function updateDraft(draftId: number, updates: CourseDraftUpdate): Promise<CourseDraft | null> {
+  const pool = await getPool('qc_training');
+  const setClauses: string[] = [];
+  const request = pool.request().input('id', draftId);
+  if (updates.title !== undefined) { setClauses.push('title = @title'); request.input('title', updates.title); }
+  if (updates.content !== undefined) { setClauses.push('content = @content'); request.input('content', updates.content); }
+  if (updates.status !== undefined) { setClauses.push('status = @status'); request.input('status', updates.status); }
+  if (setClauses.length === 0) return getDraft(draftId);
+  setClauses.push('updated_at = SYSUTCDATETIME()');
+  const result = await request.query(`UPDATE course_draft SET ${setClauses.join(', ')} OUTPUT INSERTED.* WHERE draft_id = @id`);
+  return result.recordset[0] ? mapDraft(result.recordset[0]) : null;
+}
+
+export async function deleteDraft(draftId: number): Promise<boolean> {
+  const pool = await getPool('qc_training');
+  const result = await pool.request().input('id', draftId).query('DELETE FROM course_draft WHERE draft_id = @id');
+  return (result.rowsAffected[0] ?? 0) > 0;
 }

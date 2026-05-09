@@ -8,15 +8,15 @@ import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import TextField from '@mui/material/TextField';
-import type { BlockType } from '@trn-platform/shared';
+import type { CourseBlockType } from '@trn-platform/shared';
 
 export interface AddBlockDialogProps {
   open: boolean;
   onClose: () => void;
-  onAdd: (slideType: BlockType, title: string) => void;
+  onAdd: (slideType: CourseBlockType, title: string) => void;
 }
 
-const SLIDE_TYPES: { value: BlockType; label: string; description: string }[] = [
+const SLIDE_TYPES: { value: CourseBlockType; label: string; description: string }[] = [
   { value: 'narrative', label: 'Narrative', description: 'Rich markdown content for teaching concepts' },
   { value: 'reference', label: 'Reference', description: 'Reference material or lookup information' },
   { value: 'live_demo', label: 'Live Demo', description: 'Instructor runs SQL and shows results' },
@@ -27,7 +27,7 @@ const SLIDE_TYPES: { value: BlockType; label: string; description: string }[] = 
 ];
 
 export function AddBlockDialog({ open, onClose, onAdd }: AddBlockDialogProps) {
-  const [selected, setSelected] = useState<BlockType>('narrative');
+  const [selected, setSelected] = useState<CourseBlockType>('narrative');
   const [title, setTitle] = useState('');
 
   const handleAdd = () => {

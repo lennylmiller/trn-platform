@@ -214,9 +214,40 @@ export { CourseBlockUpdateSchema as SlideUpdateSchema };
 export type { CourseBlockUpdate as SlideUpdate };
 
 // ============================================================================
+// DRAFTS
+// ============================================================================
+
+export const CourseDraftSchema = z.object({
+  draft_id: z.number(),
+  course_id: z.number(),
+  title: z.string().min(1),
+  content: z.string(),
+  source: z.string().nullable().optional(),
+  status: z.string(),
+  created_at: z.string().nullable().optional(),
+  updated_at: z.string().nullable().optional(),
+});
+export type CourseDraft = z.infer<typeof CourseDraftSchema>;
+
+export const CourseDraftCreateSchema = z.object({
+  title: z.string().min(1),
+  content: z.string(),
+  source: z.string().nullable().optional(),
+});
+export type CourseDraftCreate = z.infer<typeof CourseDraftCreateSchema>;
+
+export const CourseDraftUpdateSchema = z.object({
+  title: z.string().min(1).optional(),
+  content: z.string().optional(),
+  status: z.string().optional(),
+}).partial();
+export type CourseDraftUpdate = z.infer<typeof CourseDraftUpdateSchema>;
+
+// ============================================================================
 // RESPONSE SCHEMAS
 // ============================================================================
 
 export const CoursesResponseSchema = z.array(CourseListItemSchema);
 export const SeriesResponseSchema = z.array(CourseSeriesSchema);
 export const TracksResponseSchema = z.array(CourseTrackSchema);
+export const DraftsResponseSchema = z.array(CourseDraftSchema);
