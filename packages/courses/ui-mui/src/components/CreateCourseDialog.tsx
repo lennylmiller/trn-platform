@@ -94,8 +94,10 @@ export function CreateCourseDialog({ open, onClose, onCreated, tracks, series }:
       });
       if (!res.ok) throw new Error('Create failed');
       const course = await res.json();
+      const createdTrackId = typeof trackId === 'number' ? trackId : null;
+      // Navigate first, then close — ensures onCreated fires before state reset
+      onCreated(course.course_id, createdTrackId);
       handleClose();
-      onCreated(course.course_id, typeof trackId === 'number' ? trackId : null);
     } catch (err) {
       console.error('Create course failed:', err);
     } finally {
