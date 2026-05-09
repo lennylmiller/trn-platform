@@ -14,7 +14,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { useCourses, useSeries, useTracks, tracksKeys, coursesKeys } from '@trn-platform/courses-data-access';
+import { useCourses, useSeries, useTracks, tracksKeys, coursesKeys, seriesKeys } from '@trn-platform/courses-data-access';
 import { CreateCourseDialog } from '@trn-platform/courses-ui-mui';
 import type { CourseListItem, CourseSeries, CourseTrack } from '@trn-platform/shared';
 
@@ -470,7 +470,9 @@ export default function CoursesPage() {
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         onCreated={(courseId) => {
-          void queryClient.invalidateQueries({ queryKey: coursesKeys.lists() });
+          void queryClient.invalidateQueries({ queryKey: coursesKeys.all });
+          void queryClient.invalidateQueries({ queryKey: seriesKeys.all });
+          void queryClient.invalidateQueries({ queryKey: tracksKeys.all });
           navigate(`/courses/edit/${courseId}`);
         }}
         tracks={allTracks}

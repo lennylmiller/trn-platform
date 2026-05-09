@@ -11,5 +11,6 @@ export function useCourses() {
       const data = await apiFetch<CourseListItem[]>('/api/v2/courses');
       return CoursesResponseSchema.parse(data);
     },
+    staleTime: 0,
   });
 }
