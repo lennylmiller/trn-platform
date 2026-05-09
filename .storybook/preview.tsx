@@ -34,6 +34,7 @@ const preview: Preview = {
   parameters: {
     layout: 'padded',
     controls: { matchers: { color: /(background|color)$/i, date: /Date$/i } },
+
     viewport: {
       viewports: {
         mobile: { name: 'Mobile', styles: { width: '375px', height: '812px' } },
@@ -43,9 +44,11 @@ const preview: Preview = {
         ultrawide: { name: 'Ultrawide', styles: { width: '1536px', height: '960px' } },
       },
     },
+
     msw: {
       handlers,
     },
+
     options: {
       storySort: {
         order: [
@@ -79,6 +82,13 @@ const preview: Preview = {
         ],
       },
     },
+
+    a11y: {
+      // 'todo' - show a11y violations in the test UI only
+      // 'error' - fail CI on a11y violations
+      // 'off' - skip a11y checks entirely
+      test: 'todo'
+    }
   },
   decorators: [
     (Story) => (
