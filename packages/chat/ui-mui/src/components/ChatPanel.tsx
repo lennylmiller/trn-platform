@@ -6,11 +6,16 @@ import CircularProgress from '@mui/material/CircularProgress';
 import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import BuildIcon from '@mui/icons-material/Build';
-import SendIcon from '@mui/icons-material/Send';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
+import OpenInFullIcon from '@mui/icons-material/OpenInFull';
+import SendIcon from '@mui/icons-material/Send';
+import WidthWideIcon from '@mui/icons-material/WidthWide';
 import { useChatSession } from '@trn-platform/chat-feature';
 import { MessageBubble } from './MessageBubble';
 import { ToolCallCard } from './ToolCallCard';
@@ -24,23 +29,25 @@ export interface ChatPanelProps {
   context?: Record<string, unknown>;
   /** Optional hint appended to the system prompt */
   systemPromptHint?: string;
-  /** Called after each assistant response (useful for invalidating queries after AI creates content) */
+  /** Called after each assistant response */
   onResponse?: () => void;
-  /** Called for each tool call in a response — use to detect specific tool executions */
+  /** Called for each tool call in a response */
   onToolCall?: (tool: string, input: Record<string, unknown>, result: string) => void;
-  /** If provided, chat history persists to localStorage under this key */
+  /** If provided, chat history persists to localStorage */
   persistKey?: string;
+  /** Collapse the panel (hide it) */
+  onCollapse?: () => void;
+  /** Expand to wide/full mode */
+  onResize?: (size: 'default' | 'wide' | 'full') => void;
+  /** Current size mode */
+  size?: 'default' | 'wide' | 'full';
 }
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-/**
- * Full chat panel with message list, tool call display, and input.
- * Supports Plan/Act mode toggle for Claude Code integration.
- */
-export function ChatPanel({ context, systemPromptHint, onResponse, onToolCall, persistKey }: ChatPanelProps) {
+export function ChatPanel({ context, systemPromptHint, onResponse, onToolCall, persistKey, onCollapse, onResize, size = 'default' }: ChatPanelProps) {
   const { messages, toolCalls, isLoading, error, send, reset } = useChatSession({
     context,
     persistKey,
@@ -55,6 +62,7 @@ export function ChatPanel({ context, systemPromptHint, onResponse, onToolCall, p
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const isCourseAuthoring = systemPromptHint?.startsWith('course-authoring');
+  const isExpanded = size === 'wide' || size === 'full';
 
   // Auto-scroll on new messages
   useEffect(() => {
@@ -81,25 +89,20 @@ export function ChatPanel({ context, systemPromptHint, onResponse, onToolCall, p
       }
 
       const data = await res.json();
-      // Replace input with the refined prompt — user can edit before sending
       setInput(data.refinedPrompt);
-      // Auto-switch to Act mode so the next send executes
       setMode('act');
+      // Auto-expand to wide so the user can comfortably read the refined prompt
+      if (size === 'default' && onResize) onResize('wide');
     } catch (err) {
       setPlanError(err instanceof Error ? err.message : 'Plan failed');
     } finally {
       setIsPlanning(false);
     }
-  }, [input, isPlanning]);
+  }, [input, isPlanning, size, onResize]);
 
   const handleSend = () => {
     if (!input.trim() || isLoading || isPlanning) return;
-
-    if (mode === 'plan') {
-      void handlePlan();
-      return;
-    }
-
+    if (mode === 'plan') { void handlePlan(); return; }
     send(input);
     setInput('');
   };
@@ -111,7 +114,15 @@ export function ChatPanel({ context, systemPromptHint, onResponse, onToolCall, p
     }
   };
 
+  const cycleSize = () => {
+    if (!onResize) return;
+    if (size === 'default') onResize('wide');
+    else if (size === 'wide') onResize('full');
+    else onResize('default');
+  };
+
   const busy = isLoading || isPlanning;
+  const maxInputRows = size === 'full' ? 20 : size === 'wide' ? 12 : mode === 'plan' ? 8 : 4;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
@@ -122,15 +133,16 @@ export function ChatPanel({ context, systemPromptHint, onResponse, onToolCall, p
           alignItems: 'center',
           justifyContent: 'space-between',
           px: 2,
-          py: 1,
+          py: 0.75,
           borderBottom: 1,
           borderColor: 'divider',
+          minHeight: 40,
         }}
       >
         <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
           AI Assistant
         </Typography>
-        <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+        <Stack direction="row" spacing={0.25} sx={{ alignItems: 'center' }}>
           {isCourseAuthoring && (
             <ButtonGroup size="small" variant="outlined">
               <Button
@@ -152,9 +164,25 @@ export function ChatPanel({ context, systemPromptHint, onResponse, onToolCall, p
               </Button>
             </ButtonGroup>
           )}
-          <IconButton size="small" onClick={reset} title="Clear conversation">
-            <DeleteSweepIcon fontSize="small" />
-          </IconButton>
+          {onResize && (
+            <Tooltip title={size === 'default' ? 'Widen' : size === 'wide' ? 'Full width' : 'Default width'}>
+              <IconButton size="small" onClick={cycleSize}>
+                {size === 'full' ? <CloseFullscreenIcon sx={{ fontSize: 16 }} /> : size === 'wide' ? <OpenInFullIcon sx={{ fontSize: 16 }} /> : <WidthWideIcon sx={{ fontSize: 16 }} />}
+              </IconButton>
+            </Tooltip>
+          )}
+          {onCollapse && (
+            <Tooltip title="Collapse panel">
+              <IconButton size="small" onClick={onCollapse}>
+                <ChevronRightIcon sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Tooltip>
+          )}
+          <Tooltip title="Clear conversation">
+            <IconButton size="small" onClick={reset}>
+              <DeleteSweepIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
         </Stack>
       </Stack>
 
@@ -177,7 +205,6 @@ export function ChatPanel({ context, systemPromptHint, onResponse, onToolCall, p
           <MessageBubble key={idx} message={msg} />
         ))}
 
-        {/* Tool calls — shown after the last assistant message */}
         {toolCalls.length > 0 && (
           <Box sx={{ mt: 1, mb: 1 }}>
             {toolCalls.map((tc, idx) => (
@@ -186,31 +213,22 @@ export function ChatPanel({ context, systemPromptHint, onResponse, onToolCall, p
           </Box>
         )}
 
-        {/* Loading indicator */}
         {isLoading && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
             <CircularProgress size={16} />
-            <Typography variant="body2" color="text.secondary">
-              Building...
-            </Typography>
+            <Typography variant="body2" color="text.secondary">Building...</Typography>
           </Box>
         )}
 
-        {/* Planning indicator */}
         {isPlanning && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
             <CircularProgress size={16} color="secondary" />
-            <Typography variant="body2" color="secondary">
-              Claude Code is refining your prompt...
-            </Typography>
+            <Typography variant="body2" color="secondary">Claude Code is refining your prompt...</Typography>
           </Box>
         )}
 
-        {/* Error */}
         {(error || planError) && (
-          <Typography variant="body2" color="error" sx={{ mt: 1 }}>
-            {error || planError}
-          </Typography>
+          <Typography variant="body2" color="error" sx={{ mt: 1 }}>{error || planError}</Typography>
         )}
       </Box>
 
@@ -218,7 +236,7 @@ export function ChatPanel({ context, systemPromptHint, onResponse, onToolCall, p
       {mode === 'plan' && isCourseAuthoring && (
         <Box sx={{ px: 2, py: 0.5, bgcolor: 'secondary.50', borderTop: 1, borderColor: 'secondary.200' }}>
           <Typography variant="caption" color="secondary.main">
-            Plan mode — your rough idea will be sent to Claude Code for refinement. The result will appear as an editable draft.
+            Plan mode — your rough idea will be sent to Claude Code for refinement.
           </Typography>
         </Box>
       )}
@@ -239,13 +257,13 @@ export function ChatPanel({ context, systemPromptHint, onResponse, onToolCall, p
               ? 'Describe what to teach...'
               : 'Ask about the schema, write SQL, create steps...'}
           multiline
-          maxRows={mode === 'plan' ? 8 : 4}
+          maxRows={maxInputRows}
           fullWidth
           size="small"
           disabled={busy}
           slotProps={{
             input: {
-              sx: { fontSize: '0.875rem' },
+              sx: { fontSize: isExpanded ? '0.95rem' : '0.875rem' },
             },
           }}
         />
@@ -254,7 +272,7 @@ export function ChatPanel({ context, systemPromptHint, onResponse, onToolCall, p
           onClick={handleSend}
           disabled={!input.trim() || busy}
           color={mode === 'plan' ? 'secondary' : 'primary'}
-          sx={{ minWidth: 44, px: 1 }}
+          sx={{ minWidth: 44, px: 1, alignSelf: 'flex-end' }}
         >
           {mode === 'plan' ? <AutoFixHighIcon fontSize="small" /> : <SendIcon fontSize="small" />}
         </Button>

@@ -82,6 +82,7 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
   const [mode, setMode] = useState<'edit' | 'preview'>('edit');
   // Auto-open AI Author for empty courses (fresh from Create Course)
   const [chatOpen, setChatOpen] = useState(false);
+  const [chatSize, setChatSize] = useState<'default' | 'wide' | 'full'>('default');
   const hasAutoOpened = useRef(false);
   useEffect(() => {
     if (!hasAutoOpened.current && course && course.lessons.length === 0) {
@@ -292,8 +293,8 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
             />
           </Box>
 
-          {/* Center: Slide preview */}
-          <Box sx={{ flex: 1, overflow: 'auto', bgcolor: 'background.default' }}>
+          {/* Center: Slide preview (hidden when chat is full width) */}
+          <Box sx={{ flex: 1, overflow: 'auto', bgcolor: 'background.default', display: chatOpen && chatSize === 'full' ? 'none' : undefined }}>
             {selectedBlock ? (
               <Box sx={{ maxWidth: 900, mx: 'auto', p: 3 }}>
                 <BlockRenderer slide={selectedBlock} />
@@ -323,12 +324,23 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
 
           {/* Right: Editor / Properties OR Chat */}
           {chatOpen ? (
-            <Box sx={{ width: 380, flexShrink: 0, borderLeft: 1, borderColor: 'divider', overflow: 'hidden', bgcolor: 'background.paper' }}>
+            <Box sx={{
+              width: chatSize === 'full' ? undefined : chatSize === 'wide' ? 600 : 380,
+              flex: chatSize === 'full' ? 1 : undefined,
+              flexShrink: 0,
+              borderLeft: 1,
+              borderColor: 'divider',
+              overflow: 'hidden',
+              bgcolor: 'background.paper',
+            }}>
               <ChatPanel
                 context={chatContext}
                 systemPromptHint="course-authoring"
                 onResponse={handleChatResponse}
                 persistKey={`course-${courseId}`}
+                size={chatSize}
+                onResize={setChatSize}
+                onCollapse={() => { setChatOpen(false); setChatSize('default'); }}
               />
             </Box>
           ) : (
