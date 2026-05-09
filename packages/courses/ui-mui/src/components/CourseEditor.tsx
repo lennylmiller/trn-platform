@@ -180,7 +180,7 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
   const handleDeleteSlide = (lessonId: number, slideId: number) => {
     const slide = course.lessons
       .find((l) => l.lesson_id === lessonId)
-      ?.blocks.find((s) => s.slide_id === slideId);
+      ?.blocks.find((s) => s.block_id === slideId);
     if (window.confirm(`Delete slide "${slide?.title ?? 'Untitled'}"?`)) {
       deleteBlock(lessonId, slideId);
     }
@@ -336,7 +336,7 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
               {selectedBlock && selection ? (
                 <BlockEditorForm
                   slide={selectedBlock}
-                  onSave={(updates) => updateBlock(selectedBlock.slide_id, selection.lessonId, updates)}
+                  onSave={(updates) => updateBlock(selectedBlock.block_id, selection.lessonId, updates)}
                   isSaving={isSaving}
                 />
               ) : selectedLesson ? (

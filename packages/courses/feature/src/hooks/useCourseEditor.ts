@@ -41,7 +41,7 @@ export function useCourseEditor(courseId: number | undefined) {
   const selectedBlock: CourseBlock | undefined = selectedLesson && selection?.slideId
     ? (course?.lessons
         .find((l) => l.lesson_id === selection.lessonId)
-        ?.slides.find((s) => s.slide_id === selection.slideId))
+        ?.blocks.find((s) => s.block_id === selection.slideId))
     : undefined;
 
   // --- Mutations ---

@@ -93,7 +93,7 @@ export function CoursePlayer({ courseId, onExit }: CoursePlayerProps) {
         {current && (
           <>
             <Chip label={current.lessonTitle} size="small" variant="outlined" sx={{ mr: 1 }} />
-            <Chip label={SLIDE_TYPE_LABELS[current.block.block_type] ?? current.block.block_type} size="small" color="primary" sx={{ mr: 1 }} />
+            <Chip label={SLIDE_TYPE_LABELS[current.slide.block_type] ?? current.slide.block_type} size="small" color="primary" sx={{ mr: 1 }} />
           </>
         )}
         <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }}>
@@ -113,7 +113,7 @@ export function CoursePlayer({ courseId, onExit }: CoursePlayerProps) {
       <Box sx={{ flex: 1, overflow: 'auto' }}>
         <AnimatePresence mode="wait">
           <motion.div
-            key={current?.slide.slide_id ?? currentIndex}
+            key={current?.slide.block_id ?? currentIndex}
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -30 }}

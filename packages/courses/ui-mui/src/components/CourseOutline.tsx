@@ -150,11 +150,11 @@ function LessonGroup({
         <List component="div" disablePadding>
           {lesson.blocks.map((slide) => (
             <SlideRow
-              key={slide.slide_id}
+              key={slide.block_id}
               slide={slide}
-              selected={selectedBlockId === slide.slide_id}
-              onClick={() => onSelectSlide(lesson.lesson_id, slide.slide_id)}
-              onDelete={onDeleteBlock ? () => onDeleteBlock(lesson.lesson_id, slide.slide_id) : undefined}
+              selected={selectedBlockId === slide.block_id}
+              onClick={() => onSelectSlide(lesson.lesson_id, slide.block_id)}
+              onDelete={onDeleteBlock ? () => onDeleteBlock(lesson.lesson_id, slide.block_id) : undefined}
             />
           ))}
           {onAddBlock && (
