@@ -30,16 +30,16 @@ pnpm --filter @trn-platform/courses-server test
 
 ### 4.1 Track Selector
 
-- [ ] Go to `http://localhost:5174/courses`
-- [ ] Click track name → Select Track modal opens
-- [ ] Click "Add Track" → create a test track → verify it appears in the list
-- [ ] Click gear icon on the test track → edit description → Save
-- [ ] Select the test track → background shows "No courses in this track"
+- [x] Go to `http://localhost:5174/courses`
+- [x] Click track name → Select Track modal opens
+- [x] Click "Add Track" → create a test track → verify it appears in the list
+- [x] Click gear icon on the test track → edit description → Save
+- [x] Select the test track → background shows "No courses in this track"
 - [ ] Select "New User Onboarding" → original courses visible
 
 ### 4.2 AI Course Creation
 
-- [ ] Click **"Create Course"** → lands on `/courses/new` with chat panel
+- [x] Click **"Create Course"** → lands on `/courses/new` with chat panel
 - [ ] Type: `Create a course about provider network setup for new QC users`
 - [ ] Let AI propose title/description → approve
 - [ ] AI calls `create_course` → page auto-redirects to editor
