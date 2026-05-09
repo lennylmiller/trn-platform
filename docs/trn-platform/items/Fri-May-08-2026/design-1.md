@@ -1,0 +1,3 @@
+This new iteration we've added a more advanced create course setup, and in the series drop down, I expected to be able to start my new Adjudication and Beyond Series, but could not find any way....
+
+![[2026-05-08_18-17-02.png]]
