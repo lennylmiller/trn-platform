@@ -38,6 +38,10 @@ function createApp() {
   const app = express();
   app.use(express.json());
   app.use('/api/v2/courses', coursesRouter);
+  // Error handler that returns the error message (helps debug test failures)
+  app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+    res.status(500).json({ message: err.message, stack: err.stack?.split('\n').slice(0, 3) });
+  });
   return app;
 }
 
@@ -184,7 +188,7 @@ describe('Courses API', () => {
       expect(res.status).toBe(200);
       expect(res.body.title).toBe('Test Course');
       expect(res.body.lessons).toHaveLength(1);
-      expect(res.body.lessons[0].slides).toHaveLength(1);
+      expect(res.body.lessons[0].blocks).toHaveLength(1);
     });
 
     it('returns 404 for nonexistent course', async () => {
@@ -329,7 +333,7 @@ describe('Courses API', () => {
         });
       expect(res.status).toBe(200);
       expect(res.body.lessons).toBe(1);
-      expect(res.body.slides).toBe(1);
+      expect(res.body.blocks).toBe(1);
     });
 
     it('rejects missing lessons array', async () => {
@@ -366,6 +370,7 @@ describe('Courses API', () => {
         .mockResolvedValueOnce({ recordset: [LESSON_ROW] }) // lessons
         .mockResolvedValueOnce({ recordset: [BLOCK_ROW] }); // slides
       const res = await request(app).get('/api/v2/courses/1/export');
+      if (res.status !== 200) console.error('Export error:', res.body);
       expect(res.status).toBe(200);
       expect(res.body.title).toBe('Test Course');
       expect(res.body.lessons).toHaveLength(1);

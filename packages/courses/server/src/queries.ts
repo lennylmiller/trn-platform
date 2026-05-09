@@ -194,7 +194,7 @@ export async function getCourse(id: number): Promise<CourseDetail | null> {
 
   const lessons: CourseLessonDetail[] = lessonsResult.recordset.map((r: Record<string, unknown>) => ({
     ...mapLesson(r),
-    slides: slides.filter(s => s.lesson_id === (r.lesson_id as number)),
+    blocks: slides.filter(s => s.lesson_id === (r.lesson_id as number)),
   }));
 
   return { ...mapCourse(courseRow), lessons };
@@ -370,13 +370,14 @@ export interface BulkSlideInput {
 export interface BulkLessonInput {
   title: string;
   description?: string | null;
-  slides: BulkSlideInput[];
+  slides?: BulkSlideInput[];
+  blocks?: BulkSlideInput[];
 }
 
 export async function buildCourseContent(
   courseId: number,
   lessons: BulkLessonInput[],
-): Promise<{ lessons: number; slides: number }> {
+): Promise<{ lessons: number; blocks: number }> {
   const pool = await getPool('qc_training');
 
   // Clear existing content first
@@ -384,7 +385,7 @@ export async function buildCourseContent(
     .query('DELETE FROM course_lesson WHERE course_id = @id');
 
   let lessonCount = 0;
-  let slideCount = 0;
+  let blockCount = 0;
 
   for (let lessonIdx = 0; lessonIdx < lessons.length; lessonIdx++) {
     const lesson = lessons[lessonIdx]!;
@@ -397,8 +398,9 @@ export async function buildCourseContent(
     const lessonId = lessonResult.recordset[0].lesson_id as number;
     lessonCount++;
 
-    for (let slideIdx = 0; slideIdx < lesson.slides.length; slideIdx++) {
-      const sl = lesson.slides[slideIdx]!;
+    const blockList = lesson.blocks ?? lesson.slides ?? [];
+    for (let slideIdx = 0; slideIdx < blockList.length; slideIdx++) {
+      const sl = blockList[slideIdx]!;
       await pool.request()
         .input('lessonId', lessonId)
         .input('seq', slideIdx)
@@ -420,14 +422,14 @@ export async function buildCourseContent(
         .input('seed_label', sl.seed_label ?? null)
         .query(`INSERT INTO course_block (lesson_id, seq, block_type, title, content, image_url, sql_text, sql_label, verify_mode, expected_json, quiz_question, quiz_options, quiz_answer, quiz_explanation, hints, presenter_notes, seed_sql, seed_label)
                 VALUES (@lessonId, @seq, @block_type, @title, @content, @image_url, @sql_text, @sql_label, @verify_mode, @expected_json, @quiz_question, @quiz_options, @quiz_answer, @quiz_explanation, @hints, @presenter_notes, @seed_sql, @seed_label)`);
-      slideCount++;
+      blockCount++;
     }
   }
 
   await pool.request().input('id', courseId)
     .query('UPDATE course SET updated_at = SYSUTCDATETIME() WHERE course_id = @id');
 
-  return { lessons: lessonCount, slides: slideCount };
+  return { lessons: lessonCount, blocks: blockCount };
 }
 
 // ---------------------------------------------------------------------------
