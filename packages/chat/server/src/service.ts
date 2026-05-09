@@ -1,11 +1,13 @@
 /**
- * Chat service — orchestrates Claude API conversations with tool execution.
+ * Chat service — orchestrates Claude API conversations with MCP tool execution.
  *
- * Implements the agentic loop: send messages → if tool_use → execute → continue.
- * All tool execution happens server-side.
+ * Implements the agentic loop: send messages → if tool_use → execute via MCP → continue.
+ * Tools come from the trn-platform MCP server (single source of truth).
+ * Guardrails (SQL read-only, tool filtering) applied via tool-filter.
  */
 import Anthropic from '@anthropic-ai/sdk';
-import { CHAT_TOOLS, executeTool } from './tools.js';
+import { getMcpTools, callMcpTool } from './mcp-client.js';
+import { filterToolsForChat, validateToolCall } from './tool-filter.js';
 import { buildSystemPrompt } from './system-prompt.js';
 
 // ---------------------------------------------------------------------------
@@ -34,21 +36,17 @@ export interface ChatResult {
 
 const MAX_TOOL_ROUNDS = 25;
 
-let client: Anthropic | null = null;
+let anthropicClient: Anthropic | null = null;
 
 function getClient(): Anthropic {
-  if (!client) {
-    client = new Anthropic();
+  if (!anthropicClient) {
+    anthropicClient = new Anthropic();
   }
-  return client;
+  return anthropicClient;
 }
 
 /**
- * Run a chat conversation with tool execution.
- *
- * @param messages - Conversation history
- * @param context - Optional domain-specific context
- * @param systemPromptHint - Optional hint appended to the system prompt
+ * Run a chat conversation with MCP-backed tool execution.
  */
 export async function chat(
   messages: ChatMessage[],
@@ -67,6 +65,10 @@ export async function chat(
   }
   const systemPrompt = buildSystemPrompt(hint || undefined);
 
+  // Get tools from MCP server, filtered for chat safety
+  const allMcpTools = await getMcpTools();
+  const chatTools = filterToolsForChat(allMcpTools);
+
   // Convert to Anthropic format
   const apiMessages: Anthropic.MessageParam[] = messages.map((m) => ({
     role: m.role,
@@ -78,7 +80,7 @@ export async function chat(
       model,
       max_tokens: 16000,
       system: systemPrompt,
-      tools: CHAT_TOOLS,
+      tools: chatTools,
       messages: apiMessages,
     });
 
@@ -100,30 +102,31 @@ export async function chat(
       return { response: accumulatedText, toolCalls };
     }
 
-    // If stop_reason is end_turn, Claude is done — but we still execute any pending tools
-    // and return the accumulated text
+    // If stop_reason is end_turn, execute tools then return
     const isFinalRound = response.stop_reason === 'end_turn';
 
-    // Execute tools
+    // Execute tools via MCP
     apiMessages.push({ role: 'assistant', content: response.content });
 
     const toolResults: Anthropic.ToolResultBlockParam[] = [];
     for (const toolBlock of toolUseBlocks) {
+      const input = toolBlock.input as Record<string, unknown>;
+
+      // Apply guardrails
+      const validationError = validateToolCall(toolBlock.name, input);
       let result: string;
-      try {
-        result = await executeTool(
-          toolBlock.name,
-          toolBlock.input as Record<string, unknown>,
-        );
-      } catch (err) {
-        result = `Error: ${err instanceof Error ? err.message : String(err)}`;
+
+      if (validationError) {
+        result = validationError;
+      } else {
+        try {
+          result = await callMcpTool(toolBlock.name, input);
+        } catch (err) {
+          result = `Error: ${err instanceof Error ? err.message : String(err)}`;
+        }
       }
 
-      toolCalls.push({
-        tool: toolBlock.name,
-        input: toolBlock.input as Record<string, unknown>,
-        result,
-      });
+      toolCalls.push({ tool: toolBlock.name, input, result });
 
       toolResults.push({
         type: 'tool_result',
@@ -132,7 +135,6 @@ export async function chat(
       });
     }
 
-    // If Claude said end_turn, return now with the accumulated text
     if (isFinalRound) {
       return { response: accumulatedText, toolCalls };
     }
@@ -140,7 +142,7 @@ export async function chat(
     apiMessages.push({ role: 'user', content: toolResults });
   }
 
-  // Exceeded max rounds — return accumulated text instead of generic message
+  // Exceeded max rounds
   return {
     response: accumulatedText || 'I used all available tool calls for this turn. Please send another message to continue.',
     toolCalls,

@@ -409,11 +409,12 @@ export function createServer(): McpServer {
       title: z.string().describe('Course title'),
       description: z.string().optional().describe('Course description'),
       category: z.string().optional().describe('Category: database, reports, enrollment, etc.'),
+      track_id: z.number().optional().describe('Track ID to assign to'),
     },
-    async ({ title, description, category }) => {
+    async ({ title, description, category, track_id }) => {
       const course = await apiFetch<unknown>('/api/v2/courses', {
         method: 'POST',
-        body: JSON.stringify({ title, description, category }),
+        body: JSON.stringify({ title, description, category, track_id }),
       });
       return { content: [{ type: 'text' as const, text: JSON.stringify(course, null, 2) }] };
     },
@@ -475,6 +476,31 @@ export function createServer(): McpServer {
         body: JSON.stringify(body),
       });
       return { content: [{ type: 'text' as const, text: JSON.stringify(course, null, 2) }] };
+    },
+  );
+
+  server.tool(
+    'build_course_content',
+    'Build an entire course\'s lessons and slides in ONE call. Replaces all existing content. Pass a JSON string with the full structure.',
+    {
+      courseId: z.number().describe('The course_id to build content for'),
+      content: z.string().describe('JSON string: { "lessons": [{ "title": "...", "description": "...", "slides": [{ "slide_type": "narrative", "title": "...", "content": "..." }, ...] }] }'),
+    },
+    async ({ courseId, content }) => {
+      let parsed: { lessons: unknown[] };
+      try {
+        parsed = JSON.parse(content);
+      } catch (err) {
+        return { content: [{ type: 'text' as const, text: `Error: Invalid JSON. ${err instanceof Error ? err.message : String(err)}` }] };
+      }
+      if (!parsed.lessons || !Array.isArray(parsed.lessons) || parsed.lessons.length === 0) {
+        return { content: [{ type: 'text' as const, text: 'Error: content must contain a non-empty "lessons" array.' }] };
+      }
+      const result = await apiFetch<unknown>(`/api/v2/courses/${courseId}/build`, {
+        method: 'POST',
+        body: JSON.stringify({ lessons: parsed.lessons }),
+      });
+      return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
     },
   );
 
