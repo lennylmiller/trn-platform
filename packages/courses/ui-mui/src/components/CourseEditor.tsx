@@ -82,7 +82,12 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
   const [mode, setMode] = useState<'edit' | 'preview'>('edit');
   const [chatOpen, setChatOpen] = useState(false);
 
-  const chatContext = useMemo(() => ({ courseId }), [courseId]);
+  const chatContext = useMemo(() => ({
+    courseId,
+    title: course?.title,
+    description: course?.description,
+    category: course?.category,
+  }), [courseId, course?.title, course?.description, course?.category]);
   const handleChatResponse = useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: coursesKeys.detail(courseId) });
   }, [queryClient, courseId]);

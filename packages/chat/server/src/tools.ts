@@ -208,7 +208,15 @@ export async function executeTool(
     }
 
     case 'build_course_content': {
-      const parsed = JSON.parse(input.content as string) as { lessons: unknown[] };
+      let parsed: { lessons: unknown[] };
+      try {
+        parsed = JSON.parse(input.content as string);
+      } catch (parseErr) {
+        return `Error: Invalid JSON in content parameter. Check for unescaped quotes or truncated output. Parse error: ${parseErr instanceof Error ? parseErr.message : String(parseErr)}`;
+      }
+      if (!parsed.lessons || !Array.isArray(parsed.lessons) || parsed.lessons.length === 0) {
+        return 'Error: content must contain a non-empty "lessons" array. Example: {"lessons":[{"title":"...","slides":[...]}]}';
+      }
       const result = await apiFetch<unknown>(`/api/v2/courses/${input.courseId}/build`, {
         method: 'POST',
         body: JSON.stringify({ lessons: parsed.lessons }),
