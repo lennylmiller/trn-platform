@@ -22,7 +22,9 @@ let cachedTools: Anthropic.Tool[] | null = null;
 async function getClient(): Promise<Client> {
   if (client) return client;
 
-  const projectRoot = path.resolve(import.meta.dirname, '..', '..', '..', '..');
+  // Use process.cwd() — server-dev.cjs always runs from the project root.
+  // import.meta.dirname is undefined when loaded via tsx/cjs.
+  const projectRoot = process.cwd();
   const envPath = path.join(projectRoot, '.env');
 
   const transport = new StdioClientTransport({
