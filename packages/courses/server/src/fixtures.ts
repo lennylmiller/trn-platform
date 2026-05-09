@@ -7,7 +7,7 @@ import { getPool, closePool } from '@trn-platform/shared/db';
 import {
   FixtureCourseSchema,
   type FixtureCourse,
-  type FixtureSlide,
+  type FixtureBlock,
 } from './fixture-schema.js';
 
 /**
@@ -167,7 +167,7 @@ async function replaceLessonsAndSlides(
 
     for (let slideIdx = 0; slideIdx < lesson.slides.length; slideIdx += 1) {
       const slide = lesson.slides[slideIdx]!;
-      await insertSlide(pool, lessonId, slideIdx, slide);
+      await insertBlock(pool, lessonId, slideIdx, slide);
       slideCount += 1;
     }
   }
@@ -175,11 +175,11 @@ async function replaceLessonsAndSlides(
   return { lessons: lessonCount, slides: slideCount };
 }
 
-async function insertSlide(pool: any, lessonId: number, seq: number, slide: FixtureSlide) {
+async function insertBlock(pool: any, lessonId: number, seq: number, slide: FixtureBlock) {
   await pool.request()
     .input('lessonId', lessonId)
     .input('seq', seq)
-    .input('slide_type', slide.slide_type)
+    .input('block_type', slide.block_type)
     .input('title', slide.title ?? null)
     .input('content', slide.content ?? null)
     .input('image_url', slide.image_url ?? null)
@@ -195,11 +195,11 @@ async function insertSlide(pool: any, lessonId: number, seq: number, slide: Fixt
     .input('presenter_notes', slide.presenter_notes ?? null)
     .input('seed_sql', slide.seed_sql ?? null)
     .input('seed_label', slide.seed_label ?? null)
-    .query(`INSERT INTO course_slide
-      (lesson_id, seq, slide_type, title, content, image_url, sql_text, sql_label,
+    .query(`INSERT INTO course_block
+      (lesson_id, seq, block_type, title, content, image_url, sql_text, sql_label,
        verify_mode, expected_json, quiz_question, quiz_options, quiz_answer,
        quiz_explanation, hints, presenter_notes, seed_sql, seed_label)
-      VALUES (@lessonId, @seq, @slide_type, @title, @content, @image_url, @sql_text, @sql_label,
+      VALUES (@lessonId, @seq, @block_type, @title, @content, @image_url, @sql_text, @sql_label,
        @verify_mode, @expected_json, @quiz_question, @quiz_options, @quiz_answer,
        @quiz_explanation, @hints, @presenter_notes, @seed_sql, @seed_label)`);
 }

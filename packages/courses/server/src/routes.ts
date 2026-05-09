@@ -3,7 +3,7 @@ import type { Request, Response, NextFunction } from 'express';
 import {
   CourseCreateSchema, CourseUpdateSchema,
   LessonCreateSchema, LessonUpdateSchema,
-  SlideCreateSchema, SlideUpdateSchema,
+  BlockCreateSchema, BlockUpdateSchema,
 } from '@trn-platform/shared/schemas';
 import {
   listTracks, createTrack, updateTrack, deleteTrack,
@@ -11,7 +11,7 @@ import {
   listCourses, getCourse, createCourse, updateCourse, deleteCourse, clearCourse,
   buildCourseContent, exportCourse,
   addLesson, updateLesson, deleteLesson,
-  addSlide, updateSlide, deleteSlide,
+  addBlock, updateBlock, deleteBlock,
 } from './queries';
 import type { BulkLessonInput } from './queries';
 
@@ -197,8 +197,8 @@ coursesRouter.post('/:id/lessons/:lessonId/slides', async (req: Request, res: Re
   try {
     const lessonId = Number(req.params.lessonId);
     if (Number.isNaN(lessonId)) { res.status(400).json({ message: 'Invalid lesson ID' }); return; }
-    const input = SlideCreateSchema.parse(req.body);
-    res.status(201).json(await addSlide(lessonId, input));
+    const input = BlockCreateSchema.parse(req.body);
+    res.status(201).json(await addBlock(lessonId, input));
   } catch (err) { next(err); }
 });
 
@@ -206,8 +206,8 @@ coursesRouter.put('/:id/lessons/:lessonId/slides/:slId', async (req: Request, re
   try {
     const slId = Number(req.params.slId);
     if (Number.isNaN(slId)) { res.status(400).json({ message: 'Invalid slide ID' }); return; }
-    const updates = SlideUpdateSchema.parse(req.body);
-    const slide = await updateSlide(slId, updates);
+    const updates = BlockUpdateSchema.parse(req.body);
+    const slide = await updateBlock(slId, updates);
     if (!slide) { res.status(404).json({ message: 'Slide not found' }); return; }
     res.json(slide);
   } catch (err) { next(err); }
@@ -217,7 +217,7 @@ coursesRouter.delete('/:id/lessons/:lessonId/slides/:slId', async (req: Request,
   try {
     const slId = Number(req.params.slId);
     if (Number.isNaN(slId)) { res.status(400).json({ message: 'Invalid slide ID' }); return; }
-    if (!(await deleteSlide(slId))) { res.status(404).json({ message: 'Slide not found' }); return; }
+    if (!(await deleteBlock(slId))) { res.status(404).json({ message: 'Slide not found' }); return; }
     res.status(204).end();
   } catch (err) { next(err); }
 });

@@ -1,7 +1,7 @@
 import type {
   Course, CourseCreate, CourseUpdate, CourseDetail,
   CourseLesson, LessonCreate, LessonUpdate,
-  CourseSlide, SlideCreate, SlideUpdate,
+  CourseBlock, BlockCreate, BlockUpdate,
   CourseListItem, CourseLessonDetail, CourseSeries, CourseTrack,
 } from '@trn-platform/shared/schemas';
 import { getPool } from '@trn-platform/shared/db';
@@ -43,18 +43,18 @@ function mapLesson(row: Record<string, unknown>): CourseLesson {
   };
 }
 
-function mapSlide(row: Record<string, unknown>): CourseSlide {
+function mapBlock(row: Record<string, unknown>): CourseBlock {
   return {
-    slide_id: row.slide_id as number,
+    block_id: row.block_id as number,
     lesson_id: row.lesson_id as number,
     seq: row.seq as number,
-    slide_type: row.slide_type as CourseSlide['slide_type'],
+    block_type: row.block_type as CourseBlock['block_type'],
     title: (row.title as string) ?? null,
     content: (row.content as string) ?? null,
     image_url: (row.image_url as string) ?? null,
     sql_text: (row.sql_text as string) ?? null,
     sql_label: (row.sql_label as string) ?? null,
-    verify_mode: (row.verify_mode as CourseSlide['verify_mode']) ?? null,
+    verify_mode: (row.verify_mode as CourseBlock['verify_mode']) ?? null,
     expected_json: parseJson(row.expected_json as string),
     quiz_question: (row.quiz_question as string) ?? null,
     quiz_options: parseJson(row.quiz_options as string) as string[] | null,
@@ -156,16 +156,16 @@ export async function listCourses(): Promise<CourseListItem[]> {
   const result = await pool.request().query(`
     SELECT c.*,
       (SELECT COUNT(*) FROM course_lesson cl WHERE cl.course_id = c.course_id) AS lesson_count,
-      (SELECT COUNT(*) FROM course_slide sl
+      (SELECT COUNT(*) FROM course_block sl
        JOIN course_lesson cl2 ON sl.lesson_id = cl2.lesson_id
-       WHERE cl2.course_id = c.course_id) AS slide_count
+       WHERE cl2.course_id = c.course_id) AS block_count
     FROM course c
     ORDER BY COALESCE(c.series_id, 2147483647), COALESCE(c.series_seq, 2147483647), c.title
   `);
   return result.recordset.map((r: Record<string, unknown>) => ({
     ...mapCourse(r),
     lesson_count: r.lesson_count as number,
-    slide_count: r.slide_count as number,
+    block_count: r.block_count as number,
   }));
 }
 
@@ -184,12 +184,12 @@ export async function getCourse(id: number): Promise<CourseDetail | null> {
 
   const lessonIds = lessonsResult.recordset.map((r: Record<string, unknown>) => r.lesson_id as number);
 
-  let slides: CourseSlide[] = [];
+  let slides: CourseBlock[] = [];
   if (lessonIds.length > 0) {
     const idList = lessonIds.join(',');
     const slidesResult = await pool.request()
-      .query(`SELECT * FROM course_slide WHERE lesson_id IN (${idList}) ORDER BY lesson_id, seq`);
-    slides = slidesResult.recordset.map(mapSlide);
+      .query(`SELECT * FROM course_block WHERE lesson_id IN (${idList}) ORDER BY lesson_id, seq`);
+    slides = slidesResult.recordset.map(mapBlock);
   }
 
   const lessons: CourseLessonDetail[] = lessonsResult.recordset.map((r: Record<string, unknown>) => ({
@@ -287,12 +287,12 @@ export async function deleteLesson(lessonId: number): Promise<boolean> {
 // Slide CRUD
 // ---------------------------------------------------------------------------
 
-export async function addSlide(lessonId: number, input: SlideCreate): Promise<CourseSlide> {
+export async function addBlock(lessonId: number, input: BlockCreate): Promise<CourseBlock> {
   const pool = await getPool('qc_training');
   const result = await pool.request()
     .input('lessonId', lessonId)
     .input('seq', input.seq)
-    .input('slide_type', input.slide_type)
+    .input('block_type', input.block_type)
     .input('title', input.title ?? null)
     .input('content', input.content ?? null)
     .input('image_url', input.image_url ?? null)
@@ -308,18 +308,18 @@ export async function addSlide(lessonId: number, input: SlideCreate): Promise<Co
     .input('presenter_notes', input.presenter_notes ?? null)
     .input('seed_sql', input.seed_sql ?? null)
     .input('seed_label', input.seed_label ?? null)
-    .query(`INSERT INTO course_slide (lesson_id, seq, slide_type, title, content, image_url, sql_text, sql_label, verify_mode, expected_json, quiz_question, quiz_options, quiz_answer, quiz_explanation, hints, presenter_notes, seed_sql, seed_label)
+    .query(`INSERT INTO course_block (lesson_id, seq, block_type, title, content, image_url, sql_text, sql_label, verify_mode, expected_json, quiz_question, quiz_options, quiz_answer, quiz_explanation, hints, presenter_notes, seed_sql, seed_label)
             OUTPUT INSERTED.*
-            VALUES (@lessonId, @seq, @slide_type, @title, @content, @image_url, @sql_text, @sql_label, @verify_mode, @expected_json, @quiz_question, @quiz_options, @quiz_answer, @quiz_explanation, @hints, @presenter_notes, @seed_sql, @seed_label)`);
-  return mapSlide(result.recordset[0]);
+            VALUES (@lessonId, @seq, @block_type, @title, @content, @image_url, @sql_text, @sql_label, @verify_mode, @expected_json, @quiz_question, @quiz_options, @quiz_answer, @quiz_explanation, @hints, @presenter_notes, @seed_sql, @seed_label)`);
+  return mapBlock(result.recordset[0]);
 }
 
-export async function updateSlide(slideId: number, updates: SlideUpdate): Promise<CourseSlide | null> {
+export async function updateBlock(slideId: number, updates: BlockUpdate): Promise<CourseBlock | null> {
   const pool = await getPool('qc_training');
   const setClauses: string[] = [];
   const request = pool.request().input('id', slideId);
 
-  const stringFields = ['slide_type', 'title', 'content', 'image_url', 'sql_text', 'sql_label', 'verify_mode', 'quiz_question', 'quiz_explanation', 'presenter_notes', 'seed_sql', 'seed_label'] as const;
+  const stringFields = ['block_type', 'title', 'content', 'image_url', 'sql_text', 'sql_label', 'verify_mode', 'quiz_question', 'quiz_explanation', 'presenter_notes', 'seed_sql', 'seed_label'] as const;
   for (const field of stringFields) {
     if ((updates as Record<string, unknown>)[field] !== undefined) {
       setClauses.push(`${field} = @${field}`);
@@ -334,13 +334,13 @@ export async function updateSlide(slideId: number, updates: SlideUpdate): Promis
   if (updates.hints !== undefined) { setClauses.push('hints = @hints'); request.input('hints', updates.hints ? JSON.stringify(updates.hints) : null); }
 
   if (setClauses.length === 0) return null;
-  const result = await request.query(`UPDATE course_slide SET ${setClauses.join(', ')} OUTPUT INSERTED.* WHERE slide_id = @id`);
-  return result.recordset[0] ? mapSlide(result.recordset[0]) : null;
+  const result = await request.query(`UPDATE course_block SET ${setClauses.join(', ')} OUTPUT INSERTED.* WHERE block_id = @id`);
+  return result.recordset[0] ? mapBlock(result.recordset[0]) : null;
 }
 
-export async function deleteSlide(slideId: number): Promise<boolean> {
+export async function deleteBlock(slideId: number): Promise<boolean> {
   const pool = await getPool('qc_training');
-  const result = await pool.request().input('id', slideId).query('DELETE FROM course_slide WHERE slide_id = @id');
+  const result = await pool.request().input('id', slideId).query('DELETE FROM course_block WHERE block_id = @id');
   return (result.rowsAffected[0] ?? 0) > 0;
 }
 
@@ -349,7 +349,7 @@ export async function deleteSlide(slideId: number): Promise<boolean> {
 // ---------------------------------------------------------------------------
 
 export interface BulkSlideInput {
-  slide_type: string;
+  block_type: string;
   title?: string | null;
   content?: string | null;
   image_url?: string | null;
@@ -402,7 +402,7 @@ export async function buildCourseContent(
       await pool.request()
         .input('lessonId', lessonId)
         .input('seq', slideIdx)
-        .input('slide_type', sl.slide_type)
+        .input('block_type', sl.block_type)
         .input('title', sl.title ?? null)
         .input('content', sl.content ?? null)
         .input('image_url', sl.image_url ?? null)
@@ -418,8 +418,8 @@ export async function buildCourseContent(
         .input('presenter_notes', sl.presenter_notes ?? null)
         .input('seed_sql', sl.seed_sql ?? null)
         .input('seed_label', sl.seed_label ?? null)
-        .query(`INSERT INTO course_slide (lesson_id, seq, slide_type, title, content, image_url, sql_text, sql_label, verify_mode, expected_json, quiz_question, quiz_options, quiz_answer, quiz_explanation, hints, presenter_notes, seed_sql, seed_label)
-                VALUES (@lessonId, @seq, @slide_type, @title, @content, @image_url, @sql_text, @sql_label, @verify_mode, @expected_json, @quiz_question, @quiz_options, @quiz_answer, @quiz_explanation, @hints, @presenter_notes, @seed_sql, @seed_label)`);
+        .query(`INSERT INTO course_block (lesson_id, seq, block_type, title, content, image_url, sql_text, sql_label, verify_mode, expected_json, quiz_question, quiz_options, quiz_answer, quiz_explanation, hints, presenter_notes, seed_sql, seed_label)
+                VALUES (@lessonId, @seq, @block_type, @title, @content, @image_url, @sql_text, @sql_label, @verify_mode, @expected_json, @quiz_question, @quiz_options, @quiz_answer, @quiz_explanation, @hints, @presenter_notes, @seed_sql, @seed_label)`);
       slideCount++;
     }
   }
@@ -448,7 +448,7 @@ export async function exportCourse(id: number): Promise<unknown> {
       title: l.title,
       description: l.description,
       slides: l.slides.map((sl) => {
-        const out: Record<string, unknown> = { slide_type: sl.slide_type };
+        const out: Record<string, unknown> = { block_type: sl.block_type };
         for (const key of ['title', 'content', 'image_url', 'sql_text', 'sql_label', 'verify_mode', 'expected_json', 'quiz_question', 'quiz_options', 'quiz_answer', 'quiz_explanation', 'hints', 'presenter_notes', 'seed_sql', 'seed_label'] as const) {
           if (sl[key] !== null && sl[key] !== undefined) out[key] = sl[key];
         }

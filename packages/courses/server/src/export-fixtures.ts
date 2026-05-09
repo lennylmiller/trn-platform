@@ -7,7 +7,7 @@ import { getPool, closePool } from '@trn-platform/shared/db';
 import {
   FixtureCourseSchema,
   type FixtureCourse,
-  type FixtureSlide,
+  type FixtureBlock,
   slugify,
 } from './fixture-schema.js';
 
@@ -53,11 +53,11 @@ interface LessonRow {
   description: string | null;
 }
 
-interface SlideRow {
-  slide_id: number;
+interface BlockRow {
+  block_id: number;
   lesson_id: number;
   seq: number;
-  slide_type: FixtureSlide['slide_type'];
+  block_type: FixtureBlock['block_type'];
   title: string | null;
   content: string | null;
   image_url: string | null;
@@ -101,15 +101,15 @@ function pruneFixture(course: FixtureCourse): unknown {
   out.lessons = course.lessons.map((l) => {
     const lesson: Record<string, unknown> = { title: l.title };
     if (l.description) lesson.description = l.description;
-    lesson.slides = l.slides.map((sl) => pruneSlide(sl));
+    lesson.slides = l.slides.map((sl) => pruneBlock(sl));
     return lesson;
   });
   return out;
 }
 
-function pruneSlide(slide: FixtureSlide): Record<string, unknown> {
-  const out: Record<string, unknown> = { slide_type: slide.slide_type };
-  const passthrough: (keyof FixtureSlide)[] = [
+function pruneBlock(slide: FixtureBlock): Record<string, unknown> {
+  const out: Record<string, unknown> = { block_type: slide.block_type };
+  const passthrough: (keyof FixtureBlock)[] = [
     'title', 'content', 'image_url', 'sql_text', 'sql_label', 'verify_mode',
     'expected_json', 'quiz_question', 'quiz_options', 'quiz_answer',
     'quiz_explanation', 'hints', 'presenter_notes', 'seed_sql', 'seed_label',
@@ -144,8 +144,8 @@ async function main() {
     const lessonRows: LessonRow[] = (await pool.request()
       .query('SELECT lesson_id, course_id, seq, title, description FROM course_lesson ORDER BY course_id, seq')).recordset;
 
-    const slideRows: SlideRow[] = (await pool.request()
-      .query('SELECT * FROM course_slide ORDER BY lesson_id, seq')).recordset;
+    const slideRows: BlockRow[] = (await pool.request()
+      .query('SELECT * FROM course_block ORDER BY lesson_id, seq')).recordset;
 
     const dependencyRows: DependencyRow[] = (await pool.request()
       .query('SELECT course_id, depends_on_course_id FROM course_dependency')).recordset;
@@ -161,8 +161,8 @@ async function main() {
           description: l.description,
           slides: slideRows
             .filter((sl) => sl.lesson_id === l.lesson_id)
-            .map<FixtureSlide>((sl) => ({
-              slide_type: sl.slide_type,
+            .map<FixtureBlock>((sl) => ({
+              block_type: sl.block_type,
               title: sl.title,
               content: sl.content,
               image_url: sl.image_url,

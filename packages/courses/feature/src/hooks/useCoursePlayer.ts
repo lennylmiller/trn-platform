@@ -1,9 +1,9 @@
 import { useState, useCallback, useMemo } from 'react';
-import type { CourseSlide } from '@trn-platform/shared';
+import type { CourseBlock } from '@trn-platform/shared';
 import { useCourse } from '@trn-platform/courses-data-access';
 
-export interface FlatSlide {
-  slide: CourseSlide;
+export interface FlatBlock {
+  slide: CourseBlock;
   lessonTitle: string;
   lessonIndex: number;
   globalIndex: number;
@@ -17,9 +17,9 @@ export function useCoursePlayer(courseId: number | undefined) {
   const { data: course, isLoading, error } = useCourse(courseId);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const flatSlides = useMemo((): FlatSlide[] => {
+  const flatBlocks = useMemo((): FlatBlock[] => {
     if (!course?.lessons) return [];
-    const result: FlatSlide[] = [];
+    const result: FlatBlock[] = [];
     course.lessons.forEach((lesson, lessonIdx) => {
       lesson.slides.forEach((slide) => {
         result.push({
@@ -33,22 +33,22 @@ export function useCoursePlayer(courseId: number | undefined) {
     return result;
   }, [course?.lessons]);
 
-  const totalSlides = flatSlides.length;
-  const current = flatSlides[currentIndex];
+  const totalBlocks = flatBlocks.length;
+  const current = flatBlocks[currentIndex];
   const isFirst = currentIndex === 0;
-  const isLast = currentIndex >= totalSlides - 1;
+  const isLast = currentIndex >= totalBlocks - 1;
 
   const next = useCallback(() => {
-    if (currentIndex < totalSlides - 1) setCurrentIndex((i) => i + 1);
-  }, [currentIndex, totalSlides]);
+    if (currentIndex < totalBlocks - 1) setCurrentIndex((i) => i + 1);
+  }, [currentIndex, totalBlocks]);
 
   const prev = useCallback(() => {
     if (currentIndex > 0) setCurrentIndex((i) => i - 1);
   }, [currentIndex]);
 
   const goTo = useCallback((index: number) => {
-    if (index >= 0 && index < totalSlides) setCurrentIndex(index);
-  }, [totalSlides]);
+    if (index >= 0 && index < totalBlocks) setCurrentIndex(index);
+  }, [totalBlocks]);
 
   const reset = useCallback(() => setCurrentIndex(0), []);
 
@@ -68,10 +68,10 @@ export function useCoursePlayer(courseId: number | undefined) {
     course,
     isLoading,
     error,
-    flatSlides,
+    flatBlocks,
     current,
     currentIndex,
-    totalSlides,
+    totalBlocks,
     isFirst,
     isLast,
     lessonBreaks,

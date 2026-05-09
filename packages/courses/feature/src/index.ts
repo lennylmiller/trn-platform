@@ -1,5 +1,5 @@
 export { useCoursePlayer } from './hooks/useCoursePlayer';
-export type { FlatSlide } from './hooks/useCoursePlayer';
+export type { FlatBlock } from './hooks/useCoursePlayer';
 
 export { useCourseEditor } from './hooks/useCourseEditor';
 export type { CourseEditorSelection } from './hooks/useCourseEditor';

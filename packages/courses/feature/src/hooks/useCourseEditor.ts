@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react';
-import type { CourseSlide, CourseLesson, SlideUpdate, SlideCreate } from '@trn-platform/shared';
+import type { CourseBlock, CourseLesson, BlockUpdate, BlockCreate } from '@trn-platform/shared';
 import {
-  useCourse, useAddLesson, useAddSlide, useUpdateSlide,
-  useDeleteLesson, useDeleteSlide,
+  useCourse, useAddLesson, useAddBlock, useUpdateBlock,
+  useDeleteLesson, useDeleteBlock,
 } from '@trn-platform/courses-data-access';
 
 export interface CourseEditorSelection {
@@ -16,17 +16,17 @@ export interface CourseEditorSelection {
 export function useCourseEditor(courseId: number | undefined) {
   const { data: course, isLoading, error } = useCourse(courseId);
   const addLessonMutation = useAddLesson();
-  const addSlideMutation = useAddSlide();
-  const updateSlideMutation = useUpdateSlide();
+  const addBlockMutation = useAddBlock();
+  const updateBlockMutation = useUpdateBlock();
   const deleteLessonMutation = useDeleteLesson();
-  const deleteSlideMutation = useDeleteSlide();
+  const deleteBlockMutation = useDeleteBlock();
   const [selection, setSelection] = useState<CourseEditorSelection | null>(null);
 
   const selectLesson = useCallback((lessonId: number) => {
     setSelection({ lessonId });
   }, []);
 
-  const selectSlide = useCallback((lessonId: number, slideId: number) => {
+  const selectBlock = useCallback((lessonId: number, slideId: number) => {
     setSelection({ lessonId, slideId });
   }, []);
 
@@ -38,7 +38,7 @@ export function useCourseEditor(courseId: number | undefined) {
   const selectedLesson: CourseLesson | undefined = course?.lessons.find(
     (l) => l.lesson_id === selection?.lessonId,
   );
-  const selectedSlide: CourseSlide | undefined = selectedLesson && selection?.slideId
+  const selectedBlock: CourseBlock | undefined = selectedLesson && selection?.slideId
     ? (course?.lessons
         .find((l) => l.lesson_id === selection.lessonId)
         ?.slides.find((s) => s.slide_id === selection.slideId))
@@ -46,10 +46,10 @@ export function useCourseEditor(courseId: number | undefined) {
 
   // --- Mutations ---
 
-  const updateSlide = useCallback((slideId: number, lessonId: number, updates: SlideUpdate) => {
+  const updateSlide = useCallback((slideId: number, lessonId: number, updates: BlockUpdate) => {
     if (!courseId) return;
-    updateSlideMutation.mutate({ courseId, lessonId, slideId, updates });
-  }, [courseId, updateSlideMutation]);
+    updateBlockMutation.mutate({ courseId, lessonId, slideId, updates });
+  }, [courseId, updateBlockMutation]);
 
   const addLesson = useCallback((title: string) => {
     if (!courseId) return;
@@ -57,10 +57,10 @@ export function useCourseEditor(courseId: number | undefined) {
     addLessonMutation.mutate({ courseId, input: { seq, title } });
   }, [courseId, course?.lessons.length, addLessonMutation]);
 
-  const addSlide = useCallback((lessonId: number, input: SlideCreate) => {
+  const addSlide = useCallback((lessonId: number, input: BlockCreate) => {
     if (!courseId) return;
-    addSlideMutation.mutate({ courseId, lessonId, input });
-  }, [courseId, addSlideMutation]);
+    addBlockMutation.mutate({ courseId, lessonId, input });
+  }, [courseId, addBlockMutation]);
 
   const deleteLesson = useCallback((lessonId: number) => {
     if (!courseId) return;
@@ -73,14 +73,14 @@ export function useCourseEditor(courseId: number | undefined) {
     if (!courseId) return;
     // Clear selection if deleting the selected slide
     if (selection?.slideId === slideId) setSelection({ lessonId });
-    deleteSlideMutation.mutate({ courseId, lessonId, slideId });
-  }, [courseId, selection?.slideId, deleteSlideMutation]);
+    deleteBlockMutation.mutate({ courseId, lessonId, slideId });
+  }, [courseId, selection?.slideId, deleteBlockMutation]);
 
-  const isSaving = updateSlideMutation.isPending
+  const isSaving = updateBlockMutation.isPending
     || addLessonMutation.isPending
-    || addSlideMutation.isPending
+    || addBlockMutation.isPending
     || deleteLessonMutation.isPending
-    || deleteSlideMutation.isPending;
+    || deleteBlockMutation.isPending;
 
   return {
     course,
@@ -88,9 +88,9 @@ export function useCourseEditor(courseId: number | undefined) {
     error,
     selection,
     selectedLesson,
-    selectedSlide,
+    selectedBlock,
     selectLesson,
-    selectSlide,
+    selectBlock,
     clearSelection,
     updateSlide,
     addLesson,

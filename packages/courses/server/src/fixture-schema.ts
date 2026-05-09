@@ -5,7 +5,7 @@ import { SlideTypeSchema, VerifyModeSchema, CourseStatusSchema } from '@trn-plat
  * Zod schemas for the YAML fixture format.
  *
  * Differences from the DB schemas in @trn-platform/shared:
- *  - No IDs (course_id, section_id, slide_id) — assigned by the DB.
+ *  - No IDs (course_id, section_id, block_id) — assigned by the DB.
  *  - No `seq` on sections/slides — order in the array is the order on disk
  *    and gets written back as `seq = index`.
  *  - Series is referenced by title (with optional metadata to upsert).
@@ -13,8 +13,8 @@ import { SlideTypeSchema, VerifyModeSchema, CourseStatusSchema } from '@trn-plat
  *  - `created_at` / `updated_at` are not part of fixtures.
  */
 
-export const FixtureSlideSchema = z.object({
-  slide_type: SlideTypeSchema,
+export const FixtureBlockSchema = z.object({
+  block_type: SlideTypeSchema,
   title: z.string().nullable().optional(),
   content: z.string().nullable().optional(),
   image_url: z.string().nullable().optional(),
@@ -31,12 +31,12 @@ export const FixtureSlideSchema = z.object({
   seed_sql: z.string().nullable().optional(),
   seed_label: z.string().nullable().optional(),
 });
-export type FixtureSlide = z.infer<typeof FixtureSlideSchema>;
+export type FixtureBlock = z.infer<typeof FixtureBlockSchema>;
 
 export const FixtureLessonSchema = z.object({
   title: z.string().min(1),
   description: z.string().nullable().optional(),
-  slides: z.array(FixtureSlideSchema).default([]),
+  slides: z.array(FixtureBlockSchema).default([]),
 });
 export type FixtureLesson = z.infer<typeof FixtureLessonSchema>;
 

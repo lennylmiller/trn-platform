@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useExecuteSql } from '@trn-platform/execution-data-access';
-import type { CourseSlide } from '@trn-platform/shared';
+import type { CourseBlock } from '@trn-platform/shared';
 
 export interface VerifyResult {
   passed: boolean;
@@ -18,7 +18,7 @@ export function useSlideVerify() {
   const [result, setResult] = useState<VerifyResult | null>(null);
 
   const verify = useCallback(
-    (slide: CourseSlide) => {
+    (slide: CourseBlock) => {
       const sql = slide.sql_text;
       if (!sql) {
         setResult({ passed: false, message: 'No verification SQL defined for this slide.' });
