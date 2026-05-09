@@ -98,6 +98,19 @@ export async function callMcpTool(
 }
 
 /**
+ * Pre-warm the MCP client by spawning the server and caching tools.
+ * Call this at Express startup to eliminate cold-start latency on first chat.
+ */
+export async function warmupMcpClient(): Promise<void> {
+  try {
+    const tools = await getMcpTools();
+    console.log(`[mcp-client] Warmed up with ${tools.length} tools`);
+  } catch (err) {
+    console.error('[mcp-client] Warmup failed:', err instanceof Error ? err.message : err);
+  }
+}
+
+/**
  * Disconnect the MCP client and kill the child process.
  */
 export async function closeMcpClient(): Promise<void> {

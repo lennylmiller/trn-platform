@@ -44,7 +44,7 @@ const { stepsRouter } = require('@trn-platform/steps-server');
 const { flowsRouter } = require('@trn-platform/flows-server');
 const { compositionsRouter } = require('@trn-platform/compositions-server');
 const { executionRouter } = require('@trn-platform/execution-server');
-const { chatRouter } = require('@trn-platform/chat-server');
+const { chatRouter, warmupMcpClient } = require('@trn-platform/chat-server');
 const { storiesRouter } = require('@trn-platform/stories-server');
 const { coursesRouter } = require('@trn-platform/courses-server');
 
@@ -80,6 +80,8 @@ app.use(errorHandler);
 
 const server = app.listen(PORT, () => {
   console.log(`TRN Platform API server listening on port ${PORT}`);
+  // Pre-warm MCP client so first chat request doesn't have cold-start latency
+  warmupMcpClient().catch(() => {});
 });
 
 process.on('SIGTERM', () => { server.close(); closePool().then(() => process.exit(0)); });
