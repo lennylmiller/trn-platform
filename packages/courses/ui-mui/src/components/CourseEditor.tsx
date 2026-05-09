@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
@@ -80,7 +80,15 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
   const [addLessonOpen, setAddLessonOpen] = useState(false);
   const [addSlideTarget, setAddSlideTarget] = useState<number | null>(null);
   const [mode, setMode] = useState<'edit' | 'preview'>('edit');
+  // Auto-open AI Author for empty courses (fresh from Create Course)
   const [chatOpen, setChatOpen] = useState(false);
+  const hasAutoOpened = useRef(false);
+  useEffect(() => {
+    if (!hasAutoOpened.current && course && course.lessons.length === 0) {
+      setChatOpen(true);
+      hasAutoOpened.current = true;
+    }
+  }, [course]);
 
   const chatContext = useMemo(() => ({
     courseId,

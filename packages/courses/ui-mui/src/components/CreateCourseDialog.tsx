@@ -15,7 +15,7 @@ import type { CourseTrack, CourseSeries } from '@trn-platform/shared';
 export interface CreateCourseDialogProps {
   open: boolean;
   onClose: () => void;
-  onCreated: (courseId: number) => void;
+  onCreated: (courseId: number, trackId: number | null) => void;
   tracks: CourseTrack[];
   series: CourseSeries[];
 }
@@ -95,7 +95,7 @@ export function CreateCourseDialog({ open, onClose, onCreated, tracks, series }:
       if (!res.ok) throw new Error('Create failed');
       const course = await res.json();
       handleClose();
-      onCreated(course.course_id);
+      onCreated(course.course_id, typeof trackId === 'number' ? trackId : null);
     } catch (err) {
       console.error('Create course failed:', err);
     } finally {

@@ -469,10 +469,12 @@ export default function CoursesPage() {
       <CreateCourseDialog
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        onCreated={(courseId) => {
+        onCreated={(courseId, trackId) => {
           void queryClient.invalidateQueries({ queryKey: coursesKeys.all });
           void queryClient.invalidateQueries({ queryKey: seriesKeys.all });
           void queryClient.invalidateQueries({ queryKey: tracksKeys.all });
+          // Switch to the new course's track so it's visible when coming back
+          if (trackId !== null) setActiveTrackId(trackId);
           navigate(`/courses/edit/${courseId}`);
         }}
         tracks={allTracks}
