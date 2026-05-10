@@ -448,7 +448,7 @@ export async function buildCourseContent(
     const blockList = lesson.blocks ?? lesson.slides ?? [];
     for (let slideIdx = 0; slideIdx < blockList.length; slideIdx++) {
       const sl = blockList[slideIdx]!;
-      await pool.request()
+      const blockResult = await pool.request()
         .input('lessonId', lessonId)
         .input('seq', slideIdx)
         .input('block_type', sl.block_type)
@@ -468,7 +468,42 @@ export async function buildCourseContent(
         .input('seed_sql', sl.seed_sql ?? null)
         .input('seed_label', sl.seed_label ?? null)
         .query(`INSERT INTO course_block (lesson_id, seq, block_type, title, content, image_url, sql_text, sql_label, verify_mode, expected_json, quiz_question, quiz_options, quiz_answer, quiz_explanation, hints, presenter_notes, seed_sql, seed_label)
+                OUTPUT INSERTED.block_id
                 VALUES (@lessonId, @seq, @block_type, @title, @content, @image_url, @sql_text, @sql_label, @verify_mode, @expected_json, @quiz_question, @quiz_options, @quiz_answer, @quiz_explanation, @hints, @presenter_notes, @seed_sql, @seed_label)`);
+      const blockId = blockResult.recordset[0].block_id as number;
+
+      // Auto-create slide wrapper: 1 block = 1 slide
+      const layout = sl.image_url ? 'image-right' : 'full';
+      const slideResult = await pool.request()
+        .input('lessonId2', lessonId)
+        .input('seq2', slideIdx)
+        .input('layout', layout)
+        .input('slideTitle', sl.title ?? null)
+        .input('notes', sl.presenter_notes ?? null)
+        .query(`INSERT INTO course_slide (lesson_id, seq, layout, title, notes)
+                OUTPUT INSERTED.slide_id
+                VALUES (@lessonId2, @seq2, @layout, @slideTitle, @notes)`);
+      const slideId = slideResult.recordset[0].slide_id as number;
+
+      // Link block to slide
+      await pool.request()
+        .input('slideId', slideId)
+        .input('elSeq', 0)
+        .input('blockId', blockId)
+        .query(`INSERT INTO course_slide_element (slide_id, seq, element_type, block_id)
+                VALUES (@slideId, @elSeq, 'block', @blockId)`);
+
+      // If block has an image, add it as a second element
+      if (sl.image_url) {
+        await pool.request()
+          .input('slideId2', slideId)
+          .input('elSeq2', 1)
+          .input('imgUrl', sl.image_url)
+          .input('imgAlt', sl.title ?? null)
+          .query(`INSERT INTO course_slide_element (slide_id, seq, element_type, image_url, image_alt)
+                  VALUES (@slideId2, @elSeq2, 'image', @imgUrl, @imgAlt)`);
+      }
+
       blockCount++;
     }
   }

@@ -317,11 +317,13 @@ describe('Courses API', () => {
 
   describe('POST /courses/:id/build', () => {
     it('builds course content in one call', async () => {
-      // delete existing lessons, insert lesson, insert slide, update timestamp
+      // delete lessons → insert lesson → insert block → insert slide → insert element → update timestamp
       mockPool._mockQuery
         .mockResolvedValueOnce({ rowsAffected: [0] }) // delete lessons
         .mockResolvedValueOnce({ recordset: [{ lesson_id: 20 }] }) // insert lesson
-        .mockResolvedValueOnce({ rowsAffected: [1] }) // insert slide
+        .mockResolvedValueOnce({ recordset: [{ block_id: 100 }] }) // insert block
+        .mockResolvedValueOnce({ recordset: [{ slide_id: 200 }] }) // insert slide
+        .mockResolvedValueOnce({ rowsAffected: [1] }) // insert slide element
         .mockResolvedValueOnce({ rowsAffected: [1] }); // update timestamp
       const res = await request(app)
         .post('/api/v2/courses/1/build')
@@ -396,11 +398,14 @@ describe('Courses API', () => {
         .mockResolvedValueOnce({ recordset: [COURSE_ROW] }) // createCourse
         .mockResolvedValueOnce({ rowsAffected: [0] }) // delete lessons (buildCourseContent)
         .mockResolvedValueOnce({ recordset: [{ lesson_id: 20 }] }) // insert lesson
-        .mockResolvedValueOnce({ rowsAffected: [1] }) // insert slide
+        .mockResolvedValueOnce({ recordset: [{ block_id: 100 }] }) // insert block
+        .mockResolvedValueOnce({ recordset: [{ slide_id: 200 }] }) // insert slide
+        .mockResolvedValueOnce({ rowsAffected: [1] }) // insert slide element
         .mockResolvedValueOnce({ rowsAffected: [1] }) // update timestamp
         .mockResolvedValueOnce({ recordset: [COURSE_ROW] }) // getCourse
         .mockResolvedValueOnce({ recordset: [LESSON_ROW] }) // lessons
-        .mockResolvedValueOnce({ recordset: [BLOCK_ROW] }); // slides
+        .mockResolvedValueOnce({ recordset: [BLOCK_ROW] }) // blocks
+        .mockResolvedValueOnce({ recordset: [] }); // slides (empty)
       const res = await request(app)
         .post('/api/v2/courses/import')
         .send({
