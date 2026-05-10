@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { SlideTypeSchema, VerifyModeSchema, CourseStatusSchema } from '@trn-platform/shared/schemas';
+import { CourseBlockTypeSchema, VerifyModeSchema, CourseStatusSchema } from '@trn-platform/shared/schemas';
 
 /**
  * Zod schemas for the YAML fixture format.
@@ -14,7 +14,7 @@ import { SlideTypeSchema, VerifyModeSchema, CourseStatusSchema } from '@trn-plat
  */
 
 export const FixtureBlockSchema = z.object({
-  block_type: SlideTypeSchema,
+  block_type: CourseBlockTypeSchema,
   title: z.string().nullable().optional(),
   content: z.string().nullable().optional(),
   image_url: z.string().nullable().optional(),

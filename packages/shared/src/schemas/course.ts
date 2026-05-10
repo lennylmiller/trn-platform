@@ -10,15 +10,14 @@ export const CourseBlockTypeSchema = z.enum([
 ]);
 export type CourseBlockType = z.infer<typeof CourseBlockTypeSchema>;
 
-// Backwards-compat aliases (SlideType still used in some UI code)
-export { CourseBlockTypeSchema as SlideTypeSchema };
-export type { CourseBlockType as SlideType };
-
 export const VerifyModeSchema = z.enum(['auto', 'show']);
 export type VerifyMode = z.infer<typeof VerifyModeSchema>;
 
 export const CourseStatusSchema = z.enum(['draft', 'published', 'archived']);
 export type CourseStatus = z.infer<typeof CourseStatusSchema>;
+
+export const SlideLayoutSchema = z.enum(['full', 'side-by-side', 'image-left', 'image-right']);
+export type SlideLayout = z.infer<typeof SlideLayoutSchema>;
 
 // ============================================================================
 // TRACKS
@@ -62,7 +61,7 @@ export const CourseSeriesCreateSchema = z.object({
 export type CourseSeriesCreate = z.infer<typeof CourseSeriesCreateSchema>;
 
 // ============================================================================
-// BASE SCHEMAS
+// COURSE
 // ============================================================================
 
 export const CourseSchema = z.object({
@@ -82,6 +81,10 @@ export const CourseSchema = z.object({
 });
 export type Course = z.infer<typeof CourseSchema>;
 
+// ============================================================================
+// LESSON
+// ============================================================================
+
 export const CourseLessonSchema = z.object({
   lesson_id: z.number(),
   course_id: z.number(),
@@ -90,6 +93,10 @@ export const CourseLessonSchema = z.object({
   description: z.string().nullable().optional(),
 });
 export type CourseLesson = z.infer<typeof CourseLessonSchema>;
+
+// ============================================================================
+// BLOCK (content unit)
+// ============================================================================
 
 export const CourseBlockSchema = z.object({
   block_id: z.number(),
@@ -115,9 +122,32 @@ export const CourseBlockSchema = z.object({
 });
 export type CourseBlock = z.infer<typeof CourseBlockSchema>;
 
-// Backwards-compat aliases
-export { CourseBlockSchema as CourseSlideSchema };
-export type { CourseBlock as CourseSlide };
+// ============================================================================
+// SLIDE (visual container) & ELEMENTS
+// ============================================================================
+
+export const SlideElementSchema = z.object({
+  element_id: z.number(),
+  slide_id: z.number(),
+  seq: z.number(),
+  element_type: z.enum(['block', 'image']),
+  block_id: z.number().nullable().optional(),
+  image_url: z.string().nullable().optional(),
+  image_alt: z.string().nullable().optional(),
+});
+export type SlideElement = z.infer<typeof SlideElementSchema>;
+
+export const CourseSlideSchema = z.object({
+  slide_id: z.number(),
+  lesson_id: z.number(),
+  seq: z.number(),
+  layout: SlideLayoutSchema,
+  title: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
+  elements: z.array(SlideElementSchema).optional(),
+  created_at: z.string().nullable().optional(),
+});
+export type CourseSlide = z.infer<typeof CourseSlideSchema>;
 
 // ============================================================================
 // DETAIL SCHEMAS
@@ -125,6 +155,7 @@ export type { CourseBlock as CourseSlide };
 
 export const CourseLessonDetailSchema = CourseLessonSchema.extend({
   blocks: z.array(CourseBlockSchema),
+  slides: z.array(CourseSlideSchema).optional(),
 });
 export type CourseLessonDetail = z.infer<typeof CourseLessonDetailSchema>;
 
@@ -202,16 +233,8 @@ export const CourseBlockCreateSchema = z.object({
 });
 export type CourseBlockCreate = z.infer<typeof CourseBlockCreateSchema>;
 
-// Backwards-compat aliases
-export { CourseBlockCreateSchema as SlideCreateSchema };
-export type { CourseBlockCreate as SlideCreate };
-
 export const CourseBlockUpdateSchema = CourseBlockCreateSchema.partial();
 export type CourseBlockUpdate = z.infer<typeof CourseBlockUpdateSchema>;
-
-// Backwards-compat aliases
-export { CourseBlockUpdateSchema as SlideUpdateSchema };
-export type { CourseBlockUpdate as SlideUpdate };
 
 // ============================================================================
 // DRAFTS
