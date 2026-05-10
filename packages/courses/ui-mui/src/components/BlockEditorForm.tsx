@@ -12,6 +12,7 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
 import type { CourseBlock, CourseBlockUpdate, CourseBlockType, VerifyMode } from '@trn-platform/shared';
+import { ImageUploadZone } from './ImageUploadZone';
 
 export interface BlockEditorFormProps {
   slide: CourseBlock;
@@ -130,14 +131,21 @@ export function BlockEditorForm({ slide, onSave, isSaving }: BlockEditorFormProp
             />
           )}
 
-          {/* Image URL */}
-          {(slideType === 'narrative' || slideType === 'reference') && (
-            <TextField
-              label="Image URL"
-              size="small"
-              value={val('image_url') ?? ''}
-              onChange={(e) => set('image_url', e.target.value || null)}
-            />
+          {/* Image */}
+          {(slideType === 'narrative' || slideType === 'reference' || slideType === 'screenshot_task') && (
+            <>
+              <Divider><Chip label="Image" size="small" /></Divider>
+              <ImageUploadZone
+                currentUrl={val('image_url') as string | null}
+                onUpload={(url) => set('image_url', url)}
+              />
+              <TextField
+                label="Image URL (or use upload above)"
+                size="small"
+                value={val('image_url') ?? ''}
+                onChange={(e) => set('image_url', e.target.value || null)}
+              />
+            </>
           )}
 
           {/* SQL fields */}

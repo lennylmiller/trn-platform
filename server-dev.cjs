@@ -62,10 +62,32 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Static file serving for uploaded images
+app.use('/uploads', express.static(join(__dirname, 'uploads')));
+
 app.get('/api/health', async (_req, res) => {
   const dbs = await healthCheck();
   const allOk = Object.values(dbs).every(Boolean);
   res.status(allOk ? 200 : 503).json({ status: allOk ? 'ok' : 'degraded', databases: dbs });
+});
+
+// File upload endpoint
+const multer = require('multer');
+const fs = require('fs');
+const crypto = require('crypto');
+const uploadStorage = multer.diskStorage({
+  destination: join(__dirname, 'uploads'),
+  filename: (_req, file, cb) => {
+    const ext = file.originalname.split('.').pop();
+    cb(null, `${Date.now()}-${crypto.randomBytes(4).toString('hex')}.${ext}`);
+  },
+});
+const upload = multer({ storage: uploadStorage, limits: { fileSize: 10 * 1024 * 1024 } }); // 10MB
+
+app.post('/api/v2/uploads', upload.single('file'), (req, res) => {
+  if (!req.file) { res.status(400).json({ message: 'No file uploaded' }); return; }
+  const url = `/uploads/${req.file.filename}`;
+  res.status(201).json({ url, filename: req.file.filename, size: req.file.size });
 });
 
 app.use('/api', authMiddleware);

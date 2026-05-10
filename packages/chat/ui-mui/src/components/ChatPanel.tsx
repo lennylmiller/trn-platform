@@ -223,7 +223,7 @@ export function ChatPanel({ context, systemPromptHint, onResponse, onToolCall, p
         {isPlanning && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
             <CircularProgress size={16} color="secondary" />
-            <Typography variant="body2" color="secondary">Claude Code is refining your prompt...</Typography>
+            <Typography variant="body2" color="secondary">We're refining your prompt...</Typography>
           </Box>
         )}
 
