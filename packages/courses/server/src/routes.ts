@@ -18,6 +18,7 @@ import {
 } from './queries';
 import type { BulkLessonInput } from './queries';
 import { listTemplates, getTemplate, applyTemplate } from './templates';
+import { validateSql, validateCourseBlocksSql } from './validate-sql';
 
 export const coursesRouter: RouterType = Router();
 
@@ -46,6 +47,22 @@ coursesRouter.post('/:id/apply-template', async (req: Request, res: Response, ne
     if (!templateName) { res.status(400).json({ message: 'templateName required' }); return; }
     const result = await applyTemplate(courseId, templateName, parameters ?? {});
     res.json({ message: 'Template applied', course_id: courseId, ...result });
+  } catch (err) { next(err); }
+});
+
+// ---------------------------------------------------------------------------
+// SQL Validation
+// ---------------------------------------------------------------------------
+
+coursesRouter.post('/validate-sql', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { sql, database } = req.body;
+    if (!sql || typeof sql !== 'string') {
+      res.status(400).json({ message: 'sql string required' });
+      return;
+    }
+    const result = await validateSql(sql, database);
+    res.json(result);
   } catch (err) { next(err); }
 });
 
@@ -151,8 +168,23 @@ coursesRouter.post('/:id/build', async (req: Request, res: Response, next: NextF
     if (Number.isNaN(id)) { res.status(400).json({ message: 'Invalid course ID' }); return; }
     const lessons = req.body.lessons as BulkLessonInput[];
     if (!Array.isArray(lessons)) { res.status(400).json({ message: 'lessons array required' }); return; }
+
+    // Validate all SQL fields before building
+    const sqlErrors = await validateCourseBlocksSql(lessons);
+
     const result = await buildCourseContent(id, lessons);
-    res.json({ message: 'Course content built', course_id: id, ...result });
+    res.json({
+      message: 'Course content built',
+      course_id: id,
+      ...result,
+      ...(sqlErrors.length > 0 && {
+        sql_warnings: sqlErrors.map((e) => ({
+          source: e.source,
+          error: e.error,
+          sql: e.sql.substring(0, 200),
+        })),
+      }),
+    });
   } catch (err) { next(err); }
 });
 

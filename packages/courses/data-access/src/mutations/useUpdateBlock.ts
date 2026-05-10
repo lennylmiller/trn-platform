@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { CourseBlock, BlockUpdate } from '@trn-platform/shared';
+import type { CourseBlock, CourseBlockUpdate } from '@trn-platform/shared';
 import { apiFetch } from '../client';
 import { coursesKeys } from '../keys';
 
-export interface UpdateBlockVars { courseId: number; lessonId: number; slideId: number; updates: BlockUpdate; }
+export interface UpdateBlockVars { courseId: number; lessonId: number; slideId: number; updates: CourseBlockUpdate; }
 
 export function useUpdateBlock() {
   const qc = useQueryClient();

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { CourseBlock, CourseLesson, CourseSlide, BlockUpdate, BlockCreate } from '@trn-platform/shared';
+import type { CourseBlock, CourseLesson, CourseSlide, CourseBlockUpdate, CourseBlockCreate } from '@trn-platform/shared';
 import {
   useCourse, useAddLesson, useAddBlock, useUpdateBlock,
   useDeleteLesson, useDeleteBlock,
@@ -53,7 +53,7 @@ export function useCourseEditor(courseId: number | undefined) {
 
   // --- Mutations ---
 
-  const updateBlock = useCallback((slideId: number, lessonId: number, updates: BlockUpdate) => {
+  const updateBlock = useCallback((slideId: number, lessonId: number, updates: CourseBlockUpdate) => {
     if (!courseId) return;
     updateBlockMutation.mutate({ courseId, lessonId, slideId, updates });
   }, [courseId, updateBlockMutation]);
@@ -64,7 +64,7 @@ export function useCourseEditor(courseId: number | undefined) {
     addLessonMutation.mutate({ courseId, input: { seq, title } });
   }, [courseId, course?.lessons.length, addLessonMutation]);
 
-  const addBlock = useCallback((lessonId: number, input: BlockCreate) => {
+  const addBlock = useCallback((lessonId: number, input: CourseBlockCreate) => {
     if (!courseId) return;
     addBlockMutation.mutate({ courseId, lessonId, input });
   }, [courseId, addBlockMutation]);

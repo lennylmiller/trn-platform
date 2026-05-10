@@ -25,11 +25,6 @@ export interface MarkdownBlockProps {
 // Component tag pre-processor
 // ---------------------------------------------------------------------------
 
-interface ParsedComponent {
-  name: string;
-  props: Record<string, string>;
-}
-
 /**
  * Pre-process markdown: find <ComponentName prop="value" /> tags and replace
  * them with special code fences that the code handler can intercept.
