@@ -85,6 +85,8 @@
     ]
   },
   "dependencies": {
+    "@mdx-js/react": "^3.1.1",
+    "@mdxeditor/editor": "^4.0.0",
     "@types/multer": "^1.4.13",
     "dotenv": "^17.4.2",
     "multer": "^2.1.1"

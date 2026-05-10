@@ -1,13 +1,32 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
-import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
-import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import SaveIcon from '@mui/icons-material/Save';
+import {
+  MDXEditor,
+  type MDXEditorMethods,
+  jsxPlugin,
+  GenericJsxEditor,
+  toolbarPlugin,
+  diffSourcePlugin,
+  headingsPlugin,
+  listsPlugin,
+  quotePlugin,
+  thematicBreakPlugin,
+  tablePlugin,
+  markdownShortcutPlugin,
+  UndoRedo,
+  BoldItalicUnderlineToggles,
+  BlockTypeSelect,
+  CreateLink,
+  InsertTable,
+  InsertThematicBreak,
+  ListsToggle,
+  DiffSourceToggleWrapper,
+} from '@mdxeditor/editor';
+import '@mdxeditor/editor/style.css';
 import type { CourseSlide } from '@trn-platform/shared';
 
 export interface SlideMarkdownEditorProps {
@@ -16,39 +35,114 @@ export interface SlideMarkdownEditorProps {
   onSaved?: () => void;
 }
 
-const INSERT_SNIPPETS = [
-  { label: 'LiveDemo', tag: '<LiveDemo sql="" label="Demo" />' },
-  { label: 'Quiz', tag: '<Quiz question="" options=\'["","","",""]\' answer="0" explanation="" />' },
-  { label: 'Placeholder', tag: '<Placeholder type="" label="" />' },
-  { label: 'Image', tag: '<Image src="" alt="" />' },
-  { label: 'SqlChallenge', tag: '<SqlChallenge content="" sql="" hints=\'[]\' label="Challenge" />' },
-  { label: 'DoItInQc', tag: '<DoItInQc sql="" label="Check My Work" />' },
+// ---------------------------------------------------------------------------
+// Custom JSX component descriptors for course components
+// ---------------------------------------------------------------------------
+
+const jsxComponentDescriptors = [
+  {
+    name: 'LiveDemo',
+    kind: 'flow' as const,
+    source: '@course/components',
+    defaultExport: false,
+    hasChildren: false,
+    props: [
+      { name: 'sql', type: 'string' as const },
+      { name: 'label', type: 'string' as const },
+    ],
+    Editor: GenericJsxEditor,
+  },
+  {
+    name: 'Quiz',
+    kind: 'flow' as const,
+    source: '@course/components',
+    defaultExport: false,
+    hasChildren: false,
+    props: [
+      { name: 'question', type: 'string' as const },
+      { name: 'options', type: 'string' as const },
+      { name: 'answer', type: 'string' as const },
+      { name: 'explanation', type: 'string' as const },
+    ],
+    Editor: GenericJsxEditor,
+  },
+  {
+    name: 'SqlChallenge',
+    kind: 'flow' as const,
+    source: '@course/components',
+    defaultExport: false,
+    hasChildren: false,
+    props: [
+      { name: 'content', type: 'string' as const },
+      { name: 'sql', type: 'string' as const },
+      { name: 'hints', type: 'string' as const },
+      { name: 'label', type: 'string' as const },
+    ],
+    Editor: GenericJsxEditor,
+  },
+  {
+    name: 'Placeholder',
+    kind: 'flow' as const,
+    source: '@course/components',
+    defaultExport: false,
+    hasChildren: false,
+    props: [
+      { name: 'type', type: 'string' as const },
+      { name: 'label', type: 'string' as const },
+    ],
+    Editor: GenericJsxEditor,
+  },
+  {
+    name: 'Image',
+    kind: 'flow' as const,
+    source: '@course/components',
+    defaultExport: false,
+    hasChildren: false,
+    props: [
+      { name: 'src', type: 'string' as const },
+      { name: 'alt', type: 'string' as const },
+    ],
+    Editor: GenericJsxEditor,
+  },
+  {
+    name: 'DoItInQc',
+    kind: 'flow' as const,
+    source: '@course/components',
+    defaultExport: false,
+    hasChildren: false,
+    props: [
+      { name: 'sql', type: 'string' as const },
+      { name: 'label', type: 'string' as const },
+      { name: 'content', type: 'string' as const },
+    ],
+    Editor: GenericJsxEditor,
+  },
 ];
 
-export function SlideMarkdownEditor({ slide, courseId, onSaved }: SlideMarkdownEditorProps) {
-  const [content, setContent] = useState(slide.content ?? '');
-  const [isDirty, setIsDirty] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const slideIdRef = useRef(slide.slide_id);
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
 
-  // Reset when slide changes
+export function SlideMarkdownEditor({ slide, courseId, onSaved }: SlideMarkdownEditorProps) {
+  const editorRef = useRef<MDXEditorMethods>(null);
+  const slideIdRef = useRef(slide.slide_id);
+  const isDirtyRef = useRef(false);
+
+  // Reset editor when slide changes
   useEffect(() => {
     if (slide.slide_id !== slideIdRef.current) {
-      setContent(slide.content ?? '');
-      setIsDirty(false);
+      editorRef.current?.setMarkdown(slide.content ?? '');
       slideIdRef.current = slide.slide_id;
+      isDirtyRef.current = false;
     }
   }, [slide.slide_id, slide.content]);
 
-  const handleChange = (value: string) => {
-    setContent(value);
-    setIsDirty(true);
-  };
+  const handleChange = useCallback(() => {
+    isDirtyRef.current = true;
+  }, []);
 
-  const handleSave = async () => {
-    if (!isDirty) return;
-    setIsSaving(true);
+  const handleSave = useCallback(async () => {
+    const content = editorRef.current?.getMarkdown() ?? '';
     try {
       const res = await fetch(`/api/v2/courses/${courseId}/slides/${slide.slide_id}`, {
         method: 'PUT',
@@ -56,90 +150,66 @@ export function SlideMarkdownEditor({ slide, courseId, onSaved }: SlideMarkdownE
         body: JSON.stringify({ content, title: slide.title }),
       });
       if (res.ok) {
-        setIsDirty(false);
+        isDirtyRef.current = false;
         onSaved?.();
       }
-    } finally {
-      setIsSaving(false);
+    } catch (err) {
+      console.error('Save failed:', err);
     }
-  };
-
-  const insertTag = (tag: string) => {
-    const textarea = textareaRef.current;
-    if (!textarea) {
-      setContent((c) => c + '\n\n' + tag);
-      setIsDirty(true);
-      return;
-    }
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const before = content.slice(0, start);
-    const after = content.slice(end);
-    const newContent = before + tag + after;
-    setContent(newContent);
-    setIsDirty(true);
-    // Set cursor after inserted tag
-    requestAnimationFrame(() => {
-      textarea.selectionStart = textarea.selectionEnd = start + tag.length;
-      textarea.focus();
-    });
-  };
+  }, [courseId, slide.slide_id, slide.title, onSaved]);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       {/* Header */}
       <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', px: 2, py: 1, borderBottom: 1, borderColor: 'divider' }}>
         <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-          Slide Editor
+          {slide.title ?? 'Slide Editor'}
         </Typography>
         <Button
           size="small"
           variant="contained"
           startIcon={<SaveIcon />}
           onClick={handleSave}
-          disabled={!isDirty || isSaving}
         >
-          {isSaving ? 'Saving...' : 'Save'}
+          Save
         </Button>
       </Stack>
 
-      {/* Insert toolbar */}
-      <Stack direction="row" spacing={0.5} sx={{ px: 2, py: 0.75, borderBottom: 1, borderColor: 'divider', flexWrap: 'wrap', gap: 0.5 }}>
-        <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5, alignSelf: 'center' }}>
-          Insert:
-        </Typography>
-        {INSERT_SNIPPETS.map((s) => (
-          <Tooltip key={s.label} title={s.tag} arrow>
-            <Chip
-              label={s.label}
-              size="small"
-              variant="outlined"
-              onClick={() => insertTag(s.tag)}
-              sx={{ cursor: 'pointer', fontSize: '0.7rem' }}
-            />
-          </Tooltip>
-        ))}
-      </Stack>
-
-      {/* Markdown editor */}
-      <Box sx={{ flex: 1, overflow: 'auto', p: 1 }}>
-        <TextField
-          inputRef={textareaRef}
-          value={content}
-          onChange={(e) => handleChange(e.target.value)}
-          multiline
-          fullWidth
-          minRows={20}
-          slotProps={{
-            input: {
-              sx: {
-                fontFamily: '"Cascadia Code", "Fira Code", "Consolas", monospace',
-                fontSize: '0.85rem',
-                lineHeight: 1.6,
-              },
-            },
-          }}
-          sx={{ '& .MuiInputBase-root': { alignItems: 'flex-start' } }}
+      {/* MDX Editor */}
+      <Box sx={{
+        flex: 1,
+        overflow: 'auto',
+        '& .mdxeditor': { height: '100%' },
+        '& .mdxeditor-root-contenteditable': { padding: '16px' },
+        '& ._toolbarRoot_uazmk_64': { flexWrap: 'wrap' },
+      }}>
+        <MDXEditor
+          ref={editorRef}
+          markdown={slide.content ?? ''}
+          onChange={handleChange}
+          plugins={[
+            headingsPlugin(),
+            listsPlugin(),
+            quotePlugin(),
+            thematicBreakPlugin(),
+            tablePlugin(),
+            markdownShortcutPlugin(),
+            jsxPlugin({ jsxComponentDescriptors }),
+            diffSourcePlugin({ viewMode: 'rich-text' }),
+            toolbarPlugin({
+              toolbarContents: () => (
+                <DiffSourceToggleWrapper>
+                  <UndoRedo />
+                  <BoldItalicUnderlineToggles />
+                  <BlockTypeSelect />
+                  <ListsToggle />
+                  <CreateLink />
+                  <InsertTable />
+                  <InsertThematicBreak />
+                </DiffSourceToggleWrapper>
+              ),
+            }),
+          ]}
         />
       </Box>
     </Box>
