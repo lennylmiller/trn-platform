@@ -25,6 +25,9 @@ import { BlockRenderer } from './BlockRenderer';
 import { BlockEditorForm } from './BlockEditorForm';
 import { AddLessonDialog } from './AddLessonDialog';
 import { DraftPanel } from './DraftPanel';
+import { WelcomeScreen } from './WelcomeScreen';
+import { MarkdownBlock } from '@trn-platform/compositions-ui-mui';
+import type { CourseDraft } from '@trn-platform/shared';
 import { AddBlockDialog } from './AddBlockDialog';
 import type { CourseLesson, CourseBlockType } from '@trn-platform/shared';
 
@@ -86,6 +89,7 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
   const [rightPanel, setRightPanel] = useState<'editor' | 'chat' | 'drafts'>('editor');
   const [chatSize, setChatSize] = useState<'default' | 'wide' | 'full'>('default');
   const chatOpen = rightPanel === 'chat';
+  const [selectedDraft, setSelectedDraft] = useState<CourseDraft | null>(null);
   const hasAutoOpened = useRef(false);
   useEffect(() => {
     if (!hasAutoOpened.current && course && course.lessons.length === 0) {
@@ -311,13 +315,23 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
             />
           </Box>
 
-          {/* Center: Slide preview (hidden when chat is full width) */}
+          {/* Center: Canvas — context-aware content area */}
           <Box sx={{ flex: 1, overflow: 'auto', bgcolor: 'background.default', display: chatOpen && chatSize === 'full' ? 'none' : undefined }}>
             {selectedBlock ? (
+              /* Block preview */
               <Box sx={{ maxWidth: 900, mx: 'auto', p: 3 }}>
                 <BlockRenderer slide={selectedBlock} />
               </Box>
+            ) : selectedDraft && rightPanel === 'drafts' ? (
+              /* Draft preview */
+              <Box sx={{ maxWidth: 900, mx: 'auto', p: 3 }}>
+                <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
+                  {selectedDraft.title}
+                </Typography>
+                <MarkdownBlock content={selectedDraft.content} interactive={false} />
+              </Box>
             ) : selectedLesson ? (
+              /* Lesson info */
               <Box sx={{ p: 4, textAlign: 'center' }}>
                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
                   {selectedLesson.title}
@@ -328,13 +342,22 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
                   </Typography>
                 )}
                 <Typography variant="body2" color="text.secondary">
-                  Select a slide from the outline to preview it.
+                  Select a block from the outline to preview it.
                 </Typography>
               </Box>
+            ) : course.lessons.length === 0 ? (
+              /* Welcome screen for empty courses */
+              <WelcomeScreen
+                courseTitle={course.title}
+                onStartWithGoal={() => setRightPanel('chat')}
+                onStartWithDocument={() => setRightPanel('drafts')}
+                onStartFromScratch={() => setAddLessonOpen(true)}
+              />
             ) : (
+              /* Default: nothing selected */
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
                 <Typography variant="body1" color="text.secondary">
-                  Select a lesson or slide from the outline.
+                  Select a lesson or block from the outline.
                 </Typography>
               </Box>
             )}
@@ -365,8 +388,8 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
             <Box sx={{ width: 420, flexShrink: 0, borderLeft: 1, borderColor: 'divider', overflow: 'hidden', bgcolor: 'background.paper' }}>
               <DraftPanel
                 courseId={courseId}
+                onSelectDraft={setSelectedDraft}
                 onPromote={(content) => {
-                  // Switch to chat and pre-fill with the draft content for build
                   setRightPanel('chat');
                 }}
               />
