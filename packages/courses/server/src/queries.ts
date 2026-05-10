@@ -2,6 +2,7 @@ import type {
   Course, CourseCreate, CourseUpdate, CourseDetail,
   CourseLesson, LessonCreate, LessonUpdate,
   CourseBlock, CourseBlockCreate, CourseBlockUpdate,
+  CourseSlide, SlideElement,
   CourseListItem, CourseLessonDetail, CourseSeries, CourseTrack,
   CourseDraft, CourseDraftCreate, CourseDraftUpdate,
 } from '@trn-platform/shared/schemas';
@@ -185,18 +186,63 @@ export async function getCourse(id: number): Promise<CourseDetail | null> {
 
   const lessonIds = lessonsResult.recordset.map((r: Record<string, unknown>) => r.lesson_id as number);
 
-  let slides: CourseBlock[] = [];
+  let allBlocks: CourseBlock[] = [];
+  let allSlides: CourseSlide[] = [];
+
   if (lessonIds.length > 0) {
     const idList = lessonIds.join(',');
-    const slidesResult = await pool.request()
+
+    // Fetch blocks
+    const blocksResult = await pool.request()
       .query(`SELECT * FROM course_block WHERE lesson_id IN (${idList}) ORDER BY lesson_id, seq`);
-    slides = slidesResult.recordset.map(mapBlock);
+    allBlocks = blocksResult.recordset.map(mapBlock);
+
+    // Fetch slides + elements
+    const slidesResult = await pool.request()
+      .query(`SELECT * FROM course_slide WHERE lesson_id IN (${idList}) ORDER BY lesson_id, seq`);
+    const slideRows = slidesResult.recordset as Record<string, unknown>[];
+
+    if (slideRows.length > 0) {
+      const slideIds = slideRows.map((r) => r.slide_id as number).join(',');
+      const elementsResult = await pool.request()
+        .query(`SELECT * FROM course_slide_element WHERE slide_id IN (${slideIds}) ORDER BY slide_id, seq`);
+      const allElements = elementsResult.recordset as Record<string, unknown>[];
+
+      allSlides = slideRows.map((r) => ({
+        slide_id: r.slide_id as number,
+        lesson_id: r.lesson_id as number,
+        seq: r.seq as number,
+        layout: (r.layout as CourseSlide['layout']) ?? 'full',
+        title: (r.title as string) ?? null,
+        notes: (r.notes as string) ?? null,
+        created_at: (r.created_at as string) ?? null,
+        elements: allElements
+          .filter((e) => e.slide_id === r.slide_id)
+          .map((e) => ({
+            element_id: e.element_id as number,
+            slide_id: e.slide_id as number,
+            seq: e.seq as number,
+            element_type: e.element_type as SlideElement['element_type'],
+            block_id: (e.block_id as number) ?? null,
+            image_url: (e.image_url as string) ?? null,
+            image_alt: (e.image_alt as string) ?? null,
+          })),
+      }));
+    }
   }
 
-  const lessons: CourseLessonDetail[] = lessonsResult.recordset.map((r: Record<string, unknown>) => ({
-    ...mapLesson(r),
-    blocks: slides.filter(s => s.lesson_id === (r.lesson_id as number)),
-  }));
+  const lessons: CourseLessonDetail[] = lessonsResult.recordset.map((r: Record<string, unknown>) => {
+    const lessonId = r.lesson_id as number;
+    const lesson: CourseLessonDetail = {
+      ...mapLesson(r),
+      blocks: allBlocks.filter((b) => b.lesson_id === lessonId),
+    };
+    const lessonSlides = allSlides.filter((s) => s.lesson_id === lessonId);
+    if (lessonSlides.length > 0) {
+      lesson.slides = lessonSlides;
+    }
+    return lesson;
+  });
 
   return { ...mapCourse(courseRow), lessons };
 }

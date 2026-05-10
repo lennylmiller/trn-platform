@@ -16,6 +16,7 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import NotesIcon from '@mui/icons-material/Notes';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useCoursePlayer } from '@trn-platform/courses-feature';
+import type { PlayerScreen } from '@trn-platform/courses-feature';
 import { BlockRenderer } from './BlockRenderer';
 
 export interface CoursePlayerProps {
@@ -23,7 +24,7 @@ export interface CoursePlayerProps {
   onExit?: () => void;
 }
 
-const SLIDE_TYPE_LABELS: Record<string, string> = {
+const BLOCK_TYPE_LABELS: Record<string, string> = {
   narrative: 'Read',
   reference: 'Reference',
   live_demo: 'Live Demo',
@@ -33,18 +34,66 @@ const SLIDE_TYPE_LABELS: Record<string, string> = {
   screenshot_task: 'Screenshot',
 };
 
+function ScreenContent({ screen }: { screen: PlayerScreen }) {
+  // Side-by-side or image-left/right layout
+  if (screen.layout === 'side-by-side' || screen.layout === 'image-left' || screen.layout === 'image-right') {
+    const imageFirst = screen.layout === 'image-left';
+    const imageCol = screen.images.length > 0 ? (
+      <Box sx={{ flex: 1 }}>
+        {screen.images.map((img, i) => (
+          <Box key={i} component="img" src={img.url} alt={img.alt ?? ''} sx={{ maxWidth: '100%', borderRadius: 1 }} />
+        ))}
+      </Box>
+    ) : null;
+    const blockCol = (
+      <Box sx={{ flex: 1 }}>
+        {screen.blocks.map((block) => (
+          <BlockRenderer key={block.block_id} slide={block} />
+        ))}
+      </Box>
+    );
+
+    return (
+      <Stack direction="row" spacing={3}>
+        {imageFirst ? <>{imageCol}{blockCol}</> : <>{blockCol}{imageCol}</>}
+      </Stack>
+    );
+  }
+
+  // Full width (default): render blocks sequentially, images inline
+  return (
+    <>
+      {screen.blocks.map((block) => (
+        <Box key={block.block_id} sx={{ mb: 2 }}>
+          <BlockRenderer slide={block} />
+        </Box>
+      ))}
+      {screen.images.map((img, i) => (
+        <Box key={`img-${i}`} component="img" src={img.url} alt={img.alt ?? ''} sx={{ maxWidth: '100%', borderRadius: 1, mt: 2 }} />
+      ))}
+    </>
+  );
+}
+
+function getScreenLabel(screen: PlayerScreen): string {
+  if (screen.blocks.length === 1 && screen.blocks[0]) {
+    return BLOCK_TYPE_LABELS[screen.blocks[0].block_type] ?? screen.blocks[0].block_type;
+  }
+  if (screen.slide?.title) return screen.slide.title;
+  return `${screen.blocks.length} blocks`;
+}
+
 export function CoursePlayer({ courseId, onExit }: CoursePlayerProps) {
   const {
-    course, isLoading, current, currentIndex, totalBlocks,
+    course, isLoading, current, currentIndex, totalScreens,
     isFirst, isLast, next, prev,
   } = useCoursePlayer(courseId);
 
   const [showNotes, setShowNotes] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const progress = totalBlocks > 0 ? ((currentIndex + 1) / totalBlocks) * 100 : 0;
+  const progress = totalScreens > 0 ? ((currentIndex + 1) / totalScreens) * 100 : 0;
 
-  // Keyboard
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
     switch (e.key) {
@@ -93,11 +142,11 @@ export function CoursePlayer({ courseId, onExit }: CoursePlayerProps) {
         {current && (
           <>
             <Chip label={current.lessonTitle} size="small" variant="outlined" sx={{ mr: 1 }} />
-            <Chip label={SLIDE_TYPE_LABELS[current.slide.block_type] ?? current.slide.block_type} size="small" color="primary" sx={{ mr: 1 }} />
+            <Chip label={getScreenLabel(current)} size="small" color="primary" sx={{ mr: 1 }} />
           </>
         )}
         <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }}>
-          {currentIndex + 1} / {totalBlocks}
+          {currentIndex + 1} / {totalScreens}
         </Typography>
         <IconButton size="small" onClick={() => setShowNotes(v => !v)} title="Notes (N)">
           <NotesIcon fontSize="small" />
@@ -109,11 +158,11 @@ export function CoursePlayer({ courseId, onExit }: CoursePlayerProps) {
 
       <LinearProgress variant="determinate" value={progress} sx={{ height: 3 }} />
 
-      {/* Slide content */}
+      {/* Screen content */}
       <Box sx={{ flex: 1, overflow: 'auto' }}>
         <AnimatePresence mode="wait">
           <motion.div
-            key={current?.slide.block_id ?? currentIndex}
+            key={current?.slide?.slide_id ?? current?.block?.block_id ?? currentIndex}
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -30 }}
@@ -121,10 +170,10 @@ export function CoursePlayer({ courseId, onExit }: CoursePlayerProps) {
             style={{ maxWidth: 900, margin: '0 auto', padding: '32px 24px' }}
           >
             {current ? (
-              <BlockRenderer slide={current.slide} />
+              <ScreenContent screen={current} />
             ) : (
               <Typography color="text.secondary" sx={{ textAlign: 'center', py: 8 }}>
-                This course has no slides yet.
+                This course has no content yet.
               </Typography>
             )}
           </motion.div>
@@ -132,14 +181,14 @@ export function CoursePlayer({ courseId, onExit }: CoursePlayerProps) {
       </Box>
 
       {/* Presenter notes */}
-      {current?.slide.presenter_notes && (
+      {current?.notes && (
         <Collapse in={showNotes}>
           <Paper elevation={2} sx={{ mx: 2, mb: 1, p: 2, bgcolor: 'warning.50', border: 1, borderColor: 'warning.200' }}>
             <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}>
               Presenter Notes
             </Typography>
             <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-              {current.slide.presenter_notes}
+              {current.notes}
             </Typography>
           </Paper>
         </Collapse>
@@ -149,7 +198,7 @@ export function CoursePlayer({ courseId, onExit }: CoursePlayerProps) {
       <Stack direction="row" sx={{ justifyContent: 'center', alignItems: 'center', gap: 2, py: 1.5, borderTop: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
         <Button startIcon={<NavigateBeforeIcon />} onClick={prev} disabled={isFirst}>Prev</Button>
         <Stack direction="row" spacing={0.5}>
-          {Array.from({ length: Math.min(totalBlocks, 20) }, (_, i) => (
+          {Array.from({ length: Math.min(totalScreens, 20) }, (_, i) => (
             <Box key={i} sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: i === currentIndex ? 'primary.main' : 'divider', transition: 'background-color 0.2s' }} />
           ))}
         </Stack>

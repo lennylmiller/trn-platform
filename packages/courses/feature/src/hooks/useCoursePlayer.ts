@@ -1,77 +1,146 @@
 import { useState, useCallback, useMemo } from 'react';
-import type { CourseBlock } from '@trn-platform/shared';
+import type { CourseBlock, CourseSlide, SlideElement } from '@trn-platform/shared';
 import { useCourse } from '@trn-platform/courses-data-access';
 
-export interface FlatBlock {
-  slide: CourseBlock;
+/**
+ * A player screen — either a composed slide (with layout + elements)
+ * or a single block (backwards compat for courses without slides).
+ */
+export interface PlayerScreen {
+  /** The slide container, if this course uses slides */
+  slide?: CourseSlide;
+  /** For backwards compat: single block when no slides exist */
+  block?: CourseBlock;
+  /** Resolved blocks for this screen (from slide elements or single block) */
+  blocks: CourseBlock[];
+  /** Images in this screen (from slide elements) */
+  images: { url: string; alt?: string | null }[];
+  /** Layout hint */
+  layout: 'full' | 'side-by-side' | 'image-left' | 'image-right';
+  /** Lesson info */
   lessonTitle: string;
   lessonIndex: number;
+  /** Notes (from slide or block) */
+  notes?: string | null;
+  /** Global position */
   globalIndex: number;
 }
 
 /**
  * Manages course player navigation state.
- * Flattens lessons + slides into a linear sequence for next/prev navigation.
+ * Uses slides when available, falls back to one-block-per-screen.
  */
 export function useCoursePlayer(courseId: number | undefined) {
   const { data: course, isLoading, error } = useCourse(courseId);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const flatBlocks = useMemo((): FlatBlock[] => {
-    if (!course?.lessons) return [];
-    const result: FlatBlock[] = [];
-    course.lessons.forEach((lesson, lessonIdx) => {
-      lesson.blocks.forEach((slide) => {
-        result.push({
-          slide,
-          lessonTitle: lesson.title,
-          lessonIndex: lessonIdx,
-          globalIndex: result.length,
-        });
-      });
-    });
-    return result;
+  // Build a flat list of all blocks keyed by block_id for element resolution
+  const blockMap = useMemo(() => {
+    if (!course?.lessons) return new Map<number, CourseBlock>();
+    const map = new Map<number, CourseBlock>();
+    for (const lesson of course.lessons) {
+      for (const block of lesson.blocks) {
+        map.set(block.block_id, block);
+      }
+    }
+    return map;
   }, [course?.lessons]);
 
-  const totalBlocks = flatBlocks.length;
-  const current = flatBlocks[currentIndex];
+  const screens = useMemo((): PlayerScreen[] => {
+    if (!course?.lessons) return [];
+    const result: PlayerScreen[] = [];
+
+    course.lessons.forEach((lesson, lessonIdx) => {
+      const hasSlides = lesson.slides && lesson.slides.length > 0;
+
+      if (hasSlides) {
+        // Compose screens from slides
+        for (const slide of lesson.slides!) {
+          const blocks: CourseBlock[] = [];
+          const images: { url: string; alt?: string | null }[] = [];
+
+          for (const el of slide.elements ?? []) {
+            if (el.element_type === 'block' && el.block_id) {
+              const block = blockMap.get(el.block_id);
+              if (block) blocks.push(block);
+            } else if (el.element_type === 'image' && el.image_url) {
+              images.push({ url: el.image_url, alt: el.image_alt });
+            }
+          }
+
+          result.push({
+            slide,
+            blocks,
+            images,
+            layout: slide.layout as PlayerScreen['layout'],
+            lessonTitle: lesson.title,
+            lessonIndex: lessonIdx,
+            notes: slide.notes,
+            globalIndex: result.length,
+          });
+        }
+      } else {
+        // Backwards compat: one block = one screen
+        for (const block of lesson.blocks) {
+          result.push({
+            block,
+            blocks: [block],
+            images: block.image_url ? [{ url: block.image_url, alt: block.title }] : [],
+            layout: 'full',
+            lessonTitle: lesson.title,
+            lessonIndex: lessonIdx,
+            notes: block.presenter_notes,
+            globalIndex: result.length,
+          });
+        }
+      }
+    });
+
+    return result;
+  }, [course?.lessons, blockMap]);
+
+  const totalScreens = screens.length;
+  const current = screens[currentIndex];
   const isFirst = currentIndex === 0;
-  const isLast = currentIndex >= totalBlocks - 1;
+  const isLast = currentIndex >= totalScreens - 1;
 
   const next = useCallback(() => {
-    if (currentIndex < totalBlocks - 1) setCurrentIndex((i) => i + 1);
-  }, [currentIndex, totalBlocks]);
+    if (currentIndex < totalScreens - 1) setCurrentIndex((i) => i + 1);
+  }, [currentIndex, totalScreens]);
 
   const prev = useCallback(() => {
     if (currentIndex > 0) setCurrentIndex((i) => i - 1);
   }, [currentIndex]);
 
   const goTo = useCallback((index: number) => {
-    if (index >= 0 && index < totalBlocks) setCurrentIndex(index);
-  }, [totalBlocks]);
+    if (index >= 0 && index < totalScreens) setCurrentIndex(index);
+  }, [totalScreens]);
 
   const reset = useCallback(() => setCurrentIndex(0), []);
 
   // Lesson progress
   const lessonBreaks = useMemo(() => {
-    if (!course?.lessons) return [];
+    if (!screens.length) return [];
     const breaks: { title: string; startIndex: number; count: number }[] = [];
-    let idx = 0;
-    for (const lesson of course.lessons) {
-      breaks.push({ title: lesson.title, startIndex: idx, count: lesson.blocks.length });
-      idx += lesson.blocks.length;
+    let currentLesson = -1;
+    for (const screen of screens) {
+      if (screen.lessonIndex !== currentLesson) {
+        breaks.push({ title: screen.lessonTitle, startIndex: screen.globalIndex, count: 0 });
+        currentLesson = screen.lessonIndex;
+      }
+      breaks[breaks.length - 1]!.count++;
     }
     return breaks;
-  }, [course?.lessons]);
+  }, [screens]);
 
   return {
     course,
     isLoading,
     error,
-    flatBlocks,
+    screens,
     current,
     currentIndex,
-    totalBlocks,
+    totalScreens,
     isFirst,
     isLast,
     lessonBreaks,
