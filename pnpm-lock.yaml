@@ -18,9 +18,15 @@ importers:
 
   .:
     dependencies:
+      '@types/multer':
+        specifier: ^1.4.13
+        version: 1.4.13
       dotenv:
         specifier: ^17.4.2
         version: 17.4.2
+      multer:
+        specifier: ^2.1.1
+        version: 2.1.1
     devDependencies:
       '@changesets/cli':
         specifier: ^2.29.7
