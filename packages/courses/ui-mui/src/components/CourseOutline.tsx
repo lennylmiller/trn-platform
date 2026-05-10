@@ -14,7 +14,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
-import type { CourseLessonDetail, CourseBlock } from '@trn-platform/shared';
+import type { CourseLessonDetail, CourseBlock, CourseSlide } from '@trn-platform/shared';
 
 export interface CourseOutlineProps {
   lessons: CourseLessonDetail[];
@@ -144,19 +144,36 @@ function LessonGroup({
             <DeleteIcon sx={{ fontSize: 16 }} />
           </IconButton>
         )}
-        {lesson.blocks.length > 0 && (open ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />)}
+        {(lesson.slides?.length ?? lesson.blocks.length) > 0 && (open ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />)}
       </ListItemButton>
       <Collapse in={open} timeout="auto" unmountOnExit>
         <List component="div" disablePadding>
-          {lesson.blocks.map((slide) => (
-            <SlideRow
-              key={slide.block_id}
-              slide={slide}
-              selected={selectedBlockId === slide.block_id}
-              onClick={() => onSelectSlide(lesson.lesson_id, slide.block_id)}
-              onDelete={onDeleteBlock ? () => onDeleteBlock(lesson.lesson_id, slide.block_id) : undefined}
-            />
-          ))}
+          {/* Show slides (document-first) if available, otherwise blocks */}
+          {lesson.slides && lesson.slides.length > 0
+            ? lesson.slides.map((s) => (
+                <ListItemButton
+                  key={s.slide_id}
+                  selected={selectedBlockId === s.slide_id}
+                  onClick={() => onSelectSlide(lesson.lesson_id, s.slide_id)}
+                  sx={{ pl: 5, py: 0.5 }}
+                >
+                  <Chip label="Doc" size="small" color="info" sx={{ mr: 1.5, minWidth: 44, fontSize: '0.7rem' }} />
+                  <ListItemText
+                    primary={s.title ?? `Slide ${s.seq + 1}`}
+                    slotProps={{ primary: { variant: 'body2', noWrap: true } }}
+                  />
+                </ListItemButton>
+              ))
+            : lesson.blocks.map((slide) => (
+                <SlideRow
+                  key={slide.block_id}
+                  slide={slide}
+                  selected={selectedBlockId === slide.block_id}
+                  onClick={() => onSelectSlide(lesson.lesson_id, slide.block_id)}
+                  onDelete={onDeleteBlock ? () => onDeleteBlock(lesson.lesson_id, slide.block_id) : undefined}
+                />
+              ))
+          }
           {onAddBlock && (
             <ListItemButton
               onClick={(e) => { e.stopPropagation(); onAddBlock(lesson.lesson_id); }}

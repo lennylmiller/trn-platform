@@ -516,6 +516,19 @@ export async function buildCourseContent(
 }
 
 // ---------------------------------------------------------------------------
+// Slide content update
+// ---------------------------------------------------------------------------
+
+export async function updateSlideContent(slideId: number, content: string, title?: string): Promise<boolean> {
+  const pool = await getPool('qc_training');
+  const setClauses = ['content = @content'];
+  const request = pool.request().input('id', slideId).input('content', content);
+  if (title !== undefined) { setClauses.push('title = @title'); request.input('title', title); }
+  const result = await request.query(`UPDATE course_slide SET ${setClauses.join(', ')} WHERE slide_id = @id`);
+  return (result.rowsAffected[0] ?? 0) > 0;
+}
+
+// ---------------------------------------------------------------------------
 // Export — return full course as portable JSON (no IDs, same as fixture format)
 // ---------------------------------------------------------------------------
 

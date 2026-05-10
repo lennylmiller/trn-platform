@@ -25,6 +25,7 @@ import { BlockRenderer } from './BlockRenderer';
 import { BlockEditorForm } from './BlockEditorForm';
 import { AddLessonDialog } from './AddLessonDialog';
 import { DraftPanel } from './DraftPanel';
+import { SlideMarkdownEditor } from './SlideMarkdownEditor';
 import { WelcomeScreen } from './WelcomeScreen';
 import { MarkdownBlock } from '@trn-platform/compositions-ui-mui';
 import type { CourseDraft } from '@trn-platform/shared';
@@ -75,7 +76,7 @@ function LessonPropertiesPanel({ lesson }: { lesson: CourseLesson }) {
 export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
   const {
     course, isLoading, error,
-    selection, selectedLesson, selectedBlock,
+    selection, selectedLesson, selectedBlock, selectedSlide,
     selectLesson, selectBlock,
     updateBlock, addLesson, addBlock, deleteLesson, deleteBlock,
     clearSelection, isSaving,
@@ -317,8 +318,13 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
 
           {/* Center: Canvas — context-aware content area */}
           <Box sx={{ flex: 1, overflow: 'auto', bgcolor: 'background.default', display: chatOpen && chatSize === 'full' ? 'none' : undefined }}>
-            {selectedBlock ? (
-              /* Block preview */
+            {selectedSlide?.content ? (
+              /* Document-first slide preview */
+              <Box sx={{ maxWidth: 900, mx: 'auto', p: 3 }}>
+                <MarkdownBlock content={selectedSlide.content} interactive />
+              </Box>
+            ) : selectedBlock ? (
+              /* Block preview (old model) */
               <Box sx={{ maxWidth: 900, mx: 'auto', p: 3 }}>
                 <BlockRenderer slide={selectedBlock} />
               </Box>
@@ -395,8 +401,14 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
               />
             </Box>
           ) : (
-            <Box sx={{ width: 360, flexShrink: 0, borderLeft: 1, borderColor: 'divider', overflow: 'hidden', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column' }}>
-              {selectedBlock && selection ? (
+            <Box sx={{ width: 420, flexShrink: 0, borderLeft: 1, borderColor: 'divider', overflow: 'hidden', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column' }}>
+              {selectedSlide?.content ? (
+                <SlideMarkdownEditor
+                  slide={selectedSlide}
+                  courseId={courseId}
+                  onSaved={handleChatResponse}
+                />
+              ) : selectedBlock && selection ? (
                 <BlockEditorForm
                   slide={selectedBlock}
                   onSave={(updates) => updateBlock(selectedBlock.block_id, selection.lessonId, updates)}

@@ -14,6 +14,7 @@ import {
   addLesson, updateLesson, deleteLesson,
   addBlock, updateBlock, deleteBlock,
   listDrafts, getDraft, createDraft, updateDraft, deleteDraft,
+  updateSlideContent,
 } from './queries';
 import type { BulkLessonInput } from './queries';
 import { listTemplates, getTemplate, applyTemplate } from './templates';
@@ -301,5 +302,22 @@ coursesRouter.delete('/:id/lessons/:lessonId/slides/:slId', async (req: Request,
     if (Number.isNaN(slId)) { res.status(400).json({ message: 'Invalid slide ID' }); return; }
     if (!(await deleteBlock(slId))) { res.status(404).json({ message: 'Slide not found' }); return; }
     res.status(204).end();
+  } catch (err) { next(err); }
+});
+
+// ---------------------------------------------------------------------------
+// Slide content
+// ---------------------------------------------------------------------------
+
+coursesRouter.put('/:id/slides/:slideId', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const slideId = Number(req.params.slideId);
+    if (Number.isNaN(slideId)) { res.status(400).json({ message: 'Invalid slide ID' }); return; }
+    const { content, title } = req.body;
+    if (typeof content !== 'string') { res.status(400).json({ message: 'content string required' }); return; }
+    if (!(await updateSlideContent(slideId, content, title))) {
+      res.status(404).json({ message: 'Slide not found' }); return;
+    }
+    res.json({ message: 'Slide updated', slide_id: slideId });
   } catch (err) { next(err); }
 });

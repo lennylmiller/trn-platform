@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { CourseBlock, CourseLesson, BlockUpdate, BlockCreate } from '@trn-platform/shared';
+import type { CourseBlock, CourseLesson, CourseSlide, BlockUpdate, BlockCreate } from '@trn-platform/shared';
 import {
   useCourse, useAddLesson, useAddBlock, useUpdateBlock,
   useDeleteLesson, useDeleteBlock,
@@ -42,6 +42,11 @@ export function useCourseEditor(courseId: number | undefined) {
     ? (course?.lessons
         .find((l) => l.lesson_id === selection.lessonId)
         ?.blocks.find((s) => s.block_id === selection.slideId))
+    : undefined;
+
+  // Also try to resolve as a slide (document-first model)
+  const selectedSlide: CourseSlide | undefined = selectedLesson && selection?.slideId
+    ? selectedLesson.slides?.find((s) => s.slide_id === selection.slideId)
     : undefined;
 
   // --- Mutations ---
@@ -89,6 +94,7 @@ export function useCourseEditor(courseId: number | undefined) {
     selection,
     selectedLesson,
     selectedBlock,
+    selectedSlide,
     selectLesson,
     selectBlock,
     clearSelection,

@@ -19,6 +19,9 @@ export type { DraftPanelProps } from './components/DraftPanel';
 export { ImageUploadZone } from './components/ImageUploadZone';
 export type { ImageUploadZoneProps } from './components/ImageUploadZone';
 
+export { SlideMarkdownEditor } from './components/SlideMarkdownEditor';
+export type { SlideMarkdownEditorProps } from './components/SlideMarkdownEditor';
+
 export { WelcomeScreen } from './components/WelcomeScreen';
 export type { WelcomeScreenProps } from './components/WelcomeScreen';
 export type { DraftPanelProps } from './components/DraftPanel';
