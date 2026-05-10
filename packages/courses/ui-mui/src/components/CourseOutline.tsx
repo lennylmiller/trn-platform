@@ -144,13 +144,13 @@ function LessonGroup({
             <DeleteIcon sx={{ fontSize: 16 }} />
           </IconButton>
         )}
-        {(lesson.slides?.length ?? lesson.blocks.length) > 0 && (open ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />)}
+        {((lesson.slides?.some((s) => s.content) ? lesson.slides.filter((s) => s.content).length : lesson.blocks.length) > 0) && (open ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />)}
       </ListItemButton>
       <Collapse in={open} timeout="auto" unmountOnExit>
         <List component="div" disablePadding>
-          {/* Show slides (document-first) if available, otherwise blocks */}
-          {lesson.slides && lesson.slides.length > 0
-            ? lesson.slides.map((s) => (
+          {/* Show document-first slides if they have content, otherwise blocks */}
+          {lesson.slides && lesson.slides.some((s) => s.content)
+            ? lesson.slides.filter((s) => s.content).map((s) => (
                 <ListItemButton
                   key={s.slide_id}
                   selected={selectedBlockId === s.slide_id}
