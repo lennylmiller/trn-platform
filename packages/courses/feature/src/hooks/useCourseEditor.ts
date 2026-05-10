@@ -45,8 +45,10 @@ export function useCourseEditor(courseId: number | undefined) {
     : undefined;
 
   // Also try to resolve as a slide (document-first model)
-  const selectedSlide: CourseSlide | undefined = selectedLesson && selection?.slideId
-    ? selectedLesson.slides?.find((s) => s.slide_id === selection.slideId)
+  const selectedSlide: CourseSlide | undefined = selection?.slideId
+    ? (course?.lessons
+        .find((l) => l.lesson_id === selection.lessonId)
+        ?.slides?.find((s) => s.slide_id === selection.slideId))
     : undefined;
 
   // --- Mutations ---
@@ -62,7 +64,7 @@ export function useCourseEditor(courseId: number | undefined) {
     addLessonMutation.mutate({ courseId, input: { seq, title } });
   }, [courseId, course?.lessons.length, addLessonMutation]);
 
-  const addSlide = useCallback((lessonId: number, input: BlockCreate) => {
+  const addBlock = useCallback((lessonId: number, input: BlockCreate) => {
     if (!courseId) return;
     addBlockMutation.mutate({ courseId, lessonId, input });
   }, [courseId, addBlockMutation]);
@@ -74,7 +76,7 @@ export function useCourseEditor(courseId: number | undefined) {
     deleteLessonMutation.mutate({ courseId, lessonId });
   }, [courseId, selection?.lessonId, deleteLessonMutation]);
 
-  const deleteSlide = useCallback((lessonId: number, slideId: number) => {
+  const deleteBlock = useCallback((lessonId: number, slideId: number) => {
     if (!courseId) return;
     // Clear selection if deleting the selected slide
     if (selection?.slideId === slideId) setSelection({ lessonId });
@@ -100,9 +102,9 @@ export function useCourseEditor(courseId: number | undefined) {
     clearSelection,
     updateBlock,
     addLesson,
-    addSlide,
+    addBlock,
     deleteLesson,
-    deleteSlide,
+    deleteBlock,
     isSaving,
   };
 }

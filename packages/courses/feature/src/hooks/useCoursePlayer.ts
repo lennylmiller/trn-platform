@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import type { CourseBlock, CourseSlide, SlideElement } from '@trn-platform/shared';
+import type { CourseBlock, CourseSlide } from '@trn-platform/shared';
 import { useCourse } from '@trn-platform/courses-data-access';
 
 /**

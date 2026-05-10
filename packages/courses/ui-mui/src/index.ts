@@ -24,7 +24,6 @@ export type { SlideMarkdownEditorProps } from './components/SlideMarkdownEditor'
 
 export { WelcomeScreen } from './components/WelcomeScreen';
 export type { WelcomeScreenProps } from './components/WelcomeScreen';
-export type { DraftPanelProps } from './components/DraftPanel';
 
 export { AddLessonDialog } from './components/AddLessonDialog';
 export type { AddLessonDialogProps } from './components/AddLessonDialog';

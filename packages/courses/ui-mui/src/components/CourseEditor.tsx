@@ -395,7 +395,7 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
               <DraftPanel
                 courseId={courseId}
                 onSelectDraft={setSelectedDraft}
-                onPromote={(content) => {
+                onPromote={() => {
                   setRightPanel('chat');
                 }}
               />
