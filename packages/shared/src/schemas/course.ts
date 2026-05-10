@@ -143,6 +143,7 @@ export const CourseSlideSchema = z.object({
   seq: z.number(),
   layout: SlideLayoutSchema,
   title: z.string().nullable().optional(),
+  content: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
   elements: z.array(SlideElementSchema).optional(),
   created_at: z.string().nullable().optional(),

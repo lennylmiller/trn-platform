@@ -18,6 +18,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useCoursePlayer } from '@trn-platform/courses-feature';
 import type { PlayerScreen } from '@trn-platform/courses-feature';
 import { BlockRenderer } from './BlockRenderer';
+import { MarkdownBlock } from '@trn-platform/compositions-ui-mui';
 
 export interface CoursePlayerProps {
   courseId: number;
@@ -35,6 +36,11 @@ const BLOCK_TYPE_LABELS: Record<string, string> = {
 };
 
 function ScreenContent({ screen }: { screen: PlayerScreen }) {
+  // Document-first: if the slide has markdown content with embedded components, render it directly
+  if (screen.slide?.content) {
+    return <MarkdownBlock content={screen.slide.content} interactive />;
+  }
+
   // Side-by-side or image-left/right layout
   if (screen.layout === 'side-by-side' || screen.layout === 'image-left' || screen.layout === 'image-right') {
     const imageFirst = screen.layout === 'image-left';

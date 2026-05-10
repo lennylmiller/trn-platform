@@ -214,6 +214,7 @@ export async function getCourse(id: number): Promise<CourseDetail | null> {
         seq: r.seq as number,
         layout: (r.layout as CourseSlide['layout']) ?? 'full',
         title: (r.title as string) ?? null,
+        content: (r.content as string) ?? null,
         notes: (r.notes as string) ?? null,
         created_at: (r.created_at as string) ?? null,
         elements: allElements
