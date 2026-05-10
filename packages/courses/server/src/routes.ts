@@ -30,7 +30,8 @@ coursesRouter.get('/templates', async (_req: Request, res: Response, next: NextF
 
 coursesRouter.get('/templates/:name', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const template = getTemplate(req.params.name!);
+    const name = String(req.params.name);
+    const template = getTemplate(name);
     if (!template) { res.status(404).json({ message: 'Template not found' }); return; }
     res.json(template);
   } catch (err) { next(err); }
