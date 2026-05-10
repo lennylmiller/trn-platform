@@ -16,6 +16,24 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import type { CourseLessonDetail, CourseBlock, CourseSlide } from '@trn-platform/shared';
 
+/**
+ * Determine the display badge for a document-first slide.
+ * If the content contains a component tag, use the first one's type.
+ * Otherwise show "Doc".
+ */
+function getSlideTypeBadge(slide: CourseSlide): { label: string; color: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'info' | 'error' } {
+  const content = slide.content ?? '';
+  // Check for component tags in order of specificity
+  if (content.includes('<Quiz')) return { label: 'Quiz', color: 'secondary' };
+  if (content.includes('<LiveDemo')) return { label: 'Demo', color: 'success' };
+  if (content.includes('<SqlChallenge')) return { label: 'SQL', color: 'warning' };
+  if (content.includes('<DoItInQc')) return { label: 'QC', color: 'primary' };
+  if (content.includes('<Placeholder')) return { label: 'Draft', color: 'warning' };
+  if (content.includes('<Image')) return { label: 'Read', color: 'default' };
+  // Pure markdown narrative
+  return { label: 'Read', color: 'default' };
+}
+
 export interface CourseOutlineProps {
   lessons: CourseLessonDetail[];
   selectedLessonId?: number;
@@ -150,20 +168,23 @@ function LessonGroup({
         <List component="div" disablePadding>
           {/* Show document-first slides if they have content, otherwise blocks */}
           {lesson.slides && lesson.slides.some((s) => s.content)
-            ? lesson.slides.filter((s) => s.content).map((s) => (
-                <ListItemButton
-                  key={s.slide_id}
-                  selected={selectedBlockId === s.slide_id}
-                  onClick={() => onSelectSlide(lesson.lesson_id, s.slide_id)}
-                  sx={{ pl: 5, py: 0.5 }}
-                >
-                  <Chip label="Doc" size="small" color="info" sx={{ mr: 1.5, minWidth: 44, fontSize: '0.7rem' }} />
-                  <ListItemText
-                    primary={s.title ?? `Slide ${s.seq + 1}`}
-                    slotProps={{ primary: { variant: 'body2', noWrap: true } }}
-                  />
-                </ListItemButton>
-              ))
+            ? lesson.slides.filter((s) => s.content).map((s) => {
+                const badge = getSlideTypeBadge(s);
+                return (
+                  <ListItemButton
+                    key={s.slide_id}
+                    selected={selectedBlockId === s.slide_id}
+                    onClick={() => onSelectSlide(lesson.lesson_id, s.slide_id)}
+                    sx={{ pl: 5, py: 0.5 }}
+                  >
+                    <Chip label={badge.label} size="small" color={badge.color} sx={{ mr: 1.5, minWidth: 44, fontSize: '0.7rem' }} />
+                    <ListItemText
+                      primary={s.title ?? `Slide ${s.seq + 1}`}
+                      slotProps={{ primary: { variant: 'body2', noWrap: true } }}
+                    />
+                  </ListItemButton>
+                );
+              })
             : lesson.blocks.map((slide) => (
                 <SlideRow
                   key={slide.block_id}
