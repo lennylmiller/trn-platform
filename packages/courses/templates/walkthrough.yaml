@@ -1,0 +1,73 @@
+name: Walkthrough Course
+description: Story-driven course that follows a family through a real-world process, mapping each step to qc_core tables. Emphasis on narrative and live demos.
+category: walkthrough
+parameters:
+  - name: topic
+    description: The process being walked through (e.g., "Insurance Lifecycle", "Claim Processing")
+  - name: family
+    description: Training family name with _TRAIN_ suffix
+    default: Garcia-TRAIN
+  - name: tables
+    description: Comma-separated list of primary QC tables involved
+
+lessons:
+  - title: "The Story Begins"
+    slides:
+      - title: "Meet the {{family}} Family"
+        content: |
+          # The {{family}} Story
+
+          <Placeholder type="narrative" label="Introduce the {{family}} family and set up the real-world scenario for {{topic}}" />
+
+          > Follow the {{family}} family as they experience {{topic}} — and see how every step maps to tables in qc_core.
+
+      - title: "The Journey Map"
+        content: |
+          # From Start to Finish
+
+          | Real-World Step | QC Bounded Context | Key Tables |
+          |---|---|---|
+          <Placeholder type="table-mapping" label="Map each step of the {{topic}} journey to QC tables from {{tables}}" />
+
+  - title: "Act 1"
+    slides:
+      - title: "What Happens"
+        content: |
+          <Placeholder type="narrative" label="Tell the first part of the {{family}} story — what happens in the real world" />
+
+          <Placeholder type="image" label="Diagram or screenshot illustrating this step" />
+
+      - title: "What It Looks Like in qc_core"
+        content: |
+          <Placeholder type="narrative" label="Map the real-world event to specific qc_core tables and columns" />
+
+          <LiveDemo sql="<Placeholder type='sql' label='Query showing the {{family}} data for this step' />" label="See the Data" />
+
+      - title: "Check Your Understanding"
+        content: |
+          <Quiz question="<Placeholder type='question' label='Quiz about the tables and relationships in this act' />"
+            options='<Placeholder type="quiz-options" />'
+            answer="0"
+            explanation="<Placeholder type='narrative' label='Why this answer is correct' />" />
+
+  - title: "Act 2"
+    slides:
+      - title: "The Next Step"
+        content: |
+          <Placeholder type="narrative" label="Continue the {{family}} story — what happens next in {{topic}}" />
+
+      - title: "In the Database"
+        content: |
+          <Placeholder type="narrative" label="How this step is recorded in qc_core" />
+
+          <LiveDemo sql="<Placeholder type='sql' label='Query for this step of the journey' />" label="Query Results" />
+
+  - title: "Quick Reference"
+    slides:
+      - title: "Key Tables & Patterns"
+        content: |
+          # Quick Reference
+
+          <Placeholder type="narrative" label="Summary of the key tables, join patterns, and guard clauses used throughout this course" />
+
+          <Placeholder type="narrative" label="Glossary: map insurance terms to qc_core entities" />

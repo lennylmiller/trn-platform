@@ -504,5 +504,50 @@ export function createServer(): McpServer {
     },
   );
 
+  // -------------------------------------------------------------------------
+  // Template tools
+  // -------------------------------------------------------------------------
+
+  server.tool(
+    'list_templates',
+    'List available course templates with descriptions and parameters',
+    {},
+    async () => {
+      const templates = await apiFetch<unknown[]>('/api/v2/courses/templates');
+      return { content: [{ type: 'text' as const, text: JSON.stringify(templates, null, 2) }] };
+    },
+  );
+
+  server.tool(
+    'get_template',
+    'Get a course template by name — returns the full YAML structure with lessons, slides, and placeholder tags',
+    {
+      templateName: z.string().describe('Template filename without extension (e.g., "implementation", "walkthrough")'),
+    },
+    async ({ templateName }) => {
+      const template = await apiFetch<unknown>(`/api/v2/courses/templates/${templateName}`);
+      return { content: [{ type: 'text' as const, text: JSON.stringify(template, null, 2) }] };
+    },
+  );
+
+  server.tool(
+    'apply_template',
+    'Apply a course template to a course — creates lessons and slides with content and placeholder tags. Parameters like {{topic}} and {{family}} are substituted.',
+    {
+      courseId: z.number().describe('The course_id to apply the template to'),
+      templateName: z.string().describe('Template name (e.g., "implementation", "walkthrough")'),
+      parameters: z.string().describe('JSON object with parameter values: {"topic": "Claim Adjudication", "family": "Borgia-TRAIN", "tables": "claim, claim_procedure"}'),
+    },
+    async ({ courseId, templateName, parameters }) => {
+      let params: Record<string, string> = {};
+      try { params = JSON.parse(parameters); } catch { /* ignore */ }
+      const result = await apiFetch<unknown>(`/api/v2/courses/${courseId}/apply-template`, {
+        method: 'POST',
+        body: JSON.stringify({ templateName, parameters: params }),
+      });
+      return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
+    },
+  );
+
   return server;
 }

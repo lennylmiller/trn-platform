@@ -1,0 +1,107 @@
+name: Implementation Course
+description: Walk a QC administrator through setting up a domain area from scratch. Follows the narrative → demo → quiz rhythm with placeholders for screenshots and verification SQL.
+category: implementation
+parameters:
+  - name: topic
+    description: The domain area being taught (e.g., "Benefit Administration", "Claim Adjudication")
+  - name: family
+    description: Training family name with _TRAIN_ suffix
+    default: Garcia-TRAIN
+  - name: tables
+    description: Comma-separated list of primary QC tables this course covers
+  - name: actor
+    description: Who the learner role-plays as
+    default: QC Administrator
+
+lessons:
+  - title: "The Big Picture"
+    slides:
+      - title: "Where {{topic}} Fits"
+        content: |
+          # Where {{topic}} Fits
+
+          <Placeholder type="diagram" label="Hierarchy diagram showing where {{topic}} fits in the QC system" />
+
+          {{topic}} is part of the QC system. This course walks you through setting it up from scratch using the **{{family}}** training data.
+
+          > By the end of this course, you'll have created all the records needed for {{topic}} and verified them with SQL.
+
+      - title: "Real-World Mapping"
+        content: |
+          # Real-World to QC Tables
+
+          Every concept in {{topic}} maps to a specific table in qc_core:
+
+          | Real World | QC Table | Training Value |
+          |---|---|---|
+          <Placeholder type="table-mapping" label="Map real-world {{topic}} concepts to QC tables. Use {{tables}} as reference." />
+
+          > **Naming convention:** All training data uses the _TRAIN_ suffix for easy identification and cleanup.
+
+      - title: "What You'll Build"
+        content: |
+          # What You'll Build
+
+          <Placeholder type="narrative" label="List the specific records the learner will create in this course, referencing {{tables}}" />
+
+          <Quiz question="Which naming convention does QC training data follow?"
+            options='["Prefix with QC_","Suffix with _TRAIN_","Prefix with TEST_","No convention"]'
+            answer="1"
+            explanation="All training data uses the _TRAIN_ suffix (e.g., {{family}}, TRAIN_VERDA) so it's easy to find and clean up." />
+
+  - title: "Setting Up the Records"
+    slides:
+      - title: "Step by Step"
+        content: |
+          # Creating {{topic}} Records
+
+          <Placeholder type="narrative" label="Explain what fields to fill in and why, covering the key columns from {{tables}}" />
+
+          <Placeholder type="image" label="Screenshot of the QC application screen for creating {{topic}} records" />
+
+      - title: "See It in the Database"
+        content: |
+          # Verify in qc_core
+
+          Let's query the database to confirm the records exist:
+
+          <Placeholder type="sql" label="SELECT query against {{tables}} to show the training records for {{family}}" />
+
+          <Placeholder type="narrative" label="Explain what each column means in the query results" />
+
+      - title: "Knowledge Check"
+        content: |
+          <Placeholder type="question" label="Quiz question about the key concept from {{topic}} — test understanding of table structure or naming conventions" />
+
+  - title: "Understanding the Relationships"
+    slides:
+      - title: "How Tables Connect"
+        content: |
+          # Table Relationships
+
+          <Placeholder type="narrative" label="Explain the foreign key relationships between {{tables}} — which table is the parent, which is the child, how they join" />
+
+          <LiveDemo sql="<Placeholder type='sql' label='JOIN query showing the relationship chain across {{tables}} for {{family}} data' />" label="Relationship Chain" />
+
+      - title: "The Join Pattern"
+        content: |
+          # Writing the Join
+
+          <Placeholder type="narrative" label="Walk through the join pattern step by step, showing how FK columns match PK columns across {{tables}}" />
+
+          <Quiz question="<Placeholder type='question' label='Quiz about FK/PK relationships in {{tables}}' />"
+            options='<Placeholder type="quiz-options" label="4 options about join patterns" />'
+            answer="0"
+            explanation="<Placeholder type='narrative' label='Explanation of the correct join pattern' />" />
+
+  - title: "Verify Your Setup"
+    slides:
+      - title: "Check My Work"
+        content: |
+          # Verify {{topic}} Setup
+
+          Click **Check My Work** to confirm all records exist. You should see counts for each entity you created.
+
+          <DoItInQc sql="<Placeholder type='verification-sql' label='UNION ALL query that counts each entity type created in this course, filtered to {{family}} data' />" label="Verify {{topic}}" />
+
+          <Placeholder type="narrative" label="Explain what the verification query checks and what the expected counts should be" />

@@ -25,6 +25,11 @@ const ALLOWED_TOOLS = new Set([
   'add_course_block',
   'build_course_content',
   'update_course',
+
+  // Templates
+  'list_templates',
+  'get_template',
+  'apply_template',
 ]);
 
 /**

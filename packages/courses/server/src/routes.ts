@@ -16,8 +16,36 @@ import {
   listDrafts, getDraft, createDraft, updateDraft, deleteDraft,
 } from './queries';
 import type { BulkLessonInput } from './queries';
+import { listTemplates, getTemplate, applyTemplate } from './templates';
 
 export const coursesRouter: RouterType = Router();
+
+// ---------------------------------------------------------------------------
+// Templates
+// ---------------------------------------------------------------------------
+
+coursesRouter.get('/templates', async (_req: Request, res: Response, next: NextFunction) => {
+  try { res.json(listTemplates()); } catch (err) { next(err); }
+});
+
+coursesRouter.get('/templates/:name', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const template = getTemplate(req.params.name!);
+    if (!template) { res.status(404).json({ message: 'Template not found' }); return; }
+    res.json(template);
+  } catch (err) { next(err); }
+});
+
+coursesRouter.post('/:id/apply-template', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const courseId = Number(req.params.id);
+    if (Number.isNaN(courseId)) { res.status(400).json({ message: 'Invalid course ID' }); return; }
+    const { templateName, parameters } = req.body;
+    if (!templateName) { res.status(400).json({ message: 'templateName required' }); return; }
+    const result = await applyTemplate(courseId, templateName, parameters ?? {});
+    res.json({ message: 'Template applied', course_id: courseId, ...result });
+  } catch (err) { next(err); }
+});
 
 // ---------------------------------------------------------------------------
 // Tracks

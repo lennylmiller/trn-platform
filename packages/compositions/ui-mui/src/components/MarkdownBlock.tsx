@@ -43,7 +43,7 @@ function preprocessComponentTags(markdown: string): string {
   // Match self-closing tags: <Name prop="value" prop='value' />
   // Also match tags with content: <Name ...>content</Name>
   return markdown.replace(
-    /<(LiveDemo|Quiz|SqlChallenge|Image|DoItInQc)\s+([^>]*?)\/>/gs,
+    /<(LiveDemo|Quiz|SqlChallenge|Image|DoItInQc|Placeholder)\s+([^>]*?)\/>/gs,
     (_match, name: string, propsStr: string) => {
       // Encode as a special code fence that the renderer will intercept
       const encoded = JSON.stringify({ component: name, propsRaw: propsStr.trim() });
@@ -177,6 +177,33 @@ function renderComponent(name: string, props: Record<string, string>): React.Rea
           {props.sql && <RunnableSqlBlock sql={props.sql} label={props.label ?? 'Check My Work'} />}
         </Box>
       );
+
+    case 'Placeholder': {
+      const typeIcons: Record<string, string> = {
+        image: '📷', sql: '💾', narrative: '📝', verification: '✅',
+        'quiz-options': '❓', question: '❓', 'table-mapping': '📊', diagram: '📐',
+      };
+      const icon = typeIcons[props.type ?? ''] ?? '📌';
+      return (
+        <Box sx={{
+          my: 2, p: 2, border: 2, borderStyle: 'dashed',
+          borderColor: 'warning.main', borderRadius: 1, bgcolor: 'warning.50',
+          display: 'flex', alignItems: 'center', gap: 1.5,
+        }}>
+          <Typography sx={{ fontSize: '1.5rem' }}>{icon}</Typography>
+          <Box>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'warning.dark' }}>
+              {props.label ?? `Placeholder: ${props.type ?? 'content'}`}
+            </Typography>
+            {props.type && (
+              <Typography variant="caption" color="text.secondary">
+                Type: {props.type}
+              </Typography>
+            )}
+          </Box>
+        </Box>
+      );
+    }
 
     default:
       return <Typography color="error">Unknown component: {name}</Typography>;
