@@ -46,7 +46,7 @@ export function useCourseEditor(courseId: number | undefined) {
 
   // --- Mutations ---
 
-  const updateSlide = useCallback((slideId: number, lessonId: number, updates: BlockUpdate) => {
+  const updateBlock = useCallback((slideId: number, lessonId: number, updates: BlockUpdate) => {
     if (!courseId) return;
     updateBlockMutation.mutate({ courseId, lessonId, slideId, updates });
   }, [courseId, updateBlockMutation]);
@@ -92,7 +92,7 @@ export function useCourseEditor(courseId: number | undefined) {
     selectLesson,
     selectBlock,
     clearSelection,
-    updateSlide,
+    updateBlock,
     addLesson,
     addSlide,
     deleteLesson,
