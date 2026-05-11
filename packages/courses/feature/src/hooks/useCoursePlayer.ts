@@ -30,9 +30,10 @@ export interface PlayerScreen {
  * Manages course player navigation state.
  * Uses slides when available, falls back to one-block-per-screen.
  */
-export function useCoursePlayer(courseId: number | undefined) {
+export function useCoursePlayer(courseId: number | undefined, initialBlockId?: number) {
   const { data: course, isLoading, error } = useCourse(courseId);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [initialApplied, setInitialApplied] = useState(false);
 
   // Build a flat list of all blocks keyed by block_id for element resolution
   const blockMap = useMemo(() => {
@@ -98,6 +99,16 @@ export function useCoursePlayer(courseId: number | undefined) {
 
     return result;
   }, [course?.lessons, blockMap]);
+
+  // Jump to the screen containing initialBlockId on first load
+  if (!initialApplied && initialBlockId && screens.length > 0) {
+    const idx = screens.findIndex((s) =>
+      s.block?.block_id === initialBlockId ||
+      s.blocks.some((b) => b.block_id === initialBlockId),
+    );
+    if (idx >= 0) setCurrentIndex(idx);
+    setInitialApplied(true);
+  }
 
   const totalScreens = screens.length;
   const current = screens[currentIndex];

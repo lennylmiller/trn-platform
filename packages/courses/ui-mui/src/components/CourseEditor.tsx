@@ -1,20 +1,24 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import ButtonGroup from '@mui/material/ButtonGroup';
+import IconButton from '@mui/material/IconButton';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ClearAllIcon from '@mui/icons-material/ClearAll';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DownloadIcon from '@mui/icons-material/Download';
-import EditIcon from '@mui/icons-material/Edit';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import DescriptionIcon from '@mui/icons-material/Description';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCourseEditor } from '@trn-platform/courses-feature';
 import { coursesKeys } from '@trn-platform/courses-data-access';
@@ -59,6 +63,7 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
   const [chatSize, setChatSize] = useState<'default' | 'wide' | 'full'>('default');
   const chatOpen = rightPanel === 'chat';
   const [selectedDraft, setSelectedDraft] = useState<CourseDraft | null>(null);
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const hasAutoOpened = useRef(false);
   useEffect(() => {
     if (!hasAutoOpened.current && course && course.lessons.length === 0) {
@@ -168,103 +173,75 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
       {/* Top bar */}
       <Stack
         direction="row"
-        spacing={2}
+        spacing={1.5}
         sx={{ alignItems: 'center', px: 2, py: 1, borderBottom: 1, borderColor: 'divider', bgcolor: 'background.paper' }}
       >
         {onExit && (
-          <Button size="small" startIcon={<ArrowBackIcon />} onClick={onExit}>
-            Back
-          </Button>
+          <IconButton size="small" onClick={onExit} title="Back">
+            <ArrowBackIcon />
+          </IconButton>
         )}
-        <Typography variant="h6" sx={{ fontWeight: 700, flex: 1 }} noWrap>
+        <Typography variant="h6" sx={{ fontWeight: 700 }} noWrap>
           {course.title}
         </Typography>
         <Chip
           label={course.status}
           size="small"
           color={STATUS_COLORS[course.status] ?? 'default'}
-          sx={{ textTransform: 'capitalize' }}
+          sx={{ textTransform: 'capitalize', borderRadius: 1 }}
         />
-        {course.category && (
-          <Chip label={course.category} size="small" variant="outlined" />
-        )}
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
           {course.lessons.length} lessons &middot; {course.lessons.reduce((s, l) => s + l.blocks.length, 0)} slides
         </Typography>
-        <ButtonGroup size="small" variant="outlined">
-          <Button
-            startIcon={<EditIcon />}
-            variant={rightPanel === 'editor' ? 'contained' : 'outlined'}
-            onClick={() => { setRightPanel('editor'); setChatSize('default'); if (mode === 'preview') setMode('edit'); }}
-          >
-            Editor
-          </Button>
-          <Button
-            startIcon={<SmartToyIcon />}
-            variant={rightPanel === 'chat' ? 'contained' : 'outlined'}
-            onClick={() => { setRightPanel('chat'); if (mode === 'preview') setMode('edit'); }}
-            color={rightPanel === 'chat' ? 'secondary' : 'primary'}
-          >
-            AI
-          </Button>
-          <Button
-            startIcon={<DescriptionIcon />}
-            variant={rightPanel === 'drafts' ? 'contained' : 'outlined'}
-            onClick={() => { setRightPanel('drafts'); setChatSize('default'); if (mode === 'preview') setMode('edit'); }}
-          >
-            Drafts
-          </Button>
-        </ButtonGroup>
+
         <Button
           size="small"
-          variant="outlined"
-          startIcon={<DownloadIcon />}
-          onClick={handleExportCourse}
+          startIcon={<SmartToyIcon />}
+          variant={rightPanel === 'chat' ? 'contained' : 'outlined'}
+          onClick={() => {
+            if (rightPanel === 'chat') { setRightPanel('editor'); setChatSize('default'); }
+            else { setRightPanel('chat'); if (mode === 'preview') setMode('edit'); }
+          }}
+          color={rightPanel === 'chat' ? 'secondary' : 'primary'}
         >
-          Export
+          AI
         </Button>
         <Button
           size="small"
-          variant="outlined"
-          startIcon={<ClearAllIcon />}
-          onClick={handleClearCourse}
-          color="error"
-          disabled={course.lessons.length === 0}
+          startIcon={<PlayArrowIcon />}
+          variant={mode === 'preview' ? 'contained' : 'outlined'}
+          onClick={() => setMode(mode === 'preview' ? 'edit' : 'preview')}
         >
-          Clear
+          {mode === 'preview' ? 'Editing' : 'Preview'}
         </Button>
-        <Button
-          size="small"
-          variant="outlined"
-          startIcon={<DeleteIcon />}
-          onClick={handleDeleteCourse}
-          color="error"
-        >
-          Delete
-        </Button>
-        <ButtonGroup size="small" variant="outlined">
-          <Button
-            startIcon={<EditIcon />}
-            variant={mode === 'edit' ? 'contained' : 'outlined'}
-            onClick={() => setMode('edit')}
-          >
-            Edit
-          </Button>
-          <Button
-            startIcon={<PlayArrowIcon />}
-            variant={mode === 'preview' ? 'contained' : 'outlined'}
-            onClick={() => setMode('preview')}
-          >
-            Preview
-          </Button>
-        </ButtonGroup>
+        <IconButton size="small" onClick={(e) => setMenuAnchor(e.currentTarget)} title="More actions">
+          <MoreVertIcon />
+        </IconButton>
+        <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={() => setMenuAnchor(null)}>
+          <MenuItem onClick={() => { setRightPanel('drafts'); setChatSize('default'); if (mode === 'preview') setMode('edit'); setMenuAnchor(null); }}>
+            <ListItemIcon><DescriptionIcon fontSize="small" /></ListItemIcon>
+            <ListItemText>Drafts</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={() => { handleExportCourse(); setMenuAnchor(null); }}>
+            <ListItemIcon><DownloadIcon fontSize="small" /></ListItemIcon>
+            <ListItemText>Export</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={() => { handleClearCourse(); setMenuAnchor(null); }} disabled={course.lessons.length === 0}>
+            <ListItemIcon><ClearAllIcon fontSize="small" color="error" /></ListItemIcon>
+            <ListItemText sx={{ color: 'error.main' }}>Clear Course</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={() => { handleDeleteCourse(); setMenuAnchor(null); }}>
+            <ListItemIcon><DeleteIcon fontSize="small" color="error" /></ListItemIcon>
+            <ListItemText sx={{ color: 'error.main' }}>Delete Course</ListItemText>
+          </MenuItem>
+        </Menu>
       </Stack>
 
       {/* Content area */}
       {mode === 'preview' ? (
         /* Full-width player preview */
         <Box sx={{ flex: 1, overflow: 'hidden' }}>
-          <CoursePlayer courseId={courseId} onExit={() => setMode('edit')} />
+          <CoursePlayer courseId={courseId} initialBlockId={selection?.slideId} onExit={() => setMode('edit')} />
         </Box>
       ) : (
         /* 3-panel editor layout */

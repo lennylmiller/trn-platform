@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -9,6 +10,7 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import TextField from '@mui/material/TextField';
 import type { CourseBlockType } from '@trn-platform/shared';
+import { getBlockTypeIcon } from './CourseOutline';
 
 export interface AddBlockDialogProps {
   open: boolean;
@@ -63,6 +65,14 @@ export function AddBlockDialog({ open, onClose, onAdd }: AddBlockDialogProps) {
               selected={selected === t.value}
               onClick={() => setSelected(t.value)}
             >
+              {(() => {
+                const { icon, color } = getBlockTypeIcon(t.value);
+                return (
+                  <Box sx={{ mr: 2, color, display: 'flex', alignItems: 'center' }}>
+                    {icon}
+                  </Box>
+                );
+              })()}
               <ListItemText
                 primary={t.label}
                 secondary={t.description}

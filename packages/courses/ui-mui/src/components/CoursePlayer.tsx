@@ -19,9 +19,11 @@ import { useCoursePlayer } from '@trn-platform/courses-feature';
 import type { PlayerScreen } from '@trn-platform/courses-feature';
 import { BlockRenderer } from './BlockRenderer';
 import { MarkdownBlock } from '@trn-platform/compositions-ui-mui';
+import { getBlockTypeIcon } from './CourseOutline';
 
 export interface CoursePlayerProps {
   courseId: number;
+  initialBlockId?: number;
   onExit?: () => void;
 }
 
@@ -89,11 +91,11 @@ function getScreenLabel(screen: PlayerScreen): string {
   return `${screen.blocks.length} blocks`;
 }
 
-export function CoursePlayer({ courseId, onExit }: CoursePlayerProps) {
+export function CoursePlayer({ courseId, initialBlockId, onExit }: CoursePlayerProps) {
   const {
     course, isLoading, current, currentIndex, totalScreens,
     isFirst, isLast, next, prev,
-  } = useCoursePlayer(courseId);
+  } = useCoursePlayer(courseId, initialBlockId);
 
   const [showNotes, setShowNotes] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -145,12 +147,21 @@ export function CoursePlayer({ courseId, onExit }: CoursePlayerProps) {
         <Typography variant="subtitle1" sx={{ fontWeight: 700, flex: 1 }} noWrap>
           {course.title}
         </Typography>
-        {current && (
-          <>
-            <Chip label={current.lessonTitle} size="small" variant="outlined" sx={{ mr: 1 }} />
-            <Chip label={getScreenLabel(current)} size="small" color="primary" sx={{ mr: 1 }} />
-          </>
-        )}
+        {current && (() => {
+          const blockType = current.blocks[0]?.block_type ?? 'narrative';
+          const { icon, color } = getBlockTypeIcon(blockType);
+          return (
+            <>
+              <Chip label={current.lessonTitle} size="small" variant="outlined" sx={{ mr: 1, borderRadius: 1 }} />
+              <Chip
+                icon={icon}
+                label={getScreenLabel(current)}
+                size="small"
+                sx={{ mr: 1, borderRadius: 1, bgcolor: `${color}18`, color, fontWeight: 600, '& .MuiChip-icon': { color } }}
+              />
+            </>
+          );
+        })()}
         <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }}>
           {currentIndex + 1} / {totalScreens}
         </Typography>

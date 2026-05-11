@@ -316,7 +316,7 @@ export function QuizOptionsEditor({
             size="small"
             color={idx === answer ? 'success' : 'default'}
             onClick={() => onChangeAnswer(idx)}
-            sx={{ cursor: 'pointer', minWidth: 56 }}
+            sx={{ cursor: 'pointer', minWidth: 56, borderRadius: 1 }}
           />
           <TextField
             size="small"

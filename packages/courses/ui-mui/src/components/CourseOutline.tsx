@@ -1,19 +1,26 @@
 import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
 import Collapse from '@mui/material/Collapse';
 import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
+import ArticleIcon from '@mui/icons-material/Article';
+import CodeIcon from '@mui/icons-material/Code';
+import PlayCircleIcon from '@mui/icons-material/PlayCircle';
+import QuizIcon from '@mui/icons-material/Quiz';
+import TouchAppIcon from '@mui/icons-material/TouchApp';
+import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
 import type { CourseLessonDetail, CourseBlock, CourseSlide } from '@trn-platform/shared';
 
 /**
@@ -46,25 +53,20 @@ export interface CourseOutlineProps {
   onDeleteBlock?: (lessonId: number, slideId: number) => void;
 }
 
-const SLIDE_TYPE_COLORS: Record<string, 'primary' | 'secondary' | 'success' | 'warning' | 'info' | 'error' | 'default'> = {
-  narrative: 'default',
-  reference: 'info',
-  live_demo: 'success',
-  sql_challenge: 'warning',
-  quiz: 'secondary',
-  do_it_in_qc: 'primary',
-  screenshot_task: 'error',
-};
+const BLOCK_ICON_SIZE = 20;
 
-const SLIDE_TYPE_SHORT: Record<string, string> = {
-  narrative: 'Read',
-  reference: 'Ref',
-  live_demo: 'Demo',
-  sql_challenge: 'SQL',
-  quiz: 'Quiz',
-  do_it_in_qc: 'QC',
-  screenshot_task: 'Shot',
-};
+export function getBlockTypeIcon(blockType: string): { icon: React.ReactElement; color: string; label: string } {
+  switch (blockType) {
+    case 'narrative': return { icon: <ArticleIcon sx={{ fontSize: BLOCK_ICON_SIZE }} />, color: '#607d8b', label: 'Narrative' };
+    case 'reference': return { icon: <BookmarkIcon sx={{ fontSize: BLOCK_ICON_SIZE }} />, color: '#03a9f4', label: 'Reference' };
+    case 'live_demo': return { icon: <PlayCircleIcon sx={{ fontSize: BLOCK_ICON_SIZE }} />, color: '#4caf50', label: 'Live Demo' };
+    case 'sql_challenge': return { icon: <CodeIcon sx={{ fontSize: BLOCK_ICON_SIZE }} />, color: '#ff9800', label: 'SQL Challenge' };
+    case 'quiz': return { icon: <QuizIcon sx={{ fontSize: BLOCK_ICON_SIZE }} />, color: '#ab47bc', label: 'Quiz' };
+    case 'do_it_in_qc': return { icon: <TouchAppIcon sx={{ fontSize: BLOCK_ICON_SIZE }} />, color: '#1e88e5', label: 'Do It in QC' };
+    case 'screenshot_task': return { icon: <PhotoCameraIcon sx={{ fontSize: BLOCK_ICON_SIZE }} />, color: '#ef5350', label: 'Screenshot' };
+    default: return { icon: <ArticleIcon sx={{ fontSize: BLOCK_ICON_SIZE }} />, color: '#607d8b', label: blockType };
+  }
+}
 
 function SlideRow({
   slide,
@@ -83,15 +85,19 @@ function SlideRow({
       onClick={onClick}
       sx={{ pl: 5, py: 0.5, '&:hover .delete-btn': { opacity: 1 } }}
     >
-      <Chip
-        label={SLIDE_TYPE_SHORT[slide.block_type] ?? slide.block_type}
-        size="small"
-        color={SLIDE_TYPE_COLORS[slide.block_type] ?? 'default'}
-        sx={{ mr: 1.5, minWidth: 44, fontSize: '0.7rem' }}
-      />
+      {(() => {
+        const { icon, color, label } = getBlockTypeIcon(slide.block_type);
+        return (
+          <Tooltip title={label} placement="left" arrow>
+            <Box sx={{ mr: 1.5, color, display: 'flex', alignItems: 'center' }}>
+              {icon}
+            </Box>
+          </Tooltip>
+        );
+      })()}
       <ListItemText
         primary={slide.title ?? `Slide ${slide.seq + 1}`}
-        slotProps={{ primary: { variant: 'body2', noWrap: true } }}
+        slotProps={{ primary: { variant: 'body2', noWrap: true, sx: { fontSize: '0.875rem' } } }}
       />
       {onDelete && (
         <IconButton
@@ -170,6 +176,14 @@ function LessonGroup({
           {lesson.slides && lesson.slides.some((s) => s.content)
             ? lesson.slides.filter((s) => s.content).map((s) => {
                 const badge = getSlideTypeBadge(s);
+                const iconInfo = getBlockTypeIcon(
+                  badge.label === 'Demo' ? 'live_demo'
+                  : badge.label === 'Quiz' ? 'quiz'
+                  : badge.label === 'SQL' ? 'sql_challenge'
+                  : badge.label === 'QC' ? 'do_it_in_qc'
+                  : badge.label === 'Draft' ? 'reference'
+                  : 'narrative'
+                );
                 return (
                   <ListItemButton
                     key={s.slide_id}
@@ -177,7 +191,11 @@ function LessonGroup({
                     onClick={() => onSelectSlide(lesson.lesson_id, s.slide_id)}
                     sx={{ pl: 5, py: 0.5 }}
                   >
-                    <Chip label={badge.label} size="small" color={badge.color} sx={{ mr: 1.5, minWidth: 44, fontSize: '0.7rem' }} />
+                    <Tooltip title={iconInfo.label} placement="left" arrow>
+                      <Box sx={{ mr: 1.5, color: iconInfo.color, display: 'flex', alignItems: 'center' }}>
+                        {iconInfo.icon}
+                      </Box>
+                    </Tooltip>
                     <ListItemText
                       primary={s.title ?? `Slide ${s.seq + 1}`}
                       slotProps={{ primary: { variant: 'body2', noWrap: true } }}

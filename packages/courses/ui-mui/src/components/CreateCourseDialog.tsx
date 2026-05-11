@@ -44,6 +44,7 @@ export function CreateCourseDialog({ open, onClose, onCreated, tracks, series }:
   const [description, setDescription] = useState('');
   const [actor, setActor] = useState('');
   const [selectedSeries, setSelectedSeries] = useState<SeriesOption | null>(null);
+  const [seriesInputValue, setSeriesInputValue] = useState('');
   const [creating, setCreating] = useState(false);
 
   const handleClose = () => {
@@ -53,6 +54,7 @@ export function CreateCourseDialog({ open, onClose, onCreated, tracks, series }:
     setDescription('');
     setActor('');
     setSelectedSeries(null);
+    setSeriesInputValue('');
     setShowMore(false);
     onClose();
   };
@@ -61,21 +63,31 @@ export function CreateCourseDialog({ open, onClose, onCreated, tracks, series }:
     if (!title.trim() || trackId === '') return;
     setCreating(true);
     try {
-      // If user typed a new series name, create it first
+      // Resolve series — handle both selected option and uncommitted typed text
       let seriesId: number | null = null;
-      if (selectedSeries) {
-        if (selectedSeries.series_id) {
-          seriesId = selectedSeries.series_id;
+      const effectiveSeries = selectedSeries
+        ?? (seriesInputValue.trim() ? { title: seriesInputValue.trim(), inputValue: seriesInputValue.trim() } : null);
+
+      if (effectiveSeries) {
+        if (effectiveSeries.series_id) {
+          seriesId = effectiveSeries.series_id;
         } else {
           // Create new series
-          const seriesRes = await fetch('/api/v2/courses/series', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title: selectedSeries.inputValue ?? selectedSeries.title }),
-          });
-          if (!seriesRes.ok) throw new Error('Create series failed');
-          const newSeries = await seriesRes.json();
-          seriesId = newSeries.series_id;
+          const seriesName = effectiveSeries.inputValue ?? effectiveSeries.title;
+          // Check if a series with this name already exists
+          const existing = series.find((s) => s.title.toLowerCase() === seriesName.toLowerCase());
+          if (existing) {
+            seriesId = existing.series_id;
+          } else {
+            const seriesRes = await fetch('/api/v2/courses/series', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ title: seriesName }),
+            });
+            if (!seriesRes.ok) throw new Error('Create series failed');
+            const newSeries = await seriesRes.json();
+            seriesId = newSeries.series_id;
+          }
         }
       }
 
@@ -190,6 +202,10 @@ export function CreateCourseDialog({ open, onClose, onCreated, tracks, series }:
 
               <Autocomplete
                 value={selectedSeries}
+                inputValue={seriesInputValue}
+                onInputChange={(_event, newInputValue) => {
+                  setSeriesInputValue(newInputValue);
+                }}
                 onChange={(_event, newValue) => {
                   if (typeof newValue === 'string') {
                     setSelectedSeries({ title: newValue, inputValue: newValue });
