@@ -14,7 +14,8 @@ import { CourseBlockTypeSchema, VerifyModeSchema, CourseStatusSchema } from '@tr
  */
 
 export const FixtureBlockSchema = z.object({
-  block_type: CourseBlockTypeSchema,
+  block_type: CourseBlockTypeSchema.optional(),
+  slide_type: CourseBlockTypeSchema.optional(),
   title: z.string().nullable().optional(),
   content: z.string().nullable().optional(),
   image_url: z.string().nullable().optional(),

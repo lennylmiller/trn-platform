@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { AddSlideDialog } from './AddSlideDialog';
+import { AddBlockDialog } from './AddBlockDialog';
 
-const meta: Meta<typeof AddSlideDialog> = {
+const meta: Meta<typeof AddBlockDialog> = {
   title: 'Domains/Courses/AddSlideDialog',
-  component: AddSlideDialog,
+  component: AddBlockDialog,
   tags: ['autodocs'],
   args: {
     open: true,
@@ -13,6 +13,6 @@ const meta: Meta<typeof AddSlideDialog> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof AddSlideDialog>;
+type Story = StoryObj<typeof AddBlockDialog>;
 
 export const Open: Story = {};

@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import type { CourseBlock, CourseLesson, CourseSlide, CourseBlockUpdate, CourseBlockCreate } from '@trn-platform/shared';
 import {
   useCourse, useAddLesson, useAddBlock, useUpdateBlock,
-  useDeleteLesson, useDeleteBlock,
+  useDeleteLesson, useDeleteBlock, useUpdateSlideContent,
 } from '@trn-platform/courses-data-access';
 
 export interface CourseEditorSelection {
@@ -20,6 +20,7 @@ export function useCourseEditor(courseId: number | undefined) {
   const updateBlockMutation = useUpdateBlock();
   const deleteLessonMutation = useDeleteLesson();
   const deleteBlockMutation = useDeleteBlock();
+  const updateSlideContentMutation = useUpdateSlideContent();
   const [selection, setSelection] = useState<CourseEditorSelection | null>(null);
 
   const selectLesson = useCallback((lessonId: number) => {
@@ -83,11 +84,17 @@ export function useCourseEditor(courseId: number | undefined) {
     deleteBlockMutation.mutate({ courseId, lessonId, slideId });
   }, [courseId, selection?.slideId, deleteBlockMutation]);
 
+  const updateSlideContent = useCallback((slideId: number, content: string, title?: string) => {
+    if (!courseId) return;
+    updateSlideContentMutation.mutate({ courseId, slideId, content, title });
+  }, [courseId, updateSlideContentMutation]);
+
   const isSaving = updateBlockMutation.isPending
     || addLessonMutation.isPending
     || addBlockMutation.isPending
     || deleteLessonMutation.isPending
-    || deleteBlockMutation.isPending;
+    || deleteBlockMutation.isPending
+    || updateSlideContentMutation.isPending;
 
   return {
     course,
@@ -105,6 +112,7 @@ export function useCourseEditor(courseId: number | undefined) {
     addBlock,
     deleteLesson,
     deleteBlock,
+    updateSlideContent,
     isSaving,
   };
 }

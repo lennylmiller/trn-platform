@@ -176,10 +176,11 @@ async function replaceLessonsAndSlides(
 }
 
 async function insertBlock(pool: any, lessonId: number, seq: number, slide: FixtureBlock) {
+  const blockType = slide.block_type ?? slide.slide_type ?? 'narrative';
   await pool.request()
     .input('lessonId', lessonId)
     .input('seq', seq)
-    .input('block_type', slide.block_type)
+    .input('block_type', blockType)
     .input('title', slide.title ?? null)
     .input('content', slide.content ?? null)
     .input('image_url', slide.image_url ?? null)

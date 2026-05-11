@@ -916,6 +916,32 @@ export const mockCourseSlides: CourseSlide[] = [
   },
 ];
 
+// Convert mock slides to blocks (CourseBlock uses block_id/block_type instead of slide_id/slide_type)
+function slideToBlock(slide: CourseSlide) {
+  return {
+    block_id: slide.slide_id,
+    lesson_id: slide.lesson_id,
+    seq: slide.seq,
+    block_type: slide.slide_type,
+    title: slide.title,
+    content: slide.content,
+    image_url: slide.image_url,
+    sql_text: slide.sql_text,
+    sql_label: slide.sql_label,
+    verify_mode: slide.verify_mode,
+    expected_json: slide.expected_json,
+    quiz_question: slide.quiz_question,
+    quiz_options: slide.quiz_options,
+    quiz_answer: slide.quiz_answer,
+    quiz_explanation: slide.quiz_explanation,
+    hints: slide.hints,
+    presenter_notes: slide.presenter_notes,
+    seed_sql: slide.seed_sql,
+    seed_label: slide.seed_label,
+    created_at: slide.created_at,
+  };
+}
+
 export const mockCourseDetail: CourseDetail = {
   course_id: 42,
   title: 'Implementation Essentials: Family Enrollment',
@@ -937,7 +963,8 @@ export const mockCourseDetail: CourseDetail = {
       seq: 0,
       title: 'Enrollment Data Trail',
       description: 'Follow the records that establish eligibility and covered members.',
-      slides: mockCourseSlides.filter((slide) => slide.lesson_id === 101),
+      blocks: mockCourseSlides.filter((s) => s.lesson_id === 101).map(slideToBlock),
+      slides: mockCourseSlides.filter((s) => s.lesson_id === 101),
     },
     {
       lesson_id: 102,
@@ -945,7 +972,8 @@ export const mockCourseDetail: CourseDetail = {
       seq: 1,
       title: 'Coverage Verification',
       description: 'Use SQL checks to prove the benefit setup is ready for downstream workflows.',
-      slides: mockCourseSlides.filter((slide) => slide.lesson_id === 102),
+      blocks: mockCourseSlides.filter((s) => s.lesson_id === 102).map(slideToBlock),
+      slides: mockCourseSlides.filter((s) => s.lesson_id === 102),
     },
   ],
 };

@@ -1,0 +1,207 @@
+track:
+  title: QC-Training-Demo
+  description: Demo walkthrough showing the QC Training platform capabilities — from PDF to courseware.
+  seq: 10
+title: QC Training Demo
+description: >-
+  A guided demo walkthrough of the QC Training platform — how a PDF document becomes
+  an interactive training lab with live SQL verification, Storybook-driven components,
+  and AI-assisted course authoring.
+category: walkthrough
+actor: Course Author
+
+lessons:
+  - title: Claude Code To PDF
+    description: >-
+      Starting point — the QC Core Insurance Walkthrough PDF document that describes
+      the entire insurance lifecycle from enrollment to payment.
+    slides:
+      - block_type: narrative
+        title: The Source Document
+        content: >-
+          Everything starts with a document. The **QC Core Insurance Walkthrough** is a
+          29-page PDF that tells the story of health insurance through the `qc_core` database
+          — from enrollment to claims to payment.
+
+
+          This document is the raw material. The goal: turn it into a living, breathing
+          training lab where learners do real work and the system verifies it.
+        image_url: /uploads/demo-claude-code-to-pdf.png
+      - block_type: narrative
+        title: Document Structure
+        content: >-
+          The walkthrough follows 6 acts — each mapping a real-world event to the database
+          tables that make it work:
+
+          1. **Enrollment** — employer buys a plan, employee gets an ID card
+
+          2. **Choosing a Doctor** — PCP assignment via provider management
+
+          3. **QCAP Sync** — weekly IPA tagging batch process
+
+          4. **Referral** — specialist referral authorization
+
+          5. **The Visit & Claim** — doctor bills insurance, adjudication runs
+
+          6. **Payment** — provider gets paid, member gets EOB
+      - block_type: narrative
+        title: From PDF to Platform
+        content: >-
+          Claude Code reads this PDF and generates structured course content — lessons,
+          slides, SQL verification, quizzes — all mapped to the real `qc_core` schema.
+
+  - title: Training Lab
+    description: >-
+      The Training Lab application — flows, steps, and compositions that execute
+      real SQL against the training database.
+    slides:
+      - block_type: narrative
+        title: The Training Lab
+        content: >-
+          The Training Lab is where demo flows live. Each flow is a sequence of steps
+          — SQL queries, shell commands, and manual pause points — that execute against
+          the `qc_training` and `qc_core` databases.
+
+
+          Flows like **Claims Deep Dive** trace a claim from submission to its employer
+          group, running real queries with live results.
+        image_url: /uploads/demo-training-lab.png
+      - block_type: narrative
+        title: Steps & Flows
+        content: >-
+          **Steps** are reusable building blocks — a single SQL query, a shell command,
+          or a manual instruction. **Flows** compose steps into ordered sequences with
+          pause points for the presenter.
+
+
+          The step library contains setup, scenario, verification, and utility steps
+          that can be mixed and matched across flows.
+      - block_type: narrative
+        title: Live Execution
+        content: >-
+          When a flow runs, each step executes in sequence via Server-Sent Events (SSE).
+          SQL steps show inline results. Shell steps stream stdout. Manual steps pause
+          for the presenter. The audience sees real data, not screenshots.
+
+  - title: Lab Inserted Scenario
+    description: >-
+      The training data scenario — ER diagrams showing the Garcia family data
+      that the lab seeds into the database.
+    slides:
+      - block_type: narrative
+        title: The Garcia Family Scenario
+        content: >-
+          The lab seeds a complete insurance scenario into `qc_core`: **Verda Health Plan**
+          as the client, **Acme Manufacturing** as the employer group, and the **Garcia family**
+          (Maria, Carlos, Sofia) as enrolled members.
+
+
+          Every table in the enrollment chain gets populated — from `client` down through
+          `family_eligibility_member_benefit_plan` to `member`.
+        image_url: /uploads/demo-lab-inserted-scenario.png
+      - block_type: narrative
+        title: Entity Relationships
+        content: >-
+          The Master Entity Map shows how QC's 1,600+ tables connect across 7 bounded contexts:
+
+          - **Benefit Administration** — client, benefit_plan, benefit_framework
+
+          - **Eligibility** — family_eligibility, family_eligibility_member
+
+          - **Member Services** — member, member_name, result_code
+
+          - **Provider Management** — provider, provider_identifier, provider_name
+
+          - **Claims Processing** — claim, claim_procedure, adjudication_result_amount
+
+          - **Payment & Accounting** — claim_payment_run, accounting_transaction_ap
+      - block_type: narrative
+        title: Seeded Data
+        content: >-
+          The `qc-train.sh setup` command seeds all the training data in dependency order.
+          Each course in the series can also seed its own prerequisites — the **Seed It For Me**
+          button runs the INSERT statements so learners can skip manual entry when needed.
+
+  - title: DDD - Storybook
+    description: >-
+      Domain-Driven Design made visible — the Storybook component library organized
+      by bounded contexts matching the QC database domains.
+    slides:
+      - block_type: narrative
+        title: Storybook as Living Documentation
+        content: >-
+          The component library is organized by domain — Steps, Flows, Compositions, Execution,
+          Stories, Courses, and Chat. Each domain maps to a bounded context in the QC database.
+
+
+          Storybook serves as both the development environment and the living documentation.
+          Every component has a story. Every workflow has a page composition.
+        image_url: /uploads/demo-ddd-storybook.png
+      - block_type: narrative
+        title: 5 Workflow Stories
+        content: >-
+          The platform defines 5 core workflows, each with its own Storybook page:
+
+          1. **WF1 Build Demo** — author steps, create flow, add and configure steps, test run
+
+          2. **WF2 Present Flow** — select flow, start presentation, step through pauses
+
+          3. **WF3 Author Story** — create composition, add blocks, reorder, preview
+
+          4. **WF4 Run Training** — select composition, walk narrative, execute embedded flows
+
+          5. **WF5 Manage Steps** — view library, edit, test, delete steps
+      - block_type: narrative
+        title: Architecture in the Browser
+        content: >-
+          The 4-layer architecture is visible in the Storybook sidebar: each domain folder
+          contains `data-access`, `feature`, `server`, and `ui-mui` packages. The component
+          tree IS the architecture diagram.
+
+  - title: QC Training
+    description: >-
+      The QC Training courses application — AI-generated courseware with tracks, series,
+      and interactive slides that verify learner work against the real database.
+    slides:
+      - block_type: narrative
+        title: Course Catalog
+        content: >-
+          The QC Training app organizes courses into **tracks** and **series**. The
+          "New User Onboarding" track has a 10-course implementation series that walks
+          a QC administrator through standing up Verda Health Plan from scratch.
+
+
+          Each course builds on the previous one's data — Benefit Administration creates the
+          client, Provider Network adds doctors, Member Enrollment adds the Garcia family.
+        image_url: /uploads/demo-qc-training.png
+      - block_type: narrative
+        title: Interactive Slides
+        content: >-
+          Course slides aren't static content. They contain:
+
+          - **Live Demos** — runnable SQL with inline results
+
+          - **SQL Challenges** — learner writes a query, system checks the answer
+
+          - **Do It in QC** — learner performs a task in the desktop app, clicks "Check My Work"
+
+          - **Quizzes** — multiple choice with explanations
+
+
+          Every SQL block runs against the real `qc_core` database and is validated at build time.
+      - block_type: narrative
+        title: AI-Assisted Authoring
+        content: >-
+          The course workbench includes an embedded AI author that can:
+
+          - Explore the `qc_core` schema to understand table relationships
+
+          - Generate course outlines with multiple approaches (quick overview vs deep dive)
+
+          - Build complete course content with lessons, slides, and SQL verification
+
+          - Validate all SQL against the real database before saving
+
+
+          The AI doesn't guess — it queries `INFORMATION_SCHEMA` to get real column names
+          and uses `SET FMTONLY ON` to verify every query compiles.

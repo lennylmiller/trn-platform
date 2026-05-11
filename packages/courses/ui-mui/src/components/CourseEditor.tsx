@@ -21,16 +21,14 @@ import { coursesKeys } from '@trn-platform/courses-data-access';
 import { ChatPanel } from '@trn-platform/chat-ui-mui';
 import { CourseOutline } from './CourseOutline';
 import { CoursePlayer } from './CoursePlayer';
-import { BlockRenderer } from './BlockRenderer';
-import { BlockEditorForm } from './BlockEditorForm';
 import { AddLessonDialog } from './AddLessonDialog';
 import { DraftPanel } from './DraftPanel';
-import { SlideMarkdownEditor } from './SlideMarkdownEditor';
+import { EditableBlockRenderer } from './EditableBlockRenderer';
 import { WelcomeScreen } from './WelcomeScreen';
 import { MarkdownBlock } from '@trn-platform/compositions-ui-mui';
 import type { CourseDraft } from '@trn-platform/shared';
 import { AddBlockDialog } from './AddBlockDialog';
-import type { CourseLesson, CourseBlockType } from '@trn-platform/shared';
+import type { CourseBlockType } from '@trn-platform/shared';
 
 export interface CourseEditorProps {
   courseId: number;
@@ -43,40 +41,10 @@ const STATUS_COLORS: Record<string, 'default' | 'success' | 'warning'> = {
   archived: 'default',
 };
 
-function LessonPropertiesPanel({ lesson }: { lesson: CourseLesson }) {
-  return (
-    <Box sx={{ p: 2 }}>
-      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
-        Lesson Properties
-      </Typography>
-      <Stack spacing={1}>
-        <Box>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>Lesson ID</Typography>
-          <Typography variant="body2">{lesson.lesson_id}</Typography>
-        </Box>
-        <Box>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>Title</Typography>
-          <Typography variant="body2">{lesson.title}</Typography>
-        </Box>
-        <Box>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>Seq</Typography>
-          <Typography variant="body2">{lesson.seq}</Typography>
-        </Box>
-        {lesson.description && (
-          <Box>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>Description</Typography>
-            <Typography variant="body2">{lesson.description}</Typography>
-          </Box>
-        )}
-      </Stack>
-    </Box>
-  );
-}
-
 export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
   const {
     course, isLoading, error,
-    selection, selectedLesson, selectedBlock, selectedSlide,
+    selection, selectedLesson, selectedBlock,
     selectLesson, selectBlock,
     updateBlock, addLesson, addBlock, deleteLesson, deleteBlock,
     clearSelection, isSaving,
@@ -316,28 +284,24 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
             />
           </Box>
 
-          {/* Center: Canvas — context-aware content area */}
+          {/* Center: rendered block view with inline editing */}
           <Box sx={{ flex: 1, overflow: 'auto', bgcolor: 'background.default', display: chatOpen && chatSize === 'full' ? 'none' : undefined }}>
-            {selectedSlide?.content ? (
-              /* Document-first slide preview */
+            {selectedBlock && selection ? (
               <Box sx={{ maxWidth: 900, mx: 'auto', p: 3 }}>
-                <MarkdownBlock content={selectedSlide.content} interactive />
-              </Box>
-            ) : selectedBlock ? (
-              /* Block preview (old model) */
-              <Box sx={{ maxWidth: 900, mx: 'auto', p: 3 }}>
-                <BlockRenderer slide={selectedBlock} />
+                <EditableBlockRenderer
+                  block={selectedBlock}
+                  onSave={(updates) => updateBlock(selectedBlock.block_id, selection.lessonId, updates)}
+                  isSaving={isSaving}
+                />
               </Box>
             ) : selectedDraft && rightPanel === 'drafts' ? (
-              /* Draft preview */
-              <Box sx={{ maxWidth: 900, mx: 'auto', p: 3 }}>
+              <Box sx={{ maxWidth: 900, mx: 'auto', p: 3, overflow: 'auto', height: '100%' }}>
                 <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
                   {selectedDraft.title}
                 </Typography>
                 <MarkdownBlock content={selectedDraft.content} interactive={false} />
               </Box>
             ) : selectedLesson ? (
-              /* Lesson info */
               <Box sx={{ p: 4, textAlign: 'center' }}>
                 <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
                   {selectedLesson.title}
@@ -348,11 +312,10 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
                   </Typography>
                 )}
                 <Typography variant="body2" color="text.secondary">
-                  Select a block from the outline to preview it.
+                  Select a slide from the outline to edit it.
                 </Typography>
               </Box>
             ) : course.lessons.length === 0 ? (
-              /* Welcome screen for empty courses */
               <WelcomeScreen
                 courseTitle={course.title}
                 onStartWithGoal={() => setRightPanel('chat')}
@@ -360,17 +323,16 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
                 onStartFromScratch={() => setAddLessonOpen(true)}
               />
             ) : (
-              /* Default: nothing selected */
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
                 <Typography variant="body1" color="text.secondary">
-                  Select a lesson or block from the outline.
+                  Select a lesson or slide from the outline.
                 </Typography>
               </Box>
             )}
           </Box>
 
-          {/* Right panel: Editor / Chat / Drafts */}
-          {rightPanel === 'chat' ? (
+          {/* Right panel: Chat / Drafts only */}
+          {rightPanel === 'chat' && (
             <Box sx={{
               width: chatSize === 'full' ? undefined : chatSize === 'wide' ? 600 : 380,
               flex: chatSize === 'full' ? 1 : undefined,
@@ -390,7 +352,8 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
                 onCollapse={() => { setRightPanel('editor'); setChatSize('default'); }}
               />
             </Box>
-          ) : rightPanel === 'drafts' ? (
+          )}
+          {rightPanel === 'drafts' && (
             <Box sx={{ width: 420, flexShrink: 0, borderLeft: 1, borderColor: 'divider', overflow: 'hidden', bgcolor: 'background.paper' }}>
               <DraftPanel
                 courseId={courseId}
@@ -399,30 +362,6 @@ export function CourseEditor({ courseId, onExit }: CourseEditorProps) {
                   setRightPanel('chat');
                 }}
               />
-            </Box>
-          ) : (
-            <Box sx={{ width: 420, flexShrink: 0, borderLeft: 1, borderColor: 'divider', overflow: 'hidden', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column' }}>
-              {selectedSlide?.content ? (
-                <SlideMarkdownEditor
-                  slide={selectedSlide}
-                  courseId={courseId}
-                  onSaved={handleChatResponse}
-                />
-              ) : selectedBlock && selection ? (
-                <BlockEditorForm
-                  slide={selectedBlock}
-                  onSave={(updates) => updateBlock(selectedBlock.block_id, selection.lessonId, updates)}
-                  isSaving={isSaving}
-                />
-              ) : selectedLesson ? (
-                <LessonPropertiesPanel lesson={selectedLesson} />
-              ) : (
-                <Box sx={{ p: 2 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Select a slide to edit its properties.
-                  </Typography>
-                </Box>
-              )}
             </Box>
           )}
         </Box>

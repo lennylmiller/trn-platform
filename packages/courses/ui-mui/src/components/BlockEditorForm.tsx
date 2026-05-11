@@ -20,7 +20,7 @@ export interface BlockEditorFormProps {
   isSaving?: boolean;
 }
 
-const SLIDE_TYPES: { value: CourseBlockType; label: string }[] = [
+export const SLIDE_TYPES: { value: CourseBlockType; label: string }[] = [
   { value: 'narrative', label: 'Narrative' },
   { value: 'reference', label: 'Reference' },
   { value: 'live_demo', label: 'Live Demo' },
@@ -30,7 +30,7 @@ const SLIDE_TYPES: { value: CourseBlockType; label: string }[] = [
   { value: 'screenshot_task', label: 'Screenshot Task' },
 ];
 
-const VERIFY_MODES: { value: VerifyMode; label: string }[] = [
+export const VERIFY_MODES: { value: VerifyMode; label: string }[] = [
   { value: 'auto', label: 'Auto (check expected_json)' },
   { value: 'show', label: 'Show (display results)' },
 ];
@@ -271,7 +271,7 @@ export function BlockEditorForm({ slide, onSave, isSaving }: BlockEditorFormProp
 // Sub-components
 // ---------------------------------------------------------------------------
 
-function QuizOptionsEditor({
+export function QuizOptionsEditor({
   options,
   answer,
   onChangeOptions,
@@ -337,7 +337,7 @@ function QuizOptionsEditor({
   );
 }
 
-function HintsEditor({
+export function HintsEditor({
   hints,
   onChange,
 }: {

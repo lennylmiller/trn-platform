@@ -14,4 +14,6 @@ export { useDeleteLesson } from './mutations/useDeleteLesson';
 export type { DeleteLessonVars } from './mutations/useDeleteLesson';
 export { useDeleteBlock } from './mutations/useDeleteBlock';
 export type { DeleteBlockVars } from './mutations/useDeleteBlock';
+export { useUpdateSlideContent } from './mutations/useUpdateSlideContent';
+export type { UpdateSlideContentVars } from './mutations/useUpdateSlideContent';
 export { apiFetch, ApiError } from './client';

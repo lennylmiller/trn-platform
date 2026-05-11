@@ -23,6 +23,15 @@ const meta: Meta<typeof CourseEditor> = {
     ),
   ],
   tags: ['autodocs'],
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('*/api/v2/courses/42', () =>
+          HttpResponse.json(mockCourseDetail),
+        ),
+      ],
+    },
+  },
   args: {
     courseId: 42,
     onExit: () => {},
