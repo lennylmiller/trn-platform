@@ -42,3 +42,6 @@ pnpm-debug.log*
 # Uploaded files (keep directory, ignore content)
 uploads/*
 !uploads/.gitkeep
+
+# To leverage the ephemeral pattern
+ephemeral/*
