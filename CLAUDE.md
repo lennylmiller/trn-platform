@@ -24,7 +24,7 @@ pnpm test                                                # All tests across all 
 pnpm --filter @trn-platform/steps-ui-mui test            # Single package
 pnpm test:watch                                          # Watch mode
 pnpm test:coverage                                       # Coverage reports
-pnpm test:all                                            # Comprehensive suite with aggregated coverage
+pnpm test:all                                            # Full check: typecheck + lint + test + build
 
 # Visual regression (Playwright via Storybook)
 pnpm test:visual
@@ -83,6 +83,7 @@ packages/{domain}/ui-mui/        # MUI components + stories
 packages/shared/                 # Cross-domain schemas, types, constants, db
 packages/mcp-server/             # MCP server for AI-assisted training (bin: trn-mcp)
 server/                          # Root Express entry point, middleware, db migrations
+apps/qc-training/                # Primary Vite app (full training platform UI)
 apps/component-demo/             # Demo app (excluded from default build)
 ```
 
@@ -97,7 +98,7 @@ Note: `server/` at root (Express entry point + middleware) is distinct from `pac
 - Exception: `@trn-platform/shared` exports sub-paths `./db` and `./tools` for server-side use
 
 ### 7 Domains
-`steps`, `flows`, `compositions`, `execution`, `chat`, `stories`, `courses` — plus `shared` for cross-domain schemas, types, constants, and database utilities. Not all domains have all 4 layers (e.g., `chat` has only `server/`).
+`steps`, `flows`, `compositions`, `execution`, `chat`, `stories`, `courses` — plus `shared` for cross-domain schemas, types, constants, and database utilities. All 7 domains have the full 4-layer stack (server, data-access, feature, ui-mui).
 
 ### Shared Package (`packages/shared/`)
 - **Zod schemas** (`src/schemas/`) — API validation, types inferred via `z.infer<>`
@@ -187,4 +188,4 @@ Connection via `mssql` multi-pool. Environment variables: `DB_SERVER`, `DB_PORT`
 
 **Deep references:** `docs/trn-platform/0-vision/north-star.md` · `docs/trn-platform/4-reference/sql-server-config.md` · `docs/trn-platform/4-reference/pipeline-guide.md`
 
-**Docs structure:** `docs/trn-platform/` uses a kanban-style layout: `0-vision/`, `1-specs/`, `2-on-deck/`, `3-done/`, `4-reference/`, `bugs/`
+**Docs structure:** `docs/trn-platform/` uses a kanban-style layout: `0-vision/`, `1-specs/`, `2-on-deck/`, `3-done/`, `4-reference/`, `assets/`

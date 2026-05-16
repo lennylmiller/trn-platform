@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-TRN Platform is a pnpm TypeScript monorepo. Application entry points live in `apps/`: `apps/qc-training` is the primary Vite app, and `apps/component-demo` is the demo app. Shared backend startup, middleware, and migrations live in `server/`. Domain packages live under `packages/{steps,flows,compositions,execution}/` and follow the layer pattern `server`, `data-access`, `feature`, and `ui-mui`. Cross-domain schemas, types, constants, and database helpers belong in `packages/shared`. Docs live in `docs/trn-platform`.
+TRN Platform is a pnpm TypeScript monorepo. Application entry points live in `apps/`: `apps/qc-training` is the primary Vite app, and `apps/component-demo` is the demo app. Shared backend startup, middleware, and migrations live in `server/`. Domain packages live under `packages/{steps,flows,compositions,execution,chat,stories,courses}/` and follow the layer pattern `server`, `data-access`, `feature`, and `ui-mui`. The MCP server lives at `packages/mcp-server/`. Cross-domain schemas, types, constants, and database helpers belong in `packages/shared`. Docs live in `docs/trn-platform`.
 
 ## Build, Test, and Development Commands
 
