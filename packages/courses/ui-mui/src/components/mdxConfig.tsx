@@ -5,7 +5,7 @@ import {
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Alert from '@mui/material/Alert';
-import { RunnableSqlBlock } from '@trn-platform/compositions-ui-mui';
+import { RunnableSqlBlock } from './RunnableSqlBlock';
 import { Component, type ReactNode, type ErrorInfo } from 'react';
 
 // ---------------------------------------------------------------------------

@@ -16,4 +16,5 @@ export { useDeleteBlock } from './mutations/useDeleteBlock';
 export type { DeleteBlockVars } from './mutations/useDeleteBlock';
 export { useUpdateSlideContent } from './mutations/useUpdateSlideContent';
 export type { UpdateSlideContentVars } from './mutations/useUpdateSlideContent';
+export { useExecuteSql } from './mutations/useExecuteSql';
 export { apiFetch, ApiError } from './client';

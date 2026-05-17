@@ -15,9 +15,9 @@
     "@trn-platform/shared": "workspace:*",
     "@trn-platform/courses-data-access": "workspace:*",
     "@trn-platform/courses-feature": "workspace:*",
-    "@trn-platform/execution-feature": "workspace:*",
-    "@trn-platform/compositions-ui-mui": "workspace:*",
-    "@trn-platform/chat-ui-mui": "workspace:*"
+    "@trn-platform/chat-ui-mui": "workspace:*",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@emotion/react": "^11.14.0",

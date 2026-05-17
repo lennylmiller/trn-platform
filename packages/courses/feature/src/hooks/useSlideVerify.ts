@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { useExecuteSql } from '@trn-platform/execution-data-access';
+import { useExecuteSql } from '@trn-platform/courses-data-access';
 import type { CourseBlock } from '@trn-platform/shared';
 
 export interface VerifyResult {

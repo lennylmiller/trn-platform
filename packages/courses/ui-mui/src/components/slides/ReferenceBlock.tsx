@@ -1,7 +1,7 @@
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import type { CourseBlock } from '@trn-platform/shared';
-import { MarkdownBlock } from '@trn-platform/compositions-ui-mui';
+import { MarkdownBlock } from '../MarkdownBlock';
 
 export function ReferenceBlock({ slide }: { slide: CourseBlock }) {
   return (

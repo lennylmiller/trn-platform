@@ -1,7 +1,8 @@
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import type { CourseBlock } from '@trn-platform/shared';
-import { RunnableSqlBlock, MarkdownBlock } from '@trn-platform/compositions-ui-mui';
+import { RunnableSqlBlock } from '../RunnableSqlBlock';
+import { MarkdownBlock } from '../MarkdownBlock';
 
 export function LiveDemoBlock({ slide }: { slide: CourseBlock }) {
   return (

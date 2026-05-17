@@ -29,7 +29,7 @@ import { AddLessonDialog } from './AddLessonDialog';
 import { DraftPanel } from './DraftPanel';
 import { EditableBlockRenderer } from './EditableBlockRenderer';
 import { WelcomeScreen } from './WelcomeScreen';
-import { MarkdownBlock } from '@trn-platform/compositions-ui-mui';
+import { MarkdownBlock } from './MarkdownBlock';
 import type { CourseDraft } from '@trn-platform/shared';
 import { AddBlockDialog } from './AddBlockDialog';
 import type { CourseBlockType } from '@trn-platform/shared';

@@ -18,7 +18,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useCoursePlayer } from '@trn-platform/courses-feature';
 import type { PlayerScreen } from '@trn-platform/courses-feature';
 import { BlockRenderer } from './BlockRenderer';
-import { MarkdownBlock } from '@trn-platform/compositions-ui-mui';
+import { MarkdownBlock } from './MarkdownBlock';
 import { getBlockTypeIcon } from './CourseOutline';
 
 export interface CoursePlayerProps {

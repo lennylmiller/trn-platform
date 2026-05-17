@@ -9,9 +9,9 @@ import Typography from '@mui/material/Typography';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import BoltIcon from '@mui/icons-material/Bolt';
 import type { CourseBlock } from '@trn-platform/shared';
-import { MarkdownBlock } from '@trn-platform/compositions-ui-mui';
+import { MarkdownBlock } from '../MarkdownBlock';
 import { useSlideVerify } from '@trn-platform/courses-feature';
-import { useExecuteSql } from '@trn-platform/execution-feature';
+import { useExecuteSql } from '@trn-platform/courses-data-access';
 
 export function DoItInQcBlock({ slide }: { slide: CourseBlock }) {
   const { verify, result, isPending } = useSlideVerify();

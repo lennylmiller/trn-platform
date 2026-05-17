@@ -2,7 +2,7 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import type { CourseBlock } from '@trn-platform/shared';
-import { MarkdownBlock } from '@trn-platform/compositions-ui-mui';
+import { MarkdownBlock } from '../MarkdownBlock';
 
 export function ScreenshotTaskBlock({ slide }: { slide: CourseBlock }) {
   return (

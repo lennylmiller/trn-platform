@@ -7,7 +7,8 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import type { CourseBlock } from '@trn-platform/shared';
-import { RunnableSqlBlock, MarkdownBlock } from '@trn-platform/compositions-ui-mui';
+import { RunnableSqlBlock } from '../RunnableSqlBlock';
+import { MarkdownBlock } from '../MarkdownBlock';
 
 export function SqlChallengeBlock({ slide }: { slide: CourseBlock }) {
   const [hintsRevealed, setHintsRevealed] = useState(0);

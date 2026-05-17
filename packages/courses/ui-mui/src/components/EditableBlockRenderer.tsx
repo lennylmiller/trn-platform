@@ -14,7 +14,8 @@ import Collapse from '@mui/material/Collapse';
 import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import type { CourseBlock, CourseBlockUpdate, CourseBlockType, VerifyMode } from '@trn-platform/shared';
-import { MarkdownBlock, RunnableSqlBlock } from '@trn-platform/compositions-ui-mui';
+import { MarkdownBlock } from './MarkdownBlock';
+import { RunnableSqlBlock } from './RunnableSqlBlock';
 import { SLIDE_TYPES, VERIFY_MODES, QuizOptionsEditor, HintsEditor } from './BlockEditorForm';
 import { ImageUploadZone } from './ImageUploadZone';
 

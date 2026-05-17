@@ -13,8 +13,7 @@
   },
   "dependencies": {
     "@trn-platform/shared": "workspace:*",
-    "@trn-platform/courses-data-access": "workspace:*",
-    "@trn-platform/execution-data-access": "workspace:*"
+    "@trn-platform/courses-data-access": "workspace:*"
   },
   "devDependencies": {
     "typescript": "5.9.3"
