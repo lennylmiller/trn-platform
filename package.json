@@ -11,8 +11,7 @@
     "test:visual": "playwright test",
     "test:visual:update": "playwright test --update-snapshots",
     "test:visual:ui": "playwright test --ui",
-    "build": "pnpm -r --filter=!@trn-platform/component-demo build",
-    "build:all": "pnpm -r build",
+    "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",
     "changeset": "changeset",
@@ -26,7 +25,6 @@
     "db:migrate": "tsx server/db/migrate.ts",
     "db:seed": "tsx packages/courses/server/src/fixtures.ts",
     "db:seed:export": "tsx packages/courses/server/src/export-fixtures.ts",
-    "dev:workbench": "bash scripts/start-workbench.sh",
     "dev": "concurrently \"pnpm server:dev\" \"pnpm storybook\"",
     "dev:qc": "concurrently \"pnpm server:dev\" \"pnpm --filter @trn-platform/qc-training dev\""
   },

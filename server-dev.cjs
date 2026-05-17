@@ -11,6 +11,7 @@ const helmet = require('helmet');
 const { authMiddleware } = require('./server/src/middleware/auth.ts');
 const { errorHandler } = require('./server/src/middleware/error.ts');
 const { getPool, healthCheck, closePool } = require('./server/db/connection.ts');
+const { ExecuteSqlSchema } = require('./packages/shared/src/schemas/index.ts');
 
 // Domain routers — resolve @trn-platform/*-server to source (not dist)
 // so node --watch picks up changes without rebuilding.
@@ -20,12 +21,7 @@ const Module = require('module');
 const origResolve = Module._resolveFilename;
 
 const SOURCE_MAP = {
-  '@trn-platform/steps-server':        join(__dirname, 'packages/steps/server/src/index.ts'),
-  '@trn-platform/flows-server':        join(__dirname, 'packages/flows/server/src/index.ts'),
-  '@trn-platform/compositions-server': join(__dirname, 'packages/compositions/server/src/index.ts'),
-  '@trn-platform/execution-server':    join(__dirname, 'packages/execution/server/src/index.ts'),
   '@trn-platform/chat-server':         join(__dirname, 'packages/chat/server/src/index.ts'),
-  '@trn-platform/stories-server':      join(__dirname, 'packages/stories/server/src/index.ts'),
   '@trn-platform/courses-server':      join(__dirname, 'packages/courses/server/src/index.ts'),
   '@trn-platform/shared':              join(__dirname, 'packages/shared/src/index.ts'),
   '@trn-platform/shared/db':           join(__dirname, 'packages/shared/src/db/index.ts'),
@@ -40,12 +36,7 @@ Module._resolveFilename = function(request, parent, isMain, options) {
   return origResolve.call(this, request, parent, isMain, options);
 };
 
-const { stepsRouter } = require('@trn-platform/steps-server');
-const { flowsRouter } = require('@trn-platform/flows-server');
-const { compositionsRouter } = require('@trn-platform/compositions-server');
-const { executionRouter } = require('@trn-platform/execution-server');
 const { chatRouter, warmupMcpClient } = require('@trn-platform/chat-server');
-const { storiesRouter } = require('@trn-platform/stories-server');
 const { coursesRouter } = require('@trn-platform/courses-server');
 
 console.log('[server] AUTH_DISABLED:', process.env.AUTH_DISABLED);
@@ -73,7 +64,6 @@ app.get('/api/health', async (_req, res) => {
 
 // File upload endpoint
 const multer = require('multer');
-const fs = require('fs');
 const crypto = require('crypto');
 const uploadStorage = multer.diskStorage({
   destination: join(__dirname, 'uploads'),
@@ -91,12 +81,27 @@ app.post('/api/v2/uploads', upload.single('file'), (req, res) => {
 });
 
 app.use('/api', authMiddleware);
-app.use('/api/v2/steps', stepsRouter);
-app.use('/api/v2/flows', flowsRouter);
-app.use('/api/v2/compositions', compositionsRouter);
-app.use('/api/v2/execute', executionRouter);
+
+// SQL execution endpoint (used by course SQL challenge blocks)
+app.post('/api/v2/execute/sql', async (req, res, next) => {
+  try {
+    const { sql } = ExecuteSqlSchema.parse(req.body);
+    const pool = await getPool('qc_core');
+    const result = await pool.request().query(sql);
+    const columns = result.recordset?.columns
+      ? Object.keys(result.recordset.columns)
+      : [];
+    res.json({
+      columns,
+      rows: result.recordset ?? [],
+      rowCount: result.rowsAffected[0] ?? 0,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.use('/api/v2/chat', chatRouter);
-app.use('/api/v2/stories', storiesRouter);
 app.use('/api/v2/courses', coursesRouter);
 app.use(errorHandler);
 

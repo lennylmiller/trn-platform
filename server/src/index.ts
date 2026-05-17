@@ -1,6 +1,6 @@
 import { createRequire } from 'module';
 import express from 'express';
-import type { Request, Response } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 
@@ -8,16 +8,13 @@ import { authMiddleware } from './middleware/auth';
 import { errorHandler } from './middleware/error';
 import { getFeedbackCaptureDir, handleFeedbackSubmit } from './capture/feedback';
 import { healthCheck, closePool } from '../db/connection';
+import { ExecuteSqlSchema } from '@trn-platform/shared';
+import { getPool } from '@trn-platform/shared/db';
 
 const require = createRequire(import.meta.url);
 
 // Domain routers — loaded from compiled dist via workspace package resolution
-const { stepsRouter } = require('@trn-platform/steps-server') as typeof import('@trn-platform/steps-server');
-const { flowsRouter } = require('@trn-platform/flows-server') as typeof import('@trn-platform/flows-server');
-const { compositionsRouter } = require('@trn-platform/compositions-server') as typeof import('@trn-platform/compositions-server');
-const { executionRouter } = require('@trn-platform/execution-server') as typeof import('@trn-platform/execution-server');
 const { chatRouter } = require('@trn-platform/chat-server') as typeof import('@trn-platform/chat-server');
-const { storiesRouter } = require('@trn-platform/stories-server') as typeof import('@trn-platform/stories-server');
 const { coursesRouter } = require('@trn-platform/courses-server') as typeof import('@trn-platform/courses-server');
 
 console.log('[server] AUTH_DISABLED:', process.env.AUTH_DISABLED);
@@ -54,13 +51,27 @@ app.get('/api/v2/feedback/info', (_req: Request, res: Response) => {
   res.json({ feedbackDir: getFeedbackCaptureDir() });
 });
 
+// SQL execution endpoint (used by course SQL challenge blocks)
+app.post('/api/v2/execute/sql', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { sql } = ExecuteSqlSchema.parse(req.body);
+    const pool = await getPool('qc_core');
+    const result = await pool.request().query(sql);
+    const columns = result.recordset?.columns
+      ? Object.keys(result.recordset.columns)
+      : [];
+    res.json({
+      columns,
+      rows: result.recordset ?? [],
+      rowCount: result.rowsAffected[0] ?? 0,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Mount domain routers
-app.use('/api/v2/steps', stepsRouter);
-app.use('/api/v2/flows', flowsRouter);
-app.use('/api/v2/compositions', compositionsRouter);
-app.use('/api/v2/execute', executionRouter);
 app.use('/api/v2/chat', chatRouter);
-app.use('/api/v2/stories', storiesRouter);
 app.use('/api/v2/courses', coursesRouter);
 
 // Error handling
