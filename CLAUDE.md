@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-TRN Platform is a Training & Demo platform for QC (Quality Care) systems, built as a pnpm monorepo with 7 domains. Each domain follows a strict 4-layer architecture using React 19, TypeScript (strict), MUI 9, TanStack Query 5, and SQL Server via Express as the backend.
+TRN Platform is a Training & Demo platform for QC (Quality Care) systems, built as a pnpm monorepo focused on **courses**. The architecture follows a strict 4-layer pattern using React 19, TypeScript (strict), MUI 9, TanStack Query 5, and SQL Server via Express as the backend.
 
 **Stack:** React 19 · MUI 9 · Emotion · TanStack Query 5 · SQL Server (mssql) · Express 5 · Zod · Vitest · Storybook 10 · tsup · pnpm workspaces · changesets
 
@@ -21,7 +21,7 @@ Copy `.env.example` to `.env` and fill in `DB_USER`/`DB_PASSWORD`. Key variables
 ```bash
 # Testing
 pnpm test                                                # All tests across all packages
-pnpm --filter @trn-platform/steps-ui-mui test            # Single package
+pnpm --filter @trn-platform/courses-ui-mui test          # Single package
 pnpm test:watch                                          # Watch mode
 pnpm test:coverage                                       # Coverage reports
 pnpm test:all                                            # Full check: typecheck + lint + test + build
@@ -32,8 +32,7 @@ pnpm test:visual:update                                  # Update snapshots
 pnpm test:visual:ui                                      # Interactive UI
 
 # Building
-pnpm build                                               # All packages (excludes component-demo)
-pnpm build:all                                           # All packages including demo
+pnpm build                                               # All packages
 pnpm typecheck                                           # Type checking across all packages
 pnpm lint                                                # Linting
 
@@ -66,7 +65,7 @@ server  →  data-access  →  feature  →  ui-mui  →  shared
 (Express)  (TanStack Q)    (business)   (MUI)      (schemas/types)
 ```
 
-- **`server/`** — Express routes + raw SQL queries via `mssql`. Handles validation, error responses, SSE streams.
+- **`server/`** — Express routes + raw SQL queries via `mssql`. Handles validation, error responses.
 - **`data-access/`** — TanStack Query hooks wrapping `fetch` calls to the Express API at `localhost:3001`. Query key factories, Zod response validation.
 - **`feature/`** — Business logic hooks orchestrating data-access hooks. Filtering, sorting, derived state. Depends on `data-access`.
 - **`ui-mui/`** — React components with MUI + Emotion. Co-located Storybook stories. Can depend on `feature` and `data-access`.
@@ -76,18 +75,21 @@ server  →  data-access  →  feature  →  ui-mui  →  shared
 ### Workspace Structure
 
 ```
-packages/{domain}/data-access/   # TanStack Query hooks
-packages/{domain}/feature/       # Business logic
-packages/{domain}/server/        # Domain-specific Express routes
-packages/{domain}/ui-mui/        # MUI components + stories
-packages/shared/                 # Cross-domain schemas, types, constants, db
-packages/mcp-server/             # MCP server for AI-assisted training (bin: trn-mcp)
-server/                          # Root Express entry point, middleware, db migrations
-apps/qc-training/                # Primary Vite app (full training platform UI)
-apps/component-demo/             # Demo app (excluded from default build)
+packages/courses/data-access/   # TanStack Query hooks for courses
+packages/courses/feature/       # Course business logic (player, editor, verify)
+packages/courses/server/        # Course Express routes + queries
+packages/courses/ui-mui/        # Course MUI components + stories
+packages/chat/data-access/      # Chat API hooks
+packages/chat/feature/          # Chat business logic
+packages/chat/server/           # Chat Express routes (Claude AI integration)
+packages/chat/ui-mui/           # ChatPanel component
+packages/shared/                # Cross-domain schemas, types, db utilities
+packages/mcp-server/            # MCP server for AI-assisted training (bin: trn-mcp)
+server/                         # Root Express entry point, middleware, db migrations
+apps/qc-training/               # Primary Vite app (courses-only UI)
 ```
 
-Note: `server/` at root (Express entry point + middleware) is distinct from `packages/*/server/` (domain route handlers). The root server imports and mounts domain routers at `/api/v2/{domain}` (e.g., `/api/v2/steps`, `/api/v2/flows`). Health check at `/api/health` (no auth).
+Note: `server/` at root (Express entry point + middleware) is distinct from `packages/*/server/` (domain route handlers). The root server mounts domain routers at `/api/v2/{domain}` (e.g., `/api/v2/courses`, `/api/v2/chat`). SQL execution endpoint at `/api/v2/execute/sql`. Health check at `/api/health` (no auth).
 
 ### Critical Dependency Rules
 - Never skip layers (ui-mui must not import data-access directly when feature exists for that use case)
@@ -97,14 +99,13 @@ Note: `server/` at root (Express entry point + middleware) is distinct from `pac
 - Import from package root only: `from '@trn-platform/shared'` not `from '@trn-platform/shared/types'`
 - Exception: `@trn-platform/shared` exports sub-paths `./db` and `./tools` for server-side use
 
-### 7 Domains
-`steps`, `flows`, `compositions`, `execution`, `chat`, `stories`, `courses` — plus `shared` for cross-domain schemas, types, constants, and database utilities. All 7 domains have the full 4-layer stack (server, data-access, feature, ui-mui).
+### 2 Active Domains
+`courses` and `chat` — plus `shared` for cross-domain schemas, types, and database utilities. Both domains have the full 4-layer stack (server, data-access, feature, ui-mui). The chat domain powers AI-assisted course creation via ChatPanel.
 
 ### Shared Package (`packages/shared/`)
-- **Zod schemas** (`src/schemas/`) — API validation, types inferred via `z.infer<>`
-- **TypeScript types** (`src/types/`) — domain types inferred from Zod schemas
-- **Constants** (`src/constants/`) — SSE event names, step type colors, category labels
+- **Zod schemas** (`src/schemas/`) — Course and SQL execution schemas, types inferred via `z.infer<>`
 - **Database** (`src/db/`) — Multi-pool connection manager for SQL Server
+- **Tools** (`src/tools/`) — SQL schema exploration, query execution, qc-train.sh wrapper
 
 ## Database
 
@@ -112,7 +113,7 @@ Note: `server/` at root (Express entry point + middleware) is distinct from `pac
 
 | Database | Purpose |
 |----------|---------|
-| `qc_training` | Training data: steps, flows, compositions, blocks |
+| `qc_training` | Training data: courses, lessons, slides, tracks, series |
 | `qc_core` | Production reference: members, PCPs, claims, referrals |
 
 Connection via `mssql` multi-pool. Environment variables: `DB_SERVER`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`.
@@ -125,15 +126,7 @@ Connection via `mssql` multi-pool. Environment variables: `DB_SERVER`, `DB_PORT`
 | String type | `NVARCHAR` | Unicode support |
 | Auth | Express middleware | No RLS in SQL Server |
 | ORM | None — raw parameterized SQL | Full SQL Server access |
-| Real-time | Server-Sent Events (SSE) | Simpler than WebSocket for one-way streaming |
-| Dedup/ordering | `seq` column + unique constraints | Deterministic ordering for flows and blocks |
-
-### Tables (qc_training)
-- `step_library` — PK: `step_id` INT IDENTITY
-- `flow` — PK: `flow_id` INT IDENTITY
-- `flow_step` — PK: `flow_step_id`; FK: `flow_id`, `step_id`; `seq` for ordering
-- `composition` — PK: `composition_id` INT IDENTITY
-- `composition_block` — PK: `block_id`; FK: `composition_id`, `flow_id` (nullable), `ref_composition_id` (nullable); `seq` for ordering
+| Dedup/ordering | `seq` column + unique constraints | Deterministic ordering for lessons and slides |
 
 ## Testing
 
@@ -157,18 +150,10 @@ Connection via `mssql` multi-pool. Environment variables: `DB_SERVER`, `DB_PORT`
 ## Storybook
 
 - **Story pattern:** `packages/*/ui-mui/src/**/*.stories.tsx`
-- **Workflow stories:** `.storybook/workflows/` — 5 workflows + standalone
-- **Page compositions:** `.storybook/pages/` — full-page stories importing domain components
+- **Standalone stories:** `.storybook/workflows/standalone/` — utility stories (branding, SQL demo)
 - **Path aliases** in `.storybook/main.ts` map `@trn-platform/*` to source directories
 - **Addons:** docs, a11y, themes, vitest, msw-storybook-addon
 - **MSW** for API mocking in stories (`.storybook/mocks/`)
-
-### Workflows
-1. **Build Demo** (wf1) — Author steps, create flow, add/configure steps, test run
-2. **Present Flow** (wf2) — Select flow, start presentation, step through pauses, view results
-3. **Author Story** (wf3) — Create composition, add blocks (narrative/flow/note), reorder, preview
-4. **Run Training** (wf4) — Select composition, walk narrative, execute embedded flows, view SQL results
-5. **Manage Steps** (wf5) — View library, edit, test, delete steps
 
 ## TypeScript Configuration
 
@@ -178,7 +163,6 @@ Connection via `mssql` multi-pool. Environment variables: `DB_SERVER`, `DB_PORT`
 ## Build System
 
 - **tsup** for library builds: CJS + ESM + DTS, `--clean` flag
-- `pnpm build` excludes `component-demo`; `pnpm build:all` includes it
 - Shared package `dist/` must be current before running dependent package tests
 - **pnpm overrides** in root `package.json` pin React, TanStack Query, and Vitest versions to prevent conflicts across the monorepo
 

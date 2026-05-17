@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-TRN Platform is a pnpm TypeScript monorepo. Application entry points live in `apps/`: `apps/qc-training` is the primary Vite app, and `apps/component-demo` is the demo app. Shared backend startup, middleware, and migrations live in `server/`. Domain packages live under `packages/{steps,flows,compositions,execution,chat,stories,courses}/` and follow the layer pattern `server`, `data-access`, `feature`, and `ui-mui`. The MCP server lives at `packages/mcp-server/`. Cross-domain schemas, types, constants, and database helpers belong in `packages/shared`. Docs live in `docs/trn-platform`.
+TRN Platform is a pnpm TypeScript monorepo focused on **courses**. The primary Vite app lives at `apps/qc-training`. Shared backend startup, middleware, and migrations live in `server/`. Domain packages live under `packages/{courses,chat}/` and follow the layer pattern `server`, `data-access`, `feature`, and `ui-mui`. The MCP server lives at `packages/mcp-server/`. Cross-domain schemas, types, and database helpers belong in `packages/shared`. Docs live in `docs/trn-platform`.
 
 ## Build, Test, and Development Commands
 
@@ -13,12 +13,11 @@ Use Node `>=22` and pnpm `>=8`.
 - `pnpm storybook`: start Storybook on port 6006.
 - `pnpm test`: run Vitest across all workspace packages.
 - `pnpm test:visual`: run Playwright visual regression tests.
-- `pnpm build`: build all packages except `component-demo`.
-- `pnpm build:all`: build every workspace package and app.
+- `pnpm build`: build all packages.
 - `pnpm typecheck`: run TypeScript checks across the monorepo.
 - `pnpm db:migrate`: apply SQL Server migrations from `server/db`.
 
-For package-scoped work, prefer filters such as `pnpm --filter @trn-platform/steps-ui-mui test`.
+For package-scoped work, prefer filters such as `pnpm --filter @trn-platform/courses-ui-mui test`.
 
 ## Coding Style & Naming Conventions
 
@@ -30,7 +29,7 @@ Vitest is the default test runner, with package configs extending the root/base 
 
 ## Commit & Pull Request Guidelines
 
-Recent commits use concise imperative summaries, for example `Refactor useFlowRunner...`. Keep commits focused on one behavior or structural change. Pull requests should include a short description, linked issue or ticket, test results, and screenshots or Storybook references for UI changes. Note database migration or environment changes explicitly.
+Keep commits focused on one behavior or structural change. Pull requests should include a short description, linked issue or ticket, test results, and screenshots or Storybook references for UI changes. Note database migration or environment changes explicitly.
 
 ## Security & Configuration Tips
 
