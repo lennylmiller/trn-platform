@@ -1,3 +1,0 @@
-This current diagram is hard to follow, can you create a Trial-1 drawing with some better structure, and make it more clear at first glance what the flow, theme, etc... 
-
-![[2026-05-17_12-49-51.png]]
